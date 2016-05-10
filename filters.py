@@ -1,4 +1,4 @@
-import scipy.stats
+import scipy
 import numpy as np
 import math
 
