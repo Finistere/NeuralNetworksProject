@@ -22,14 +22,14 @@ class DataSet:
 
     def feature_distribution(self, i):
         _, counts = np.unique(self.samples[i, :], return_counts=True)
-        return counts / counts.sum()
+        return counts / float(counts.sum())
 
     def class_entropy(self):
         return scipy.stats.entropy(self.class_distribution())
 
     def class_distribution(self):
         _, counts = np.unique(self.classes, return_counts=True)
-        return counts / counts.sum()
+        return counts / float(counts.sum())
 
     def feature_class_conditional_entropy(self, i):
         entropy = 0
