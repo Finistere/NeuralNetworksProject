@@ -1,4 +1,4 @@
-import scipy
+import scipy.stats
 import numpy as np
 import math
 
@@ -32,15 +32,13 @@ class DataSet:
         return counts / float(counts.sum())
 
     def feature_class_conditional_entropy(self, i):
-        entropy = 0
         feature_class_distribution = self.feature_class_joint_distribution(i)
         class_distribution = self.class_distribution()
-
-        for feature_index in range(feature_class_distribution.shape[0]):
-            for class_index in range(feature_class_distribution.shape[1]):
-                p = feature_class_distribution[feature_index, class_index]
-                if p:
-                    entropy += p * math.log(class_distribution[class_index] / p)
+        
+        # comuptes ration of P(X)/P(X,Y)
+        PxPxy = np.log(class_distribution / feature_class_distribution)
+        PxPxy[np.isinf(PxPxy)] = 0
+        entropy = (feature_class_distribution * PxPxy).sum()
 
         return entropy
 

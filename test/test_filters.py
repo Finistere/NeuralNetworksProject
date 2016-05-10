@@ -3,7 +3,7 @@ import filters
 import math
 
 
-class TestDataSet(unittest.TestCase):
+class TestDataSet():
     # data set for integer valued entropy
     data_set = filters.DataSet(
         [
@@ -66,8 +66,4 @@ class TestDataSet(unittest.TestCase):
         h_fc = 2 * 1./3 * math.log((2./3) / (1./3)) + 1./3 * math.log((1./3) / (1./3))
         su = 2 * (h_f - h_fc) / (h_f + h_c)
         assert abs(su - self.data_set.symmetrical_uncertainty(0)) < 10 ** -5
-
-if __name__ == '__main__':
-        unittest.main()
-
 
