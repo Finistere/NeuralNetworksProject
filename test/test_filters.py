@@ -5,7 +5,7 @@ import math
 
 class TestDataSet():
     # data set for integer valued entropy
-    data_set = filters.DataSet(
+    data_set = filters.SUFilter(
         [
             [1, 2, 3],
             [0, 0, 0],
@@ -67,3 +67,6 @@ class TestDataSet():
         su = 2 * (h_f - h_fc) / (h_f + h_c)
         assert abs(su - self.data_set.symmetrical_uncertainty(0)) < 10 ** -5
 
+    def test_symmetrical_uncertainty2(self):
+        #TODO
+        assert (0==1)
