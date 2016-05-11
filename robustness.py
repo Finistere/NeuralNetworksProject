@@ -1,5 +1,6 @@
 import numpy as np
 import scipy as sp
+from sklearn.metrics import jaccard_similarity_score 
 import filters
 
 class RobustnessMeasurement:
@@ -60,9 +61,31 @@ class RobustnessMeasurement:
         # apply spearman similarity measures
         spearman_coeffs, _ = sp.stats.spearmanr(features_rank.T)
         # takes the lower triangular matrix to sum over
-        S_tot = np.sum(np.tril(spearman_coeffs,-1)) / (subsample_number*(subsample_number-1))
-        return S_tot
+        spearman_tot = np.sum(np.tril(spearman_coeffs,-1)) / (subsample_number*(subsample_number-1))
+
+        jaccard_indices = jaccard_index(features_rank)
+        jaccard_tot = np.sum(np.tril(jaccard_indices,-1)) / (subsample_number*(subsample_number-1))
+        return spearman_tot, jaccard_tot
 
 
+def jaccard_index(features_rank, perc=0.1):
+    # the minimal rank a feature mast have to be chosen
+    minimal_rank = int((1-perc)*features_rank.shape[1])
+    features_rank_c = np.copy(features_rank)
+    # set everything below the minimal rank to zero and everything else to 1
+    features_rank_c[minimal_rank > features_rank_c] = 0
+    features_rank_c[0 != features_rank_c] = 1
 
+    k = features_rank.shape[0]
+    jaccard_indices = np.zeros((k,k))
+
+    for i in range(k):
+        for j in range(k):
+            # bothe features have to be 1
+            condition = np.logical_and(features_rank_c[i]==1, features_rank_c[j]==1)
+            jaccard_indices[i,j] = np.sum(condition)
+
+    # normalize
+    jaccard_indices = jaccard_indices/float(features_rank.shape[1]-minimal_rank)
+    return jaccard_indices
 
