@@ -10,7 +10,7 @@ class RobustnessMeasurement:
 
     # apply all similariy
     def calculate_robustness(self, similarity_measurement='spearman', 
-                             subsample_size_coeff=0.5, subsample_number=10):
+                             subsample_size_coeff=0.9, subsample_number=10):
         """Calculate the robustness for a feature selection
         with a similarity measurement
 
@@ -41,7 +41,10 @@ class RobustnessMeasurement:
             raise ValueError('subsample_size is smaller than sample_size')
 
         features_rank = np.zeros((subsample_number,self.sample.shape[0]))
+
+        print("Start ranking features with %d subsamples of size %d" %(subsample_number, subsample_size))
         for i in range(subsample_number):
+            print("Start run number %d"%i)
             # subsampling process
             subsample_indices = np.arange(sample_size)
             np.random.shuffle(subsample_indices)
@@ -51,7 +54,9 @@ class RobustnessMeasurement:
             # apply feature selection method
             SUF = filters.SUFilter(subsample, subclasses)
             features_rank[i] = SUF.fit(ranked=True)
+            print("end run number %d"%i)
             
+        print("Finished ranking")
         # apply spearman similarity measures
         spearman_coeffs, _ = sp.stats.spearmanr(features_rank.T)
         # takes the lower triangular matrix to sum over
