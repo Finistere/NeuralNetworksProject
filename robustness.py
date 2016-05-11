@@ -55,7 +55,6 @@ class RobustnessMeasurement:
         # apply spearman similarity measures
         spearman_coeffs, _ = sp.stats.spearmanr(features_rank.T)
         # takes the lower triangular matrix to sum over
-        #return spearman_coeffs, features_rank
         S_tot = np.sum(np.tril(spearman_coeffs,-1)) / (subsample_number*(subsample_number-1))
         return S_tot
 

@@ -37,19 +37,12 @@ class SUFilter:
         else:
             return su_values
 
-    def symmetrical_uncertainty2(self, feature_index):
+    def symmetrical_uncertainty(self, feature_index):
         h_f = self.feature_entropy(feature_index)
         h_c = self.class_entropy()
         h_fc = self.feature_class_joint_entropy(feature_index)
         # entropy f given c
         h_f_given_c = h_fc - h_c
-
-        return 2 * (h_f - h_f_given_c) / (h_f + h_c)
-
-    def symmetrical_uncertainty(self, feature_index):
-        h_f = self.feature_entropy(feature_index)
-        h_c = self.class_entropy()
-        h_f_given_c = self.feature_class_conditional_entropy2(feature_index)
         return 2 * (h_f - h_f_given_c) / (h_f + h_c)
 
     def feature_entropy(self, i):
@@ -66,33 +59,6 @@ class SUFilter:
         _, counts = np.unique(self.classes, return_counts=True)
         return counts / float(counts.sum())
 
-    def feature_class_conditional_entropy(self, i):
-        feature_class_distribution = self.feature_class_joint_distribution(i)
-        class_distribution = self.class_distribution()
-        
-        # comuptes ration of P(X)/P(X,Y)
-
-        # ignores dividing by zero because we will replace the infinity values
-        # in the next step with zeros
-        with np.errstate(divide='ignore', invalid='ignore'):
-            PxPxy = np.log(class_distribution / feature_class_distribution)
-        PxPxy[np.isinf(PxPxy)] = 0
-        entropy = (feature_class_distribution * PxPxy).sum()
-        return entropy
-
-    def feature_class_conditional_entropy2(self, i):
-        entropy = 0
-        feature_class_distribution = self.feature_class_joint_distribution(i)
-        class_distribution = self.class_distribution()
-
-        for feature_index in range(feature_class_distribution.shape[0]):
-            for class_index in range(feature_class_distribution.shape[1]):
-                p = feature_class_distribution[feature_index, class_index]
-                if p:
-                    entropy += p * math.log(class_distribution[class_index] / p)
-
-        return entropy
-
     def feature_class_joint_entropy(self, i):
         feature_class_distribution = self.feature_class_joint_distribution(i)
         # ignores logs by zero because we will replace the nan values
@@ -100,7 +66,7 @@ class SUFilter:
         with np.errstate(divide='ignore', invalid='ignore'):
             logPfc = np.log(feature_class_distribution)
         logPfc[np.isinf(logPfc)] = 0
-        entropy = np.sum(feature_class_distribution * logPfc)
+        entropy = -np.sum(feature_class_distribution * logPfc)
         return entropy
 
     # rows are features, cols are classes
