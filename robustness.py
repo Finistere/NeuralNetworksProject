@@ -41,36 +41,58 @@ class RobustnessMeasurement:
         if(subsample_size > sample_size):
             raise ValueError('subsample_size is smaller than sample_size')
 
-        features_rank = np.zeros((subsample_number,self.sample.shape[0]))
+        features_weight= np.zeros((subsample_number,self.sample.shape[0]))
 
-        print("Start ranking features with %d subsamples of size %d" %(subsample_number, subsample_size))
+        #print("Start ranking features with %d subsamples of size %d" %(subsample_number, subsample_size))
         for i in range(subsample_number):
-            print("Start run number %d"%i)
-            # subsampling process
-            subsample_indices = np.arange(sample_size)
-            np.random.shuffle(subsample_indices)
-            subsample = self.sample[:,subsample_indices[0:subsample_size]]
-            subclasses = self.classes[subsample_indices[0:subsample_size]]
-
+            #print("Start run number %d"%i)
+            subsample, subclasses = self.simple_random_sampling(subsample_size)
             # apply feature selection method
             SUF = filters.SUFilter(subsample, subclasses)
-            features_rank[i] = SUF.fit(ranked=True)
-            print("end run number %d"%i)
+            features_weight[i] = SUF.apply_su_on_data(method='library')
+            #print("end run number %d"%i)
             
-        print("Finished ranking")
+        #print("Finished ranking")
+        features_rank = self.rank_features(features_weight)
         # apply spearman similarity measures
-        spearman_coeffs, _ = sp.stats.spearmanr(features_rank.T)
+        spearman_coeffs = self.spearmean_coefficient(features_rank)
         # takes the lower triangular matrix to sum over
-        spearman_tot = np.sum(np.tril(spearman_coeffs,-1)) / (subsample_number*(subsample_number-1))
-
+        spearman_total = self.mean_of_lower_triangular_of_symmetric_matrix(spearman_coeffs)
         jaccard_indices = jaccard_index(features_rank)
-        jaccard_tot = np.sum(np.tril(jaccard_indices,-1)) / (subsample_number*(subsample_number-1))
-        return spearman_tot, jaccard_tot
+        jaccard_total = self.mean_of_lower_triangular_of_symmetric_matrix(jaccard_indices)
+        return spearman_total, jaccard_total
+
+    def simple_random_sampling(self, subsample_size):
+        sample_size = self.sample.shape[1]
+        subsample_indices = np.arange(sample_size)
+        np.random.shuffle(subsample_indices)
+        subsample = self.sample[:,subsample_indices[0:subsample_size]]
+        subclasses = self.classes[subsample_indices[0:subsample_size]]
+        return subsample, subclasses
+
+    def rank_features(self, features_weight):
+        features_rank = [sp.stats.rankdata(features_weight[i], method='ordinal') 
+                for i in range(features_weight.shape[0])]
+        return np.array(features_rank)
+
+    
+    def spearmean_coefficient(self, features_rank):
+        spearman_coeffs, _ = sp.stats.spearmanr(features_rank, axis=1)
+        return spearman_coeffs
+
+    def mean_of_lower_triangular_of_symmetric_matrix(self, symmetric_matrix):
+        numerator = 2*np.sum(np.tril(symmetric_matrix,-1)) 
+        number_of_rows = symmetric_matrix.shape[0]
+        denominator = number_of_rows*(number_of_rows-1)
+        return numerator/denominator
+
 
 
 def jaccard_index(features_rank, perc=0.1):
-    # the minimal rank a feature mast have to be chosen
-    minimal_rank = int((1-perc)*features_rank.shape[1])
+    if(np.any(np.min(features_rank, axis=1) != np.ones(features_rank.shape[0],dtype=np.int))):
+        raise ValueError('features_rank raking does not always begin with 1')
+    # the minimal rank a feature mast have to be chose
+    minimal_rank = int((1-perc)*features_rank.shape[1]) + 1
     features_rank_c = np.copy(features_rank)
     # set everything below the minimal rank to zero and everything else to 1
     features_rank_c[minimal_rank > features_rank_c] = 0
@@ -81,11 +103,11 @@ def jaccard_index(features_rank, perc=0.1):
 
     for i in range(k):
         for j in range(k):
-            # bothe features have to be 1
+            # both features have to be 1
             condition = np.logical_and(features_rank_c[i]==1, features_rank_c[j]==1)
             jaccard_indices[i,j] = np.sum(condition)
 
     # normalize
-    jaccard_indices = jaccard_indices/float(features_rank.shape[1]-minimal_rank)
+    jaccard_indices = jaccard_indices/float(features_rank.shape[1]-(minimal_rank-1))
     return jaccard_indices
 
