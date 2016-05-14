@@ -1,6 +1,7 @@
-import scipy.stats
+import scipy
 import numpy as np
 import math
+import mutual_information as mi
 
 
 class SUFilter:
@@ -11,8 +12,8 @@ class SUFilter:
         self.classes = np.array(classes)
 
 
-    def fit(self, ranked=False):
-        """Calculates the symmetrical uncertainty for each feature
+    def apply_su_on_data(self, method='default'):
+        """Apply the symmetrical uncertainty for each feature
         and returns usually the selected features
             
         Parameters
@@ -29,13 +30,15 @@ class SUFilter:
         """
         
         su_values = np.zeros(self.samples.shape[0])
-        for feature_index in range(self.samples.shape[0]):
-            su_values[feature_index] = self.symmetrical_uncertainty(feature_index)
-        if (ranked == True):
-            # multiply with -1 go receive descending order
-            return np.argsort(-su_values)
-        else:
-            return su_values
+        if(method == 'ourmethod'):
+            for feature_index in range(self.samples.shape[0]):
+                su_values[feature_index] = self.symmetrical_uncertainty(feature_index)
+        elif(method == 'default'):
+            for feature_index in range(self.samples.shape[0]):
+                su_values[feature_index] = mi.su_calculation(self.samples[feature_index],self.classes)
+        return su_values
+    
+        
 
     def symmetrical_uncertainty(self, feature_index):
         h_f = self.feature_entropy(feature_index)
