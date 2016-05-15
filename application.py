@@ -1,7 +1,7 @@
 import numpy as np
 import filters # filters created by our own
 import robustness as rob
-import mutual_information as mi # module with given su
+import matplotlib.pyplot as plt
 
 ### colon data set analysis
 
@@ -24,4 +24,24 @@ dataset = load_digits()
 su = filters.SUFilter(dataset.data.T, dataset.target)
 weights = su.apply_su_on_data(method='default')
 ranking = robustness.rank_features(weights[np.newaxis,:])
-print(ranking.reshape((8,8)))
+
+#fig = plt.figure()
+#im = plt.imshow(weights.reshape((8,8)),interpolation="nearest")
+#fig.colorbar(im);
+#plt.show()
+#fig.savefig("MNIST_SU.png")
+
+mean_number = np.zeros((10,64))
+for i in range(9):
+    data_single_number = dataset.data[dataset.target == i+1,:]
+    mean_number[i] = np.mean(data_single_number, axis=0)
+
+fig = plt.figure(0)
+ax1 = plt.subplot2grid((3,6), (0,0), colspan=3, rowspan=3)
+im = ax1.imshow(weights.reshape((8,8)),interpolation="nearest")
+fig.colorbar(im);
+for i in range(9):
+    ax = plt.subplot2grid((3,6), ((i/3),3+(i%3)))
+    ax.imshow(mean_number[i].reshape((8,8)),interpolation="nearest", cmap='gray')
+    
+plt.show()
