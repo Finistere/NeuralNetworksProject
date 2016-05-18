@@ -18,8 +18,6 @@ class FeatureRanking:
 
 
 class Benchmark:
-    output = "{robustness_measure} {feature_ranking} {classifier}: {robustness:.2%} {accuracy:.2%}"
-    
     def __init__(self, robustness_measure: RobustnessMeasure, feature_ranking: FeatureRanking):
         self.robustness_measure = robustness_measure
         self.feature_ranking = feature_ranking
