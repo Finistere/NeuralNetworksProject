@@ -44,4 +44,20 @@ for i in range(9):
     ax = plt.subplot2grid((3,6), ((i/3),3+(i%3)))
     ax.imshow(mean_number[i].reshape((8,8)),interpolation="nearest", cmap='gray')
     
-plt.show()
+#plt.show()
+
+## classification
+import classification as cl
+reload(cl)
+
+acc = np.zeros(100)
+acc_select = np.zeros(100)
+for i in range(100):
+    accuracy = cl.classify_data(dataset.data,dataset.target)
+    selected_features = robustness.filter_ranked_features(ranking, 0.9)
+    accuracy_select = cl.classify_data(dataset.data[:,selected_features], dataset.target)
+    acc[i] = np.mean(accuracy)
+    acc_select[i] = np.mean(accuracy_select)
+
+print(np.mean(acc))
+print(np.mean(acc_select))

@@ -49,9 +49,11 @@ class RobustnessMeasurement:
             subsample, subclasses = self.simple_random_sampling(subsample_size)
             # apply feature selection method
             SUF = filters.SUFilter(subsample, subclasses)
-            features_weight[i] = SUF.apply_su_on_data(method='library')
+            features_weight[i] = SUF.apply_su_on_data()
             #print("end run number %d"%i)
-            
+        
+        #TODO Robustness reiceves list of features
+
         #print("Finished ranking")
         features_rank = self.rank_features(features_weight)
         # apply spearman similarity measures
@@ -75,6 +77,11 @@ class RobustnessMeasurement:
                 for i in range(features_weight.shape[0])]
         return np.array(features_rank)
 
+    def filter_ranked_features(self, features_rank, perc):
+        minimal_rank = int((1-perc)*features_rank.shape[1])
+        # set everything below the minimal rank to zero and everything else to 1
+        selected_features = (features_rank > minimal_rank).reshape(-1)
+        return selected_features
     
     def spearmean_coefficient(self, features_rank):
         spearman_coeffs, _ = sp.stats.spearmanr(features_rank, axis=1)
