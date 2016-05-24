@@ -17,8 +17,7 @@ class FeatureRanking(metaclass=ABCMeta):
     def rank(self, data, classes):
         pass
 
-    @staticmethod
-    def classifier():
+    def classifier(self):
         return KNeighborsClassifier()
 
 

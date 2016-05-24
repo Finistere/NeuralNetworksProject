@@ -5,7 +5,7 @@ import feature_ranking
 
 
 class TestBenchmark:
-    benchmark = Benchmark(robustness_measure.Dummy(), feature_ranking.Dummy())
+    benchmark = Benchmark(robustness_measure.Dummy(), feature_ranking.Dummy(1))
 
     def test_best_percent(self):
         l = np.arange(200)
@@ -25,17 +25,16 @@ class TestBenchmark:
 
 class TestExperiment:
     experiment = Experiment(
-        [robustness_measure.Dummy(), robustness_measure.Dummy()],
-        feature_ranking.Dummy()
+        robustness_measure.Dummy(),
+        [feature_ranking.Dummy(1), feature_ranking.Dummy(2)]
     )
 
     def test_run(self):
         data = np.random.randn(200, 10)
         classes = np.array([1, 1, 1, 0, 0, 2, 0, 2, 0, 1])
-        expected_accuracy = 4 / 10
+
         expected_results = [
-            [[1, expected_accuracy]],
-            [[1, expected_accuracy]]
+            [[1, 4/10], [1, 2/10]]
         ]
 
         assert expected_results == self.experiment.run(data, classes).tolist()
