@@ -4,8 +4,50 @@ from sklearn.neighbors import KNeighborsClassifier
 
 
 class RobustnessMeasure:
-    def measure(self, features_ranks):
-        return 0
+
+    def measure(self, feature_ranks):
+        features_rank = self.rank_features(features_weight)
+        # apply spearman similarity measures
+        spearman_coeffs = self.spearmean_coefficient(features_rank)
+        # takes the lower triangular matrix to sum over
+        spearman_total = self.mean_of_lower_triangular_of_symmetric_matrix(spearman_coeffs)
+        jaccard_top1_indices = self.jaccard_index(features_rank, perc=0.01)
+        jaccard_top1_total = self.mean_of_lower_triangular(jaccard_indices)
+        jaccard_top5_indices = self.jaccard_index(features_rank, perc=0.05)
+        jaccard_top5_total = self.mean_of_lower_triangular(jaccard_indices)
+        return np.array([spearman_total, jaccard_top1_total, jaccard_top5_total])
+
+    def spearmean_coefficient(self, features_rank):
+        spearman_coeffs, _ = sp.stats.spearmanr(features_rank, axis=1)
+        return spearman_coeffs
+
+    def jaccard_index(self, features_rank, perc=0.1):
+        if(np.any(np.min(features_rank, axis=1) != np.ones(features_rank.shape[0],dtype=np.int))):
+            raise ValueError('features_rank raking does not always begin with 1')
+        # the minimal rank a feature mast have to be chose
+        minimal_rank = int((1-perc)*features_rank.shape[1]) + 1
+        features_rank_c = np.copy(features_rank)
+        # set everything below the minimal rank to zero and everything else to 1
+        features_rank_c[minimal_rank > features_rank_c] = 0
+        features_rank_c[0 != features_rank_c] = 1
+
+        k = features_rank.shape[0]
+        jaccard_indices = np.zeros((k,k))
+
+        for i in range(k):
+            for j in range(k):
+                # both features have to be 1
+                condition = np.logical_and(features_rank_c[i]==1, features_rank_c[j]==1)
+                jaccard_indices[i,j] = np.sum(condition)
+
+        # normalize
+        jaccard_indices = jaccard_indices/float(features_rank.shape[1]-(minimal_rank-1))
+        return jaccard_indices
+
+    def mean_of_lower_triangular(self, matrix):
+        upper_triangular = np.tril(matrix,-1)
+        nonzero_entries = upper_triangular[upper_triangular != 0]
+        return np.mean(nonzero_entries)
 
 
 class FeatureRanking:
