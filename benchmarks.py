@@ -51,21 +51,21 @@ class Benchmark:
         for train_index, test_index in cv:
 
             features_rank = self.feature_ranking.rank(data[:, train_index], classes[train_index])
-            features_index = self.__select_features_index(features_rank)
+            features_index = self.highest_1percent(features_rank)
 
             classifier = self.feature_ranking.classifier()
-            classifier.fit(data[features_index, train_index], classes[train_index])
+            classifier.fit(data[np.ix_(features_index, train_index)].T, classes[train_index])
             classification_accuracies.append(
-                classifier.score(data[features_index, test_index], classes[test_index])
+                classifier.score(data[np.ix_(features_index, test_index)].T, classes[test_index])
             )
 
         return np.mean(classification_accuracies)
 
     # 1% best features
     @staticmethod
-    def __select_features_index(features_rank):
-        size = len(features_rank) // 100
-        return np.argsort(features_rank)[:size]
+    def highest_1percent(features_rank):
+        size = 1 + len(list(features_rank)) // 100
+        return np.argsort(features_rank)[:-size:-1]
 
 
 class Experiment:

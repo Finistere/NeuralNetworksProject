@@ -9,4 +9,4 @@ class Dummy(FeatureRanking):
 
     @staticmethod
     def classifier():
-        return DummyClassifier()
+        return DummyClassifier(strategy='constant', constant=1)
