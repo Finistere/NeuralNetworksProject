@@ -43,7 +43,7 @@ class Benchmark:
 
         return self.robustness_measure.measure(np.array(features_ranks).T)
 
-    def classification_accuracy(self, data, classes, n_folds=4):
+    def classification_accuracy(self, data, classes, n_folds=10):
         classification_accuracies = []
 
         cv = KFold(len(classes), n_folds=n_folds)
@@ -70,12 +70,13 @@ class Benchmark:
 
 class Experiment:
     def __init__(self, robustness_measures=None, feature_rankings=None):
-        results_shape = [1, 1]
-        if isinstance(robustness_measures, list):
-            results_shape[0] = len(robustness_measures)
+        if not isinstance(robustness_measures, list):
+            robustness_measures = [robustness_measures]
 
-        if isinstance(feature_rankings, list):
-            results_shape[1] = len(feature_rankings)
+        if not isinstance(feature_rankings, list):
+            feature_rankings = [feature_rankings]
+
+        results_shape = [len(robustness_measures), len(feature_rankings)]
 
         self.robustness_measures = robustness_measures
         self.feature_rankings = feature_rankings
@@ -85,17 +86,12 @@ class Experiment:
         for i in range(self.results.shape[0]):
             for j in range(self.results.shape[1]):
                 benchmark = Benchmark(
-                    robustness_measure=self.__get("robustness_measures", i),
-                    feature_ranking=self.__get("feature_rankings", j)
+                    robustness_measure=self.robustness_measures[i],
+                    feature_ranking=self.feature_rankings[j]
                 )
                 self.results[i, j, 0], self.results[i, j, 1] = benchmark.run(data, classes)
 
-    def __get(self, attr, i):
-        obj = getattr(self, attr)
-        if isinstance(obj, list):
-            return obj[i]
-        else:
-            return obj
+        return self.results
 
     def print_results(self):
         print("ROBUSTNESS \n")
@@ -110,11 +106,11 @@ class Experiment:
 
         print(header.format(
             "",
-            *[type(self.__get("feature_rankings", i)).__name__ for i in range(self.results.shape[1])]
+            *[type(self.robustness_measures[i]).__name__ for i in range(self.results.shape[1])]
         ))
         for i in range(self.results.shape[0]):
             print(row.format(
-                type(self.__get("robustness_measures", i)).__name__,
+                type(self.robustness_measures[i]).__name__,
                 *self.results[i, :, result_index]
             ))
 
