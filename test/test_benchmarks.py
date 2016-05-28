@@ -2,10 +2,15 @@ from benchmarks import *
 import numpy as np
 import robustness_measure
 import feature_ranking
+from sklearn.dummy import DummyClassifier
 
 
 class TestBenchmark:
-    benchmark = Benchmark(robustness_measure.Dummy(), feature_ranking.Dummy(1))
+    benchmark = Benchmark(
+        feature_ranking=feature_ranking.Dummy(),
+        robustness_measure=robustness_measure.Dummy(),
+        classifier=DummyClassifier(strategy='constant', constant=1)
+    )
 
     def test_best_percent(self):
         l = np.arange(200)
@@ -24,9 +29,9 @@ class TestBenchmark:
 
 
 class TestExperiment:
-    experiment = Experiment(
+    experiment = RobustnessExperiment(
         robustness_measure.Dummy(),
-        [feature_ranking.Dummy(1), feature_ranking.Dummy(2)]
+        [feature_ranking.Dummy(), feature_ranking.Dummy()]
     )
 
     def test_run(self):
@@ -34,7 +39,7 @@ class TestExperiment:
         classes = np.array([1, 1, 1, 0, 0, 2, 0, 2, 0, 1])
 
         expected_results = [
-            [[1, 4/10], [1, 2/10]]
+            [1, 1]
         ]
 
         assert expected_results == self.experiment.run(data, classes).tolist()
