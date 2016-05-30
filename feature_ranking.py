@@ -28,7 +28,13 @@ class SymmetricalUncertainty(FeatureRanking):
 
 class Relief(FeatureRanking):
     def rank(self, data, classes):
-        return skfeature.function.similarity_based.relief.FreliefF(data.T, classes)
+        features_weight = self.weight_features(data, classes)
+        features_rank = self.rank_weights(features_weight)
+        return features_rank
+
+    def weight_features(self, data, classes):
+        features_weight = skfeature.function.similarity_based.reliefF.reliefF(data.T, classes)
+        return features_weight 
 
 class SVM_RFE(FeatureRanking):
     def rank(self, data, classes):
