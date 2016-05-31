@@ -11,10 +11,12 @@ import sklearn.feature_selection
 
 
 class Dummy(FeatureRanking):
+
     def rank(self, data, classes):
         return np.arange(data.shape[0])
       
 class SymmetricalUncertainty(FeatureRanking):
+
     def rank(self, data, classes):
         features_weight = self.weight_features(data, classes)
         features_rank = self.rank_weights(features_weight)
@@ -27,6 +29,7 @@ class SymmetricalUncertainty(FeatureRanking):
 
 
 class Relief(FeatureRanking):
+
     def rank(self, data, classes):
         features_weight = self.weight_features(data, classes)
         features_rank = self.rank_weights(features_weight)
@@ -37,6 +40,7 @@ class Relief(FeatureRanking):
         return features_weight 
 
 class SVM_RFE(FeatureRanking):
+
     def rank(self, data, classes):
         hyperparameter = self.find_hyperparameter_with_grid_search_cv(data,classes)
         linear_svm = sklearn.svm.SVC(kernel='linear', C=hyperparameter)

@@ -44,3 +44,12 @@ class TestExperiment:
 
         assert expected_results == self.experiment.run(data, classes).tolist()
 
+    def test_print_results(self):
+        experiment = RobustnessExperiment(
+            robustness_measure.Dummy(),
+            [feature_ranking.Dummy(), feature_ranking.Dummy()]
+        )
+        experiment.results= np.array([[0.89,0.1]])
+        experiment.print_results()
+
+

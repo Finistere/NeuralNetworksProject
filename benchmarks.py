@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.stats
 from sklearn.cross_validation import KFold, ShuffleSplit
 from abc import ABCMeta, abstractmethod
 
@@ -16,6 +17,9 @@ class FeatureRanking(metaclass=ABCMeta):
     def rank(self, data, classes):
         pass
 
+    def rank_weights(self, features_weight):
+        features_rank = scipy.stats.rankdata(features_weight, method='ordinal') 
+        return np.array(features_rank)
 
 class Benchmark:
     def __init__(self, feature_ranking: FeatureRanking, robustness_measure: RobustnessMeasure = None, classifier=None):
@@ -76,6 +80,11 @@ class RobustnessExperiment:
         if not isinstance(feature_rankings, list):
             feature_rankings = [feature_rankings]
 
+        #if len(robustness_measures) < 1:
+        #    raise ValueError('robustnes')
+        #elif len(feature_rankings) < 1
+        #    raise ValueError 
+
         results_shape = [len(robustness_measures), len(feature_rankings)]
 
         self.robustness_measures = robustness_measures
@@ -100,7 +109,7 @@ class RobustnessExperiment:
 
         print(header.format(
             "",
-            *[type(self.robustness_measures[i]).__name__ for i in range(self.results.shape[1])]
+            *[type(self.feature_rankings[i]).__name__ for i in range(self.results.shape[1])]
         ))
         for i in range(self.results.shape[0]):
             print(row.format(
