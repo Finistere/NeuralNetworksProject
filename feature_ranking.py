@@ -14,7 +14,8 @@ class Dummy(FeatureRanking):
 
     def rank(self, data, classes):
         return np.arange(data.shape[0])
-      
+
+
 class SymmetricalUncertainty(FeatureRanking):
 
     def rank(self, data, classes):
@@ -39,6 +40,7 @@ class Relief(FeatureRanking):
         features_weight = skfeature.function.similarity_based.reliefF.reliefF(data.T, classes)
         return features_weight 
 
+
 class SVM_RFE(FeatureRanking):
 
     def rank(self, data, classes):
@@ -61,6 +63,7 @@ class SVM_RFE(FeatureRanking):
     def rerank_reverse_ordered_nonordinal_ranks(self, ranks):
         ordered_ranks = self.rank_weights(-ranks+np.max(ranks))
         return ordered_ranks
+
 
 class RF(FeatureRanking):
     def rank(self, data, classes):

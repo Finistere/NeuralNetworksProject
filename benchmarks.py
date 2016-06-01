@@ -2,6 +2,7 @@ import numpy as np
 import scipy.stats
 from sklearn.cross_validation import KFold, ShuffleSplit
 from abc import ABCMeta, abstractmethod
+from tabulate import tabulate
 
 
 class RobustnessMeasure(metaclass=ABCMeta):
@@ -20,6 +21,7 @@ class FeatureRanking(metaclass=ABCMeta):
     def rank_weights(self, features_weight):
         features_rank = scipy.stats.rankdata(features_weight, method='ordinal') 
         return np.array(features_rank)
+
 
 class Benchmark:
     def __init__(self, feature_ranking: FeatureRanking, robustness_measure: RobustnessMeasure = None, classifier=None):
@@ -80,16 +82,11 @@ class RobustnessExperiment:
         if not isinstance(feature_rankings, list):
             feature_rankings = [feature_rankings]
 
-        #if len(robustness_measures) < 1:
-        #    raise ValueError('robustnes')
-        #elif len(feature_rankings) < 1
-        #    raise ValueError 
-
-        results_shape = [len(robustness_measures), len(feature_rankings)]
+        results_shape = (len(robustness_measures), len(feature_rankings))
 
         self.robustness_measures = robustness_measures
         self.feature_rankings = feature_rankings
-        self.results = np.zeros((results_shape[0], results_shape[1]))
+        self.results = np.zeros(results_shape)
 
     def run(self, data, classes):
         for i in range(self.results.shape[0]):
@@ -103,19 +100,15 @@ class RobustnessExperiment:
         return self.results
 
     def print_results(self):
-        print("ROBUSTNESS \n")
-        header = "{:22} " + " | ".join(["{:10}"] * self.results.shape[1])
-        row = "{:20} : " + " | ".join(["{:10.2%}"] * self.results.shape[1])
-
-        print(header.format(
-            "",
-            *[type(self.feature_rankings[i]).__name__ for i in range(self.results.shape[1])]
-        ))
+        print("Robustness Experiment : ")
+        headers = [type(self.feature_rankings[i]).__name__ for i in range(self.results.shape[1])]
+        rows = []
         for i in range(self.results.shape[0]):
-            print(row.format(
-                type(self.robustness_measures[i]).__name__,
-                *self.results[i, :]
-            ))
+            row = [type(self.robustness_measures[i]).__name__]
+            row += map(lambda i: "{:.2%}".format(i), self.results[i, :].tolist())
+            rows.append(row)
+
+        print(tabulate(rows, headers, tablefmt='pipe'))
 
 
 

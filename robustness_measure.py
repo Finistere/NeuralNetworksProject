@@ -8,9 +8,11 @@ class Dummy(RobustnessMeasure):
     def measure(self, features_ranks):
         return 1
 
+
 def mean_of_lower_triangular(matrix):
     lower_triangular_index = np.tril_indices(matrix.shape[0], -1)
     return np.mean(matrix[lower_triangular_index])
+
 
 class Spearman(RobustnessMeasure):
 
@@ -26,7 +28,7 @@ class JaccardIndex(RobustnessMeasure):
 
     def __init__(self, percentage=0.1):
         self.percentage = percentage
-        __name__="Jaccard Index "+str(self.percentage)
+        __name__ = "Jaccard Index {:.2%}".format(percentage)
 
     def measure(self, features_ranks):
         indices = self.matrix(features_ranks)
@@ -59,6 +61,4 @@ class JaccardIndex(RobustnessMeasure):
                 jaccard_indices[i, j] = np.sum(intersection) / np.sum(union)
                 jaccard_indices[j, i] = jaccard_indices[i, j]
 
-        # normalize
-        # jaccard_indices = jaccard_indices / float(features_ranks.shape[1] - (minimal_rank - 1))
         return jaccard_indices
