@@ -12,8 +12,8 @@ from sklearn.ensemble import RandomForestClassifier
 # data
 import sklearn.datasets
 mnist = sklearn.datasets.load_digits()
-data = mnist.data[:500].T
-classes = mnist.target
+data = mnist.data.T[:,:200]
+classes = mnist.target[:200]
 
 feature_rankings = [SymmetricalUncertainty(),
                     Relief(),
@@ -28,6 +28,6 @@ import warnings
 warnings.filterwarnings('ignore')
 
 robustness_experiment = RobustnessExperiment(robustness_measures, feature_rankings)
-robustness_experiment.run(mnist.data.T, mnist.target)
+robustness_experiment.run(data, classes)
 robustness_experiment.print_results()
 
