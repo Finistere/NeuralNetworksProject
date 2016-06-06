@@ -15,9 +15,7 @@ mnist = sklearn.datasets.load_digits()
 data = mnist.data.T[:,:200]
 classes = mnist.target[:200]
 
-feature_rankings = [SymmetricalUncertainty(),
-                    Relief(),
-                    SVM_RFE()]
+feature_rankings = [SymmetricalUncertainty()]
 robustness_measures = [Spearman(),
                        JaccardIndex()]
 classifiers = [KNeighborsClassifier(3),
