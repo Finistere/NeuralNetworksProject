@@ -3,6 +3,7 @@ import scipy.stats
 from sklearn.cross_validation import KFold, ShuffleSplit
 from abc import ABCMeta, abstractmethod
 from tabulate import tabulate
+import warnings
 
 
 class RobustnessMeasure(metaclass=ABCMeta):
@@ -24,9 +25,16 @@ class FeatureRanking(metaclass=ABCMeta):
 
 
 class Benchmark:
-    def __init__(self, feature_ranking: FeatureRanking, robustness_measure: RobustnessMeasure = None, classifier=None):
+    def __init__(self, feature_ranking: FeatureRanking, robustness_measures, classifier=None):
+        if not isinstance(robustness_measures, list):
+            robustness_measures = [robustness_measures]
+
+        for robustness_measure in robustness_measures:
+            if not isinstance(robustness_measure, RobustnessMeasure):
+                warnings.warn("Not all robustness measures are of type RobustnessMeasure")
+
         self.feature_ranking = feature_ranking
-        self.robustness_measure = robustness_measure
+        self.robustness_measures = robustness_measures
         self.classifier = classifier
 
     def run(self, data, classes):
@@ -36,8 +44,8 @@ class Benchmark:
         return robustness, accuracy
 
     def robustness(self, data, classes, n_iter=10, test_size=0.1):
-        if self.robustness_measure is None:
-            raise ValueError("Robustness measure is not defined")
+        if self.robustness_measures is None:
+            raise ValueError("Robustness measures is not defined")
 
         features_ranks = []
         cv = ShuffleSplit(len(classes), n_iter=n_iter, test_size=test_size)
@@ -45,7 +53,12 @@ class Benchmark:
         for train_index, test_index in cv:
             features_ranks.append(self.feature_ranking.rank(data[:, train_index], classes[train_index]))
 
-        return self.robustness_measure.measure(np.array(features_ranks).T)
+        robustness = np.zeros(len(self.robustness_measures))
+        for i in range(len(self.robustness_measures)):
+            robustness[i] = self.robustness_measures[i].measure(np.array(features_ranks).T)
+
+        return robustness
+
 
     def classification_accuracy(self, data, classes, n_folds=10):
         if self.classifier is None:
@@ -89,13 +102,12 @@ class RobustnessExperiment:
         self.results = np.zeros(results_shape)
 
     def run(self, data, classes):
-        for i in range(self.results.shape[0]):
-            for j in range(self.results.shape[1]):
-                benchmark = Benchmark(
-                    robustness_measure=self.robustness_measures[i],
-                    feature_ranking=self.feature_rankings[j]
-                )
-                self.results[i, j] = benchmark.robustness(data, classes)
+        for i in range(self.results.shape[1]):
+            benchmark = Benchmark(
+                robustness_measures=self.robustness_measures,
+                feature_ranking=self.feature_rankings[i]
+            )
+            self.results[:, i] = benchmark.robustness(data, classes)
 
         return self.results
 
@@ -104,7 +116,7 @@ class RobustnessExperiment:
         headers = [type(self.feature_rankings[i]).__name__ for i in range(self.results.shape[1])]
         rows = []
         for i in range(self.results.shape[0]):
-            row = [type(self.robustness_measures[i]).__name__]
+            row = [self.robustness_measures[i].__name__]
             row += map(lambda i: "{:.2%}".format(i), self.results[i, :].tolist())
             rows.append(row)
 

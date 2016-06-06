@@ -8,7 +8,7 @@ from sklearn.dummy import DummyClassifier
 class TestBenchmark:
     benchmark = Benchmark(
         feature_ranking=feature_ranking.Dummy(),
-        robustness_measure=robustness_measure.Dummy(),
+        robustness_measures=robustness_measure.Dummy(),
         classifier=DummyClassifier(strategy='constant', constant=1)
     )
 
