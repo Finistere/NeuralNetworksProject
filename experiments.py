@@ -8,12 +8,13 @@ from robustness_measure import JaccardIndex
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
+import time
 
 # data
 import sklearn.datasets
 mnist = sklearn.datasets.load_digits()
-data = mnist.data.T[:,:200]
-classes = mnist.target[:200]
+data = mnist.data.T[:,:1000]
+classes = mnist.target[:1000]
 
 feature_rankings = [SymmetricalUncertainty(), Relief(), SVM_RFE()]
 robustness_measures = [Spearman(),
@@ -26,6 +27,9 @@ import warnings
 warnings.filterwarnings('ignore')
 
 robustness_experiment = RobustnessExperiment(robustness_measures, feature_rankings)
+start = time.time()
 robustness_experiment.run(data, classes)
+end = time.time()
+print("Time:", end - start)
 robustness_experiment.print_results()
 

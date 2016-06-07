@@ -4,7 +4,8 @@ from sklearn.cross_validation import KFold, ShuffleSplit
 from abc import ABCMeta, abstractmethod
 from tabulate import tabulate
 import warnings
-from threading import Thread
+import multiprocessing
+import ctypes
 
 
 class RobustnessMeasure(metaclass=ABCMeta):
@@ -54,39 +55,42 @@ class Benchmark:
         if self.robustness_measures is None:
             raise ValueError("Robustness measures is not defined")
 
-        features_ranks = []
+        features_ranks = multiprocessing.Manager().list()
         cv = ShuffleSplit(len(classes), n_iter=n_iter, test_size=test_size)
 
-        threads = []
+        processes = []
         for train_index, test_index in cv:
-            t = Thread(target=self.feature_ranking.run, kwargs={
+            p = multiprocessing.Process(target=self.feature_ranking.run, kwargs={
                 'data': data[:, train_index],
                 'classes': classes[train_index],
                 'list_to_which_append_the_result': features_ranks
             })
-            t.start()
-            threads.append(t)
+            p.start()
+            processes.append(p)
 
-        for t in threads:
-            t.join()
+        for p in processes:
+            p.join()
 
         features_ranks = np.array(features_ranks).T
-        robustness = np.zeros(len(self.robustness_measures))
 
-        threads = []
+        shared_array_base = multiprocessing.Array(ctypes.c_double, len(self.robustness_measures))
+        shared_robustness_array = np.ctypeslib.as_array(shared_array_base.get_obj())
+        shared_robustness_array = shared_robustness_array.reshape(len(self.robustness_measures))
+
+        processes = []
         for i in range(len(self.robustness_measures)):
-            t = Thread(target=self.robustness_measures[i].run, kwargs={
+            p = multiprocessing.Process(target=self.robustness_measures[i].run, kwargs={
                 'features_ranks': features_ranks,
-                'results': robustness,
+                'results': shared_robustness_array,
                 'result_index': i
             })
-            t.start()
-            threads.append(t)
+            p.start()
+            processes.append(p)
 
-        for t in threads:
-            t.join()
+        for p in processes:
+            p.join()
 
-        return robustness
+        return shared_robustness_array
 
     def classification_accuracy(self, data, classes, n_folds=10):
         if self.classifier is None:
