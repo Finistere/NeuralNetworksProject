@@ -118,8 +118,7 @@ class AccuracyBenchmark:
 
         self.classifiers = [ClassifierWrapper(c) for c in classifiers]
 
-    def run(self, data, classes, n_folds=10):
-        classification_accuracies = np.zeros((n_folds, len(self.classifiers)))
+    def run(self, data, classes, n_folds=10, percentage_used_in_classification=0.1):
         features_ranks = multiprocessing.Manager().dict()
 
         cv = KFold(len(classes), n_folds=n_folds)
@@ -142,7 +141,13 @@ class AccuracyBenchmark:
             p.join()
 
         # multi threading necessary ?
-        features_indexes = [self.highest_1percent(ranking) for ranking in features_ranks]
+        features_indexes = {}
+        for i, ranking in features_ranks.items():
+            features_indexes[i] = self.highest_percent(ranking, percentage_used_in_classification)
+
+        shared_array_base = multiprocessing.Array(ctypes.c_double, n_folds * len(self.classifiers))
+        classification_accuracies = np.ctypeslib.as_array(shared_array_base.get_obj())
+        classification_accuracies = classification_accuracies.reshape((n_folds, len(self.classifiers)))
 
         processes = []
         for i, (train_index, test_index) in enumerate(cv):
