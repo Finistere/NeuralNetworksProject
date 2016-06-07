@@ -11,6 +11,7 @@ import sklearn.feature_selection
 
 
 class Dummy(FeatureRanking):
+    __name__ = "Dummy"
 
     def rank(self, data, classes):
         return np.arange(data.shape[0])

@@ -4,6 +4,7 @@ import numpy as np
 
 
 class Dummy(RobustnessMeasure):
+    __name__ = "Dummy"
 
     def measure(self, features_ranks):
         return 1

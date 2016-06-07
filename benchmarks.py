@@ -4,16 +4,23 @@ from sklearn.cross_validation import KFold, ShuffleSplit
 from abc import ABCMeta, abstractmethod
 from tabulate import tabulate
 import warnings
+from threading import Thread
 
 
 class RobustnessMeasure(metaclass=ABCMeta):
+    def run(self, features_ranks, results, result_index):
+        results[result_index] = self.measure(features_ranks)
+
     @abstractmethod
     # features ranks is matrix with each rows represent a feature, and the columns its rankings
-    def measure(self, features_ranks) -> float:
+    def measure(self, features_ranks):
         pass
 
 
 class FeatureRanking(metaclass=ABCMeta):
+    def run(self, data, classes, list_to_which_append_the_result):
+        list_to_which_append_the_result.append(self.rank(data, classes))
+
     @abstractmethod
     # Each column is an observation, each row a feature
     def rank(self, data, classes):
@@ -50,15 +57,36 @@ class Benchmark:
         features_ranks = []
         cv = ShuffleSplit(len(classes), n_iter=n_iter, test_size=test_size)
 
+        threads = []
         for train_index, test_index in cv:
-            features_ranks.append(self.feature_ranking.rank(data[:, train_index], classes[train_index]))
+            t = Thread(target=self.feature_ranking.run, kwargs={
+                'data': data[:, train_index],
+                'classes': classes[train_index],
+                'list_to_which_append_the_result': features_ranks
+            })
+            t.start()
+            threads.append(t)
 
+        for t in threads:
+            t.join()
+
+        features_ranks = np.array(features_ranks).T
         robustness = np.zeros(len(self.robustness_measures))
+
+        threads = []
         for i in range(len(self.robustness_measures)):
-            robustness[i] = self.robustness_measures[i].measure(np.array(features_ranks).T)
+            t = Thread(target=self.robustness_measures[i].run, kwargs={
+                'features_ranks': features_ranks,
+                'results': robustness,
+                'result_index': i
+            })
+            t.start()
+            threads.append(t)
+
+        for t in threads:
+            t.join()
 
         return robustness
-
 
     def classification_accuracy(self, data, classes, n_folds=10):
         if self.classifier is None:
