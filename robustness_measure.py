@@ -18,7 +18,7 @@ def mean_of_lower_triangular(matrix):
 class Spearman(RobustnessMeasure):
 
     def __init__(self):
-        self.__name__="Spearmann Coefficient"
+        self.__name__ = "Spearman Coefficient"
 
     def measure(self, features_ranks):
         spearman_correlation_matrix, _ = scipy.stats.spearmanr(features_ranks)

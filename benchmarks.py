@@ -2,7 +2,6 @@ import numpy as np
 import scipy.stats
 from sklearn.cross_validation import KFold, ShuffleSplit
 from abc import ABCMeta, abstractmethod
-from tabulate import tabulate
 import warnings
 import multiprocessing
 import ctypes
@@ -32,8 +31,19 @@ class FeatureRanking(metaclass=ABCMeta):
         return np.array(features_rank)
 
 
-class Benchmark:
-    def __init__(self, feature_ranking: FeatureRanking, robustness_measures, classifier=None):
+class ClassifierWrapper:
+    def __init__(self, classifier):
+        self.classifier = classifier
+
+    def fit(self, *args, **kwargs):
+        self.classifier.fit(*args, **kwargs)
+
+    def run(self, data, classes, list_to_which_append_the_result):
+        list_to_which_append_the_result.append(self.classifier.score(data, classes))
+
+
+class RobustnessBenchmark:
+    def __init__(self, feature_ranking: FeatureRanking, robustness_measures):
         if not isinstance(robustness_measures, list):
             robustness_measures = [robustness_measures]
 
@@ -43,15 +53,8 @@ class Benchmark:
 
         self.feature_ranking = feature_ranking
         self.robustness_measures = robustness_measures
-        self.classifier = classifier
 
-    def run(self, data, classes):
-        robustness = self.robustness(data, classes)
-        accuracy = self.classification_accuracy(data, classes)
-
-        return robustness, accuracy
-
-    def robustness(self, data, classes, n_iter=10, test_size=0.1):
+    def run(self, data, classes, n_iter=10, test_size=0.1):
         if self.robustness_measures is None:
             raise ValueError("Robustness measures is not defined")
 
@@ -92,7 +95,13 @@ class Benchmark:
 
         return shared_robustness_array
 
-    def classification_accuracy(self, data, classes, n_folds=10):
+
+class AccuracyBenchmark:
+    def __init__(self, feature_ranking: FeatureRanking, classifier=None):
+        self.feature_ranking = feature_ranking
+        self.classifier = classifier
+
+    def run(self, data, classes, n_folds=10):
         if self.classifier is None:
             raise ValueError("Classifer is not defined")
 
@@ -118,41 +127,6 @@ class Benchmark:
         size = 1 + len(list(features_rank)) // 100
         return np.argsort(features_rank)[:-size:-1]
 
-
-class RobustnessExperiment:
-    def __init__(self, robustness_measures=None, feature_rankings=None):
-        if not isinstance(robustness_measures, list):
-            robustness_measures = [robustness_measures]
-
-        if not isinstance(feature_rankings, list):
-            feature_rankings = [feature_rankings]
-
-        results_shape = (len(robustness_measures), len(feature_rankings))
-
-        self.robustness_measures = robustness_measures
-        self.feature_rankings = feature_rankings
-        self.results = np.zeros(results_shape)
-
-    def run(self, data, classes):
-        for i in range(self.results.shape[1]):
-            benchmark = Benchmark(
-                robustness_measures=self.robustness_measures,
-                feature_ranking=self.feature_rankings[i]
-            )
-            self.results[:, i] = benchmark.robustness(data, classes)
-
-        return self.results
-
-    def print_results(self):
-        print("Robustness Experiment : ")
-        headers = [type(self.feature_rankings[i]).__name__ for i in range(self.results.shape[1])]
-        rows = []
-        for i in range(self.results.shape[0]):
-            row = [self.robustness_measures[i].__name__]
-            row += map(lambda i: "{:.2%}".format(i), self.results[i, :].tolist())
-            rows.append(row)
-
-        print(tabulate(rows, headers, tablefmt='pipe'))
 
 
 

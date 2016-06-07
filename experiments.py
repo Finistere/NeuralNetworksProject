@@ -1,35 +1,39 @@
-from benchmarks import RobustnessExperiment
-from feature_ranking import SymmetricalUncertainty  
-from feature_ranking import Relief
-from feature_ranking import SVM_RFE
-from robustness_measure import Spearman 
-from robustness_measure import JaccardIndex
-# classifiers
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestClassifier
-import time
+from benchmarks import RobustnessBenchmark
+from tabulate import tabulate
+import numpy as np
 
-# data
-import sklearn.datasets
-mnist = sklearn.datasets.load_digits()
-data = mnist.data.T[:,:1000]
-classes = mnist.target[:1000]
 
-feature_rankings = [SymmetricalUncertainty(), Relief(), SVM_RFE()]
-robustness_measures = [Spearman(),
-                       JaccardIndex()]
-classifiers = [KNeighborsClassifier(3),
-               SVC(kernel="linear", C=0.025),
-               RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1)]
+class RobustnessExperiment:
+    def __init__(self, robustness_measures=None, feature_rankings=None):
+        if not isinstance(robustness_measures, list):
+            robustness_measures = [robustness_measures]
 
-import warnings
-warnings.filterwarnings('ignore')
+        if not isinstance(feature_rankings, list):
+            feature_rankings = [feature_rankings]
 
-robustness_experiment = RobustnessExperiment(robustness_measures, feature_rankings)
-start = time.time()
-robustness_experiment.run(data, classes)
-end = time.time()
-print("Time:", end - start)
-robustness_experiment.print_results()
+        results_shape = (len(robustness_measures), len(feature_rankings))
 
+        self.robustness_measures = robustness_measures
+        self.feature_rankings = feature_rankings
+        self.results = np.zeros(results_shape)
+
+    def run(self, data, classes):
+        for i in range(self.results.shape[1]):
+            benchmark = RobustnessBenchmark(
+                robustness_measures=self.robustness_measures,
+                feature_ranking=self.feature_rankings[i]
+            )
+            self.results[:, i] = benchmark.run(data, classes)
+
+        return self.results
+
+    def print_results(self):
+        print("Robustness Experiment : ")
+        headers = [type(self.feature_rankings[i]).__name__ for i in range(self.results.shape[1])]
+        rows = []
+        for i in range(self.results.shape[0]):
+            row = [self.robustness_measures[i].__name__]
+            row += map(lambda i: "{:.2%}".format(i), self.results[i, :].tolist())
+            rows.append(row)
+
+        print(tabulate(rows, headers, tablefmt='pipe'))
