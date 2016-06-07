@@ -168,8 +168,8 @@ class AccuracyBenchmark:
 
     # 1% best features
     @staticmethod
-    def highest_1percent(features_rank):
-        size = 1 + len(list(features_rank)) // 100
+    def highest_percent(features_rank, percentage):
+        size = 1 + int(len(list(features_rank)) * percentage)
         return np.argsort(features_rank)[:-size:-1]
 
 

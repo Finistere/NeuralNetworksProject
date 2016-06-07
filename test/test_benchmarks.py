@@ -18,20 +18,23 @@ class TestRobustnessBenchmark:
 class TestAccuracyBenchmark:
     benchmark = AccuracyBenchmark(
         feature_ranking=feature_ranking.Dummy(),
-        classifier=DummyClassifier(strategy='constant', constant=1)
+        classifiers=[
+            DummyClassifier(strategy='constant', constant=1),
+            DummyClassifier(strategy='constant', constant=2),
+        ]
     )
 
     def test_best_percent(self):
         l = np.arange(200)
-        assert [199, 198] == AccuracyBenchmark.highest_1percent(l).tolist()
+        assert [199, 198] == AccuracyBenchmark.highest_percent(l, 0.01).tolist()
 
     def test_classification_accuracy(self):
         data = np.random.randn(200, 10)
         classes = np.array([1, 1, 1, 0, 0, 2, 0, 2, 0, 1])
 
-        expected_accuracy = 4 / 10
+        expected_accuracy = [4 / 10, 2 / 10]
 
-        assert expected_accuracy == self.benchmark.run(data, classes, n_folds=10)
+        assert expected_accuracy == self.benchmark.run(data, classes, n_folds=10).tolist()
 
 
 

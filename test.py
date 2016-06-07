@@ -1,4 +1,4 @@
-from experiments import RobustnessExperiment
+from experiments import RobustnessExperiment, AccuracyExperiment
 from feature_ranking import SymmetricalUncertainty  
 from feature_ranking import Relief
 from feature_ranking import SVM_RFE
@@ -33,10 +33,10 @@ warnings.filterwarnings('ignore')
 # print("Time:", end - start)
 # robustness_experiment.print_results()
 
-robustness_experiment = RobustnessExperiment(robustness_measures, feature_rankings)
+accuracy_exp = AccuracyExperiment(classifiers, feature_rankings)
 start = time.time()
-robustness_experiment.run(data, classes)
+accuracy_exp.run(data, classes)
 end = time.time()
 print("Time:", end - start)
-robustness_experiment.print_results()
+accuracy_exp.print_results()
 
