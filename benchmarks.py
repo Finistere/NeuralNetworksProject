@@ -8,7 +8,7 @@ import ctypes
 
 
 class RobustnessMeasure(metaclass=ABCMeta):
-    def run(self, features_ranks, results, result_index):
+    def run_and_set_in_results(self, features_ranks, results, result_index):
         results[result_index] = self.measure(features_ranks)
 
     @abstractmethod
@@ -18,8 +18,11 @@ class RobustnessMeasure(metaclass=ABCMeta):
 
 
 class FeatureRanking(metaclass=ABCMeta):
-    def run(self, data, classes, list_to_which_append_the_result):
-        list_to_which_append_the_result.append(self.rank(data, classes))
+    def run_and_append_to_list(self, data, classes, results_list):
+        results_list.append(self.rank(data, classes))
+
+    def run_and_set_in_results(self, data, classes, results, result_index):
+        results[result_index] = self.rank(data, classes)
 
     @abstractmethod
     # Each column is an observation, each row a feature
@@ -35,11 +38,12 @@ class ClassifierWrapper:
     def __init__(self, classifier):
         self.classifier = classifier
 
-    def fit(self, *args, **kwargs):
-        self.classifier.fit(*args, **kwargs)
+    def fit(self):
+        pass
 
-    def run(self, data, classes, list_to_which_append_the_result):
-        list_to_which_append_the_result.append(self.classifier.score(data, classes))
+    def run_and_set_in_results(self, data, classes, feature_index, train_index, test_index, results, result_index):
+
+        results[result_index] = self.classifier.score(data, classes)
 
 
 class RobustnessBenchmark:
@@ -63,11 +67,14 @@ class RobustnessBenchmark:
 
         processes = []
         for train_index, test_index in cv:
-            p = multiprocessing.Process(target=self.feature_ranking.run, kwargs={
-                'data': data[:, train_index],
-                'classes': classes[train_index],
-                'list_to_which_append_the_result': features_ranks
-            })
+            p = multiprocessing.Process(
+                target=self.feature_ranking.run_and_append_to_list,
+                kwargs={
+                    'data': data[:, train_index],
+                    'classes': classes[train_index],
+                    'results_list': features_ranks
+                }
+            )
             p.start()
             processes.append(p)
 
@@ -82,11 +89,14 @@ class RobustnessBenchmark:
 
         processes = []
         for i in range(len(self.robustness_measures)):
-            p = multiprocessing.Process(target=self.robustness_measures[i].run, kwargs={
-                'features_ranks': features_ranks,
-                'results': shared_robustness_array,
-                'result_index': i
-            })
+            p = multiprocessing.Process(
+                target=self.robustness_measures[i].run_and_set_in_results,
+                kwargs={
+                    'features_ranks': features_ranks,
+                    'results': shared_robustness_array,
+                    'result_index': i
+                }
+            )
             p.start()
             processes.append(p)
 
@@ -97,29 +107,75 @@ class RobustnessBenchmark:
 
 
 class AccuracyBenchmark:
-    def __init__(self, feature_ranking: FeatureRanking, classifier=None):
+    def __init__(self, feature_ranking: FeatureRanking, classifiers):
         self.feature_ranking = feature_ranking
-        self.classifier = classifier
+
+        if not isinstance(classifiers, list):
+            classifiers = [classifiers]
+
+        self.classifiers = [ClassifierWrapper(c) for c in classifiers]
 
     def run(self, data, classes, n_folds=10):
-        if self.classifier is None:
-            raise ValueError("Classifer is not defined")
-
-        classification_accuracies = []
+        classification_accuracies = np.zeros((n_folds, len(self.classifiers)))
+        features_ranks = multiprocessing.Manager().dict()
 
         cv = KFold(len(classes), n_folds=n_folds)
 
-        for train_index, test_index in cv:
-
-            features_rank = self.feature_ranking.rank(data[:, train_index], classes[train_index])
-            features_index = self.highest_1percent(features_rank)
-
-            self.classifier.fit(data[np.ix_(features_index, train_index)].T, classes[train_index])
-            classification_accuracies.append(
-                self.classifier.score(data[np.ix_(features_index, test_index)].T, classes[test_index])
+        processes = []
+        for i, (train_index, test_index) in enumerate(cv):
+            p = multiprocessing.Process(
+                target=self.feature_ranking.run_and_set_in_results,
+                kwargs={
+                    'data': data[:, train_index],
+                    'classes': classes[train_index],
+                    'results': features_ranks,
+                    'result_index': i
+                }
             )
+            p.start()
+            processes.append(p)
 
-        return np.mean(classification_accuracies)
+        for p in processes:
+            p.join()
+
+        # multi threading necessary ?
+        features_indexes = [self.highest_1percent(ranking) for ranking in features_ranks]
+
+        # N
+        for i, (train_index, test_index) in enumerate(cv):
+            processes = []
+            for classifier in self.classifiers:
+                p = multiprocessing.Process(
+                    target=classifier.fit,
+                    args=(
+                        data[np.ix_(features_indexes[i], train_index)].T,
+                        classes[train_index]
+                    )
+                )
+                p.start()
+                processes.append(p)
+
+            for p in processes:
+                p.join()
+
+            processes = []
+            for j, classifier in enumerate(self.classifiers):
+                p = multiprocessing.Process(
+                    target=classifier.run_and_set_in_results,
+                    kwargs={
+                        'data': data[np.ix_(features_indexes[i], test_index)].T,
+                        'classes': classes[test_index],
+                        'results': classification_accuracies,
+                        'result_index': (i, j)
+                    }
+                )
+                p.start()
+                processes.append(p)
+
+            for p in processes:
+                p.join()
+
+        return classification_accuracies.mean(axis=0)
 
     # 1% best features
     @staticmethod
