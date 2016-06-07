@@ -97,34 +97,37 @@ class RobustnessBenchmark:
 
 
 class AccuracyBenchmark:
-    def __init__(self, feature_ranking: FeatureRanking, classifier=None):
+    def __init__(self, feature_ranking: FeatureRanking, classifiers):
         self.feature_ranking = feature_ranking
-        self.classifier = classifier
 
-    def run(self, data, classes, n_folds=10):
-        if self.classifier is None:
-            raise ValueError("Classifer is not defined")
+        if not isinstance(classifiers, list):
+            classifiers = [classifiers]
+        self.classifiers = classifiers
 
-        classification_accuracies = []
+    def run(self, data, classes, n_folds=10, percentage_used_in_classification=0.1):
+        classification_accuracies = np.zeros((n_folds, len(self.classifiers)))
 
         cv = KFold(len(classes), n_folds=n_folds)
+        features_indexes = []
 
         for train_index, test_index in cv:
-
             features_rank = self.feature_ranking.rank(data[:, train_index], classes[train_index])
-            features_index = self.highest_1percent(features_rank)
+            features_indexes.append(self.highest_percent(features_rank, percentage_used_in_classification))
 
-            self.classifier.fit(data[np.ix_(features_index, train_index)].T, classes[train_index])
-            classification_accuracies.append(
-                self.classifier.score(data[np.ix_(features_index, test_index)].T, classes[test_index])
-            )
+        for i, (train_index, test_index) in enumerate(cv):
+            for j, classifier in enumerate(self.classifiers):
+                classifier.fit(data[np.ix_(features_indexes[i], train_index)].T, classes[train_index])
+                classification_accuracies[i, j] = classifier.score(
+                    data[np.ix_(features_indexes[i], test_index)].T,
+                    classes[test_index]
+                )
 
-        return np.mean(classification_accuracies)
+        return classification_accuracies.mean(axis=0)
 
     # 1% best features
     @staticmethod
-    def highest_1percent(features_rank):
-        size = 1 + len(list(features_rank)) // 100
+    def highest_percent(features_rank, percentage):
+        size = 1 + int(len(list(features_rank)) * percentage)
         return np.argsort(features_rank)[:-size:-1]
 
 
