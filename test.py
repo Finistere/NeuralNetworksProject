@@ -26,6 +26,13 @@ classifiers = [KNeighborsClassifier(3),
 import warnings
 warnings.filterwarnings('ignore')
 
+# robustness_experiment = RobustnessExperiment(robustness_measures, feature_rankings)
+# start = time.time()
+# robustness_experiment.run(data, classes)
+# end = time.time()
+# print("Time:", end - start)
+# robustness_experiment.print_results()
+
 robustness_experiment = RobustnessExperiment(robustness_measures, feature_rankings)
 start = time.time()
 robustness_experiment.run(data, classes)

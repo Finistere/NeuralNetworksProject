@@ -38,12 +38,15 @@ class ClassifierWrapper:
     def __init__(self, classifier):
         self.classifier = classifier
 
-    def fit(self):
-        pass
-
-    def run_and_set_in_results(self, data, classes, feature_index, train_index, test_index, results, result_index):
-
-        results[result_index] = self.classifier.score(data, classes)
+    def run_and_set_in_results(self, data, classes, train_index, test_index, results, result_index):
+        self.classifier.fit(
+            data[:, train_index].T,
+            classes[train_index]
+        )
+        results[result_index] = self.classifier.score(
+            data[:, test_index].T,
+            classes[test_index]
+        )
 
 
 class RobustnessBenchmark:
@@ -141,30 +144,16 @@ class AccuracyBenchmark:
         # multi threading necessary ?
         features_indexes = [self.highest_1percent(ranking) for ranking in features_ranks]
 
-        # N
+        processes = []
         for i, (train_index, test_index) in enumerate(cv):
-            processes = []
-            for classifier in self.classifiers:
-                p = multiprocessing.Process(
-                    target=classifier.fit,
-                    args=(
-                        data[np.ix_(features_indexes[i], train_index)].T,
-                        classes[train_index]
-                    )
-                )
-                p.start()
-                processes.append(p)
-
-            for p in processes:
-                p.join()
-
-            processes = []
             for j, classifier in enumerate(self.classifiers):
                 p = multiprocessing.Process(
                     target=classifier.run_and_set_in_results,
                     kwargs={
-                        'data': data[np.ix_(features_indexes[i], test_index)].T,
-                        'classes': classes[test_index],
+                        'data': data[features_indexes[i], :],
+                        'classes': classes,
+                        'train_index': train_index,
+                        'test_index': test_index,
                         'results': classification_accuracies,
                         'result_index': (i, j)
                     }
@@ -172,8 +161,8 @@ class AccuracyBenchmark:
                 p.start()
                 processes.append(p)
 
-            for p in processes:
-                p.join()
+        for p in processes:
+            p.join()
 
         return classification_accuracies.mean(axis=0)
 
