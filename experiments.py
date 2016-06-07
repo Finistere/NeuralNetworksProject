@@ -29,7 +29,7 @@ class RobustnessExperiment:
 
     def print_results(self):
         print("Robustness Experiment : ")
-        headers = [type(self.feature_rankings[i]).__name__ for i in range(self.results.shape[1])]
+        headers = [self.feature_rankings[i].__name__ for i in range(self.results.shape[1])]
         rows = []
         for i in range(self.results.shape[0]):
             row = [self.robustness_measures[i].__name__]
@@ -65,7 +65,7 @@ class AccuracyExperiment:
 
     def print_results(self):
         print("Accuracy Experiment : ")
-        headers = [type(self.feature_rankings[i]).__name__ for i in range(self.results.shape[1])]
+        headers = [self.feature_rankings[i].__name__ for i in range(self.results.shape[1])]
         rows = []
         for i in range(self.results.shape[0]):
             row = [type(self.classifiers[i]).__name__]

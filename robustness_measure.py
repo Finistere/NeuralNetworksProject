@@ -18,6 +18,7 @@ def mean_of_lower_triangular(matrix):
 class Spearman(RobustnessMeasure):
 
     def __init__(self):
+        super().__init__()
         self.__name__ = "Spearman Coefficient"
 
     def measure(self, features_ranks):
@@ -28,6 +29,7 @@ class Spearman(RobustnessMeasure):
 class JaccardIndex(RobustnessMeasure):
 
     def __init__(self, percentage=0.1):
+        super().__init__()
         self.percentage = percentage
         self.__name__ = "Jaccard Index {:.2%}".format(percentage)
 

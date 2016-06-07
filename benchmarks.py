@@ -8,6 +8,9 @@ import ctypes
 
 
 class RobustnessMeasure(metaclass=ABCMeta):
+    def __init__(self):
+        self.__name__ = type(self).__name__
+
     def run_and_set_in_results(self, features_ranks, results, result_index):
         results[result_index] = self.measure(features_ranks)
 
@@ -18,6 +21,9 @@ class RobustnessMeasure(metaclass=ABCMeta):
 
 
 class FeatureRanking(metaclass=ABCMeta):
+    def __init__(self):
+        self.__name__ = type(self).__name__
+
     def run_and_append_to_list(self, data, classes, results_list):
         results_list.append(self.rank(data, classes))
 
