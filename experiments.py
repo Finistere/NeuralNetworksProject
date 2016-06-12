@@ -29,14 +29,7 @@ class RobustnessExperiment:
 
     def print_results(self):
         print("Robustness Experiment : ")
-        headers = [self.feature_rankings[i].__name__ for i in range(self.results.shape[1])]
-        rows = []
-        for i in range(self.results.shape[0]):
-            row = [self.robustness_measures[i].__name__]
-            row += map(lambda i: "{:.2%}".format(i), self.results[i, :].tolist())
-            rows.append(row)
-
-        print(tabulate(rows, headers, tablefmt='pipe'))
+        print_results(self.feature_rankings, self.robustness_measures, self.results)
 
 
 class AccuracyExperiment:
@@ -65,11 +58,22 @@ class AccuracyExperiment:
 
     def print_results(self):
         print("Accuracy Experiment : ")
-        headers = [self.feature_rankings[i].__name__ for i in range(self.results.shape[1])]
+        print_results(self.feature_rankings, self.classifiers, self.results)
+
+
+def f_measure(robustness, accuracy, beta=1):
+    return (beta ** 2 + 1) * robustness * accuracy / (beta ** 2 * robustness + accuracy)
+
+
+def print_results(feature_rankings, tests, results):
+        headers = [feature_rankings[i].__name__ for i in range(results.shape[1])]
         rows = []
-        for i in range(self.results.shape[0]):
-            row = [type(self.classifiers[i]).__name__]
-            row += map(lambda i: "{:.2%}".format(i), self.results[i, :].tolist())
+        for i in range(results.shape[0]):
+            if hasattr(tests[i], '__name__'):
+                row = [tests[i].__name__]
+            else:
+                row = [type(tests[i]).__name__]
+            row += map(lambda i: "{:.2%}".format(i), results[i, :].tolist())
             rows.append(row)
 
         print(tabulate(rows, headers, tablefmt='pipe'))

@@ -4,11 +4,12 @@ import scipy.stats
 
 
 class Stacking(FeatureRanking):
-    def __init__(self, feature_ranking_methods, combination="mean"):
+    def __init__(self, feature_ranking_methods, combination="mean", p=1):
         super().__init__()
         self.feature_ranking_methods = feature_ranking_methods
         self.combination = combination
-        self.__name__ = "Stacking - {}".format(self.combination)
+        self.p = p
+        self.__name__ = "Stacking - {} {}".format(self.combination, self.p)
 
     def rank(self, data, classes):
         features_rankings = []
@@ -19,9 +20,8 @@ class Stacking(FeatureRanking):
 
     def combine(self, features_rankings):
         if self.combination == "mean":
-            return features_rankings.mean(axis=0)
+            return np.power(features_rankings, self.p).mean(axis=0)
         if self.combination == "hmean":
-            return scipy.stats.hmean(features_rankings, axis=0)
-        else:
-            raise Exception("Unknown combination")
+            return scipy.stats.hmean(np.power(features_rankings, self.p), axis=0)
+        raise Exception("Unknown combination")
 
