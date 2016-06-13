@@ -44,5 +44,5 @@ class DataSets:
         return getattr(matrix_io, info.get('method', 'regular_matrix'))(
             self.data_folder + info['path'],
             *info.get('args', []),
-            **info.get('kwargs', {}),
+            **info.get('kwargs', {})
         )
