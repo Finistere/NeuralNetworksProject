@@ -1,10 +1,44 @@
 from benchmarks import RobustnessBenchmark, AccuracyBenchmark
 from tabulate import tabulate
 import numpy as np
+import csv
+from data_sets import DataSets
 
 
-class RobustnessExperiment:
-    def __init__(self, robustness_measures=None, feature_rankings=None):
+class Experiment:
+    feature_rankings = []
+    results = np.array([])
+    measure_name = ""
+
+    def __generate_results_table(self):
+        rows = [
+            ["Measure"] + [self.feature_rankings[i].__name__ for i in range(self.results.shape[1])]
+        ]
+        measures = getattr(self, self.measure_name)
+        for i in range(self.results.shape[0]):
+            if hasattr(measures[i], '__name__'):
+                row = [measures[i].__name__]
+            else:
+                row = [type(measures[i]).__name__]
+            row += map(lambda i: "{:.2%}".format(i), self.results[i, :].tolist())
+            rows.append(row)
+
+        return rows
+
+    def print_results(self):
+        rows = self.__generate_results_table()
+        print(tabulate(rows[1:len(rows)], rows[0], tablefmt='pipe'))
+
+    def save_results(self, path):
+        with open(path, "w") as f:
+            writer = csv.writer(f)
+            writer.writerows(self.__generate_results_table())
+
+
+class RobustnessExperiment(Experiment):
+    measure_name = "robustness_measures"
+
+    def __init__(self, feature_rankings=None, robustness_measures=None):
         if not isinstance(robustness_measures, list):
             robustness_measures = [robustness_measures]
 
@@ -29,11 +63,13 @@ class RobustnessExperiment:
 
     def print_results(self):
         print("Robustness Experiment : ")
-        print_results(self.feature_rankings, self.robustness_measures, self.results)
+        super().print_results()
 
 
-class AccuracyExperiment:
-    def __init__(self, classifiers=None, feature_rankings=None):
+class AccuracyExperiment(Experiment):
+    measure_name = "classifiers"
+
+    def __init__(self, feature_rankings=None, classifiers=None):
         if not isinstance(classifiers, list):
             classifiers = [classifiers]
 
@@ -58,22 +94,24 @@ class AccuracyExperiment:
 
     def print_results(self):
         print("Accuracy Experiment : ")
-        print_results(self.feature_rankings, self.classifiers, self.results)
+        super().print_results()
 
 
-def f_measure(robustness, accuracy, beta=1):
-    return (beta ** 2 + 1) * robustness * accuracy / (beta ** 2 * robustness + accuracy)
+class DataSetExperiment:
+    def __init__(self, feature_rankings, robustness_measures, classifiers, working_dir=".."):
+        self.robustness_experiment = RobustnessExperiment(feature_rankings, robustness_measures)
+        self.accuracy_experiment = AccuracyExperiment(feature_rankings, classifiers)
+        self.results_folder = working_dir
+        self.data_sets = DataSets(working_dir)
 
+    def run_data_set(self, name, csv_prefix=""):
+        prefix = self.results_folder + "/" + name + "_" + csv_prefix + "_"
+        data, classes = self.data_sets.load(name)
 
-def print_results(feature_rankings, tests, results):
-        headers = [feature_rankings[i].__name__ for i in range(results.shape[1])]
-        rows = []
-        for i in range(results.shape[0]):
-            if hasattr(tests[i], '__name__'):
-                row = [tests[i].__name__]
-            else:
-                row = [type(tests[i]).__name__]
-            row += map(lambda i: "{:.2%}".format(i), results[i, :].tolist())
-            rows.append(row)
+        self.robustness_experiment.run(data, classes)
+        self.robustness_experiment.print_results()
+        self.robustness_experiment.save_results(prefix + "robustness.csv")
 
-        print(tabulate(rows, headers, tablefmt='pipe'))
+        self.accuracy_experiment.run(data, classes)
+        self.accuracy_experiment.print_results()
+        self.accuracy_experiment.save_results(prefix + "accuracy.csv")

@@ -72,7 +72,7 @@ class RobustnessBenchmark:
             raise ValueError("Robustness measures is not defined")
 
         features_ranks = multiprocessing.Manager().list()
-        cv = ShuffleSplit(len(classes), n_iter=n_iter, test_size=test_size)
+        cv = ShuffleSplit(classes.shape[0], n_iter=n_iter, test_size=test_size)
 
         processes = []
         for train_index, test_index in cv:
@@ -127,7 +127,7 @@ class AccuracyBenchmark:
     def run(self, data, classes, n_folds=10, percentage_used_in_classification=0.1):
         features_ranks = multiprocessing.Manager().dict()
 
-        cv = KFold(len(classes), n_folds=n_folds)
+        cv = KFold(classes.shape[0], n_folds=n_folds)
 
         processes = []
         for i, (train_index, test_index) in enumerate(cv):
