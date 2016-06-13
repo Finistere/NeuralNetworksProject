@@ -18,7 +18,6 @@ class TestSymmetricalUncertainty():
     classes = np.array([1, 0, 1])
 
     #TODO def test_rank(self):
-        
 
     def test_weight_features(self):
         h_f = -3 * 1. / 3 * math.log(1./3)
@@ -31,14 +30,14 @@ class TestSymmetricalUncertainty():
 #class TestRelief:
 
 class TestSVM_RFE():
-    reversed_ordered_nonordinal_ranks = np.array([1,3,2,1,1,3,4])
+    reversed_ranks = np.array([1,3,2,1,1,3,4])
 
     #TODO def test_rank(self):
 
     #TODO def test_find_hyperparameter_with_grid_search_cv(self):
 
-    def test_rerank_reverse_nonordinal_ordered_ranking(self):
+    def test_reverse_order(self):
         svm_rfe = feature_ranking.SVM_RFE()
-        correctly_ordered_ordinal_ranks = svm_rfe.rerank_reverse_ordered_nonordinal_ranks(
+        correctly_ordered_ranks = svm_rfe.reverse_order(
                 self.reversed_ordered_nonordinal_ranks)
-        assert np.allclose([5,2,4,6,7,3,1], correctly_ordered_ordinal_ranks)
+        assert np.allclose([4,2,3,4,4,2,1], correctly_ordered_ranks)

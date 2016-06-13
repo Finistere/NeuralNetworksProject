@@ -48,10 +48,21 @@ class SVM_RFE(FeatureRanking):
         hyperparameter = self.find_hyperparameter_with_grid_search_cv(data,classes)
         linear_svm = sklearn.svm.SVC(kernel='linear', C=hyperparameter)
         recursive_feature_elimination = sklearn.feature_selection.RFE(estimator=linear_svm,
+            n_features_to_select=1, step=1)
+        recursive_feature_elimination.fit(data.T, classes)
+        ordered_ranks = self.reverse_order(recursive_feature_elimination.ranking_)
+        features_rank = self.rank_weights(ordered_ranks)
+        return features_rank
+
+    def weight_features(self, data, classes):
+        hyperparameter = self.find_hyperparameter_with_grid_search_cv(data,classes)
+        linear_svm = sklearn.svm.SVC(kernel='linear', C=hyperparameter)
+        recursive_feature_elimination = sklearn.feature_selection.RFE(estimator=linear_svm,
             n_features_to_select=1, step=0.1)
         recursive_feature_elimination.fit(data.T, classes)
-        features_rank = self.rerank_reverse_ordered_nonordinal_ranks(recursive_feature_elimination.ranking_)
-        return features_rank
+        ordered_ranks = self.reverse_order(recursive_feature_elimination.ranking_)
+        rank_normalized = self.normalize_rank(ordered_ranks)
+        return rank_normalized
 
     #TODO implement iterative grid search using scipy.stats.expon(scale=100) http://scikit-learn.org/stable/modules/grid_search.html
     def find_hyperparameter_with_grid_search_cv(self, data, classes):
@@ -61,9 +72,13 @@ class SVM_RFE(FeatureRanking):
         classifiers.fit(data.T, classes)
         return classifiers.best_params_['C']
 
-    def rerank_reverse_ordered_nonordinal_ranks(self, ranks):
-        ordered_ranks = self.rank_weights(-ranks+np.max(ranks))
+    def reverse_order(self, ranks):
+        ordered_ranks = -ranks + np.max(ranks) + 1
         return ordered_ranks
+
+    def normalize_rank(self, ranks):
+        rank_normalized = ranks * 1./np.max(ranks)
+        return rank_normalized
 
 
 class RF(FeatureRanking):
