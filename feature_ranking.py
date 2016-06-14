@@ -24,6 +24,10 @@ class SymmetricalUncertainty(FeatureRanking):
         features_rank = self.rank_weights(features_weight)
         return features_rank
 
+    def weight(self, data, classes):
+        features_weight = self.weight_features(data, classes)
+        return features_weight
+
     def weight_features(self, data, classes):
         features_weight = [skfeature.utility.mutual_information.su_calculation(data[i], classes)
                             for i in range(0, data.shape[0])]
@@ -37,9 +41,15 @@ class Relief(FeatureRanking):
         features_rank = self.rank_weights(features_weight)
         return features_rank
 
+    def weight(self, data, classes):
+        features_weight = skfeature.function.similarity_based.reliefF.reliefF(data.T, classes)
+        features_weight_normalized = self.normalize_vector(features_weight)
+        return features_weight_normalized
+
     def weight_features(self, data, classes):
         features_weight = skfeature.function.similarity_based.reliefF.reliefF(data.T, classes)
-        return features_weight 
+        return features_weight
+
 
 
 class SVM_RFE(FeatureRanking):
@@ -54,14 +64,14 @@ class SVM_RFE(FeatureRanking):
         features_rank = self.rank_weights(ordered_ranks)
         return features_rank
 
-    def weight_features(self, data, classes):
-        hyperparameter = self.find_hyperparameter_with_grid_search_cv(data,classes)
+    def weight(self, data, classes):
+        hyperparameter = self.find_hyperparameter_with_grid_search_cv(data, classes)
         linear_svm = sklearn.svm.SVC(kernel='linear', C=hyperparameter)
         recursive_feature_elimination = sklearn.feature_selection.RFE(estimator=linear_svm,
             n_features_to_select=1, step=0.1)
         recursive_feature_elimination.fit(data.T, classes)
         ordered_ranks = self.reverse_order(recursive_feature_elimination.ranking_)
-        rank_normalized = self.normalize_rank(ordered_ranks)
+        rank_normalized = self.normalize_vector(ordered_ranks)
         return rank_normalized
 
     #TODO implement iterative grid search using scipy.stats.expon(scale=100) http://scikit-learn.org/stable/modules/grid_search.html
@@ -76,13 +86,12 @@ class SVM_RFE(FeatureRanking):
         ordered_ranks = -ranks + np.max(ranks) + 1
         return ordered_ranks
 
-    def normalize_rank(self, ranks):
-        rank_normalized = ranks * 1./np.max(ranks)
-        return rank_normalized
-
 
 class RF(FeatureRanking):
     def rank(self, data, classes):
         pass #TODO
+
+    def weight(self, data, classes):
+        pass  # TODO
 
 

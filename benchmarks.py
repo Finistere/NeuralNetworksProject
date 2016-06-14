@@ -24,7 +24,8 @@ class FeatureRanking(metaclass=ABCMeta):
         self.__name__ = type(self).__name__
 
     def run_and_append_to_list(self, data, classes, results_list):
-        results_list.append(self.rank(data, classes))
+        features_weight = self.rank(data, classes)
+        results_list.append(self.rank_weights(features_weight))
 
     def run_and_set_in_results(self, data, classes, results, result_index):
         results[result_index] = self.rank(data, classes)
@@ -33,6 +34,17 @@ class FeatureRanking(metaclass=ABCMeta):
     # Each column is an observation, each row a feature
     def rank(self, data, classes):
         pass
+
+    @abstractmethod
+    # Each column is an observation, each row a feature
+    def weight(self, data, classes):
+        pass
+
+    def normalize_vector(self, vector, range_begin=0, range_end=1):
+        vector_min = np.min(vector)
+        vector_normalized = range_begin + \
+                            ((vector - vector_min) * (range_end - range_begin) / (np.max(vector) - vector_min))
+        return vector_normalized
 
     def rank_weights(self, features_weight):
         features_rank = scipy.stats.rankdata(features_weight, method='ordinal')
