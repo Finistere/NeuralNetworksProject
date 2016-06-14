@@ -1,2 +1,4 @@
 .idea
 _test.py
+/__pycache__/
+/.cache/

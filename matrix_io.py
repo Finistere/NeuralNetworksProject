@@ -27,8 +27,8 @@ def sparse_matrix(path, nb_features, delimiter=' ', index_value_delimiter=':'):
             for i in range(len(row)):
                 try:
                     index, value = row[i].split(index_value_delimiter)
-                    indices.append(index)
-                    data.append(value)
+                    indices.append(int(index))
+                    data.append(float(value))
                 except ValueError:
                     indptr[-1] -= 1
 
@@ -48,7 +48,7 @@ def sparse_binary_matrix(path, nb_features, delimiter=' '):
             shape[0] += 1
             for i in range(len(row)):
                 if row[i]:
-                    indices.append(row[i])
+                    indices.append(int(row[i]))
                 else:
                     indptr[-1] -= 1
 

@@ -4,8 +4,6 @@ import numpy as np
 
 
 class Dummy(RobustnessMeasure):
-    __name__ = "Dummy"
-
     def measure(self, features_ranks):
         return 1
 
@@ -37,7 +35,7 @@ class JaccardIndex(RobustnessMeasure):
         indices = self.matrix(features_ranks)
         return mean_of_lower_triangular(indices)
 
-    def matrix(self, features_ranks):      
+    def matrix(self, features_ranks):
         if np.any(np.min(features_ranks, axis=0) != np.ones(features_ranks.shape[1], dtype=np.int)):
             print(features_ranks)
             raise ValueError('features_rank ranking does not always begin with a 1')

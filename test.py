@@ -1,4 +1,4 @@
-from experiments import DataSetExperiment
+from experiments import *
 from feature_ranking import SymmetricalUncertainty, Relief, SVM_RFE
 import robustness_measure
 import ensemble_methods
@@ -10,15 +10,7 @@ from sklearn.ensemble import RandomForestClassifier
 feature_rankings = [
     SymmetricalUncertainty(),
     Relief(),
-    SVM_RFE(),
-    ensemble_methods.Stacking(
-        [SymmetricalUncertainty(), Relief()],
-        combination="mean"
-    ),
-    ensemble_methods.Stacking(
-        [SymmetricalUncertainty(), Relief()],
-        combination="hmean"
-    ),
+    SVM_RFE()
 ]
 robustness_measures = [
     robustness_measure.Spearman(),
@@ -35,11 +27,9 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-experiment = DataSetExperiment(
-    feature_rankings,
-    robustness_measures,
-    classifiers,
-    working_dir=".."
+exp = EnsembleMethodExperiment(
+    [ensemble_methods.Mean(feature_rankings)],
+    RobustnessBenchmark(robustness_measures)
 )
-
-experiment.run_data_set("dorothea")
+exp.run("dorothea")
+exp.print_results()

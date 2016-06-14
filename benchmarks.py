@@ -2,7 +2,6 @@ import numpy as np
 import scipy.stats
 from sklearn.cross_validation import KFold, ShuffleSplit
 from abc import ABCMeta, abstractmethod
-import warnings
 import multiprocessing
 import ctypes
 
@@ -36,52 +35,49 @@ class FeatureRanking(metaclass=ABCMeta):
         pass
 
     def rank_weights(self, features_weight):
-        features_rank = scipy.stats.rankdata(features_weight, method='ordinal') 
+        features_rank = scipy.stats.rankdata(features_weight, method='ordinal')
         return np.array(features_rank)
 
 
-class ClassifierWrapper:
-    def __init__(self, classifier):
-        self.classifier = classifier
+class Benchmark(metaclass=ABCMeta):
+    feature_ranking = None
 
-    def run_and_set_in_results(self, data, classes, train_index, test_index, results, result_index):
-        self.classifier.fit(
-            data[:, train_index].T,
-            classes[train_index]
-        )
-        results[result_index] = self.classifier.score(
-            data[:, test_index].T,
-            classes[test_index]
-        )
+    def __generate_features_ranks(self, data, labels):
+        if self.feature_ranking is None:
+            raise TypeError("feature_ranking needs to be defined")
+        generator = FeatureRanksGenerator(self.feature_ranking)
+        return generator.generate(data, labels, self.cv(labels.shape[0]))
+
+    @staticmethod
+    def cv(sample_size):
+        pass
+
+    @abstractmethod
+    def run(self, data, labels, feature_ranks=None):
+        pass
+
+    @abstractmethod
+    def get_measures(self):
+        pass
 
 
-class RobustnessBenchmark:
-    def __init__(self, feature_ranking: FeatureRanking, robustness_measures):
-        if not isinstance(robustness_measures, list):
-            robustness_measures = [robustness_measures]
-
-        for robustness_measure in robustness_measures:
-            if not isinstance(robustness_measure, RobustnessMeasure):
-                warnings.warn("Not all robustness measures are of type RobustnessMeasure")
-
+class FeatureRanksGenerator:
+    def __init__(self, feature_ranking: FeatureRanking):
         self.feature_ranking = feature_ranking
-        self.robustness_measures = robustness_measures
+        self.__name__ = self.feature_ranking.__name__
 
-    def run(self, data, classes, n_iter=10, test_size=0.1):
-        if self.robustness_measures is None:
-            raise ValueError("Robustness measures is not defined")
-
-        features_ranks = multiprocessing.Manager().list()
-        cv = ShuffleSplit(classes.shape[0], n_iter=n_iter, test_size=test_size)
-
+    def generate(self, data, labels, cv):
+        features_ranks = multiprocessing.Manager().dict()
         processes = []
-        for train_index, test_index in cv:
+
+        for i, (train_index, test_index) in enumerate(cv):
             p = multiprocessing.Process(
-                target=self.feature_ranking.run_and_append_to_list,
+                target=self.feature_ranking.run_and_set_in_results,
                 kwargs={
                     'data': data[:, train_index],
-                    'classes': classes[train_index],
-                    'results_list': features_ranks
+                    'classes': labels[train_index],
+                    'results': features_ranks,
+                    'result_index': i
                 }
             )
             p.start()
@@ -90,8 +86,27 @@ class RobustnessBenchmark:
         for p in processes:
             p.join()
 
-        features_ranks = np.array(features_ranks).T
+        features_ranks_list = []
+        for i, ranking in features_ranks.items():
+            features_ranks_list.append(ranking)
 
+        return np.array(features_ranks_list)
+
+
+class RobustnessBenchmark(Benchmark):
+    def __init__(self, robustness_measures, feature_ranking: FeatureRanking = None):
+        self.feature_ranking = feature_ranking
+
+        if not isinstance(robustness_measures, list):
+            robustness_measures = [robustness_measures]
+
+        self.robustness_measures = robustness_measures
+
+    def run(self, data, labels, features_ranks=None):
+        if features_ranks is None:
+            features_ranks = self.__generate_features_ranks(data, labels)
+
+        features_ranks = np.array(features_ranks).T
         shared_array_base = multiprocessing.Array(ctypes.c_double, len(self.robustness_measures))
         shared_robustness_array = np.ctypeslib.as_array(shared_array_base.get_obj())
         shared_robustness_array = shared_robustness_array.reshape(len(self.robustness_measures))
@@ -114,9 +129,34 @@ class RobustnessBenchmark:
 
         return shared_robustness_array
 
+    @staticmethod
+    def cv(sample_length):
+        return ShuffleSplit(sample_length, n_iter=10, test_size=0.1)
 
-class AccuracyBenchmark:
-    def __init__(self, feature_ranking: FeatureRanking, classifiers):
+    def get_measures(self):
+        return self.robustness_measures
+
+
+class ClassifierWrapper:
+    def __init__(self, classifier):
+        self.classifier = classifier
+
+    def run_and_set_in_results(self, data, classes, train_index, test_index, results, result_index):
+        self.classifier.fit(
+            data[:, train_index].T,
+            classes[train_index]
+        )
+        results[result_index] = self.classifier.score(
+            data[:, test_index].T,
+            classes[test_index]
+        )
+
+
+class AccuracyBenchmark(Benchmark):
+    percentage_used_in_classification = 0.1
+    n_fold = 10
+
+    def __init__(self, classifiers, feature_ranking: FeatureRanking = None):
         self.feature_ranking = feature_ranking
 
         if not isinstance(classifiers, list):
@@ -124,45 +164,26 @@ class AccuracyBenchmark:
 
         self.classifiers = [ClassifierWrapper(c) for c in classifiers]
 
-    def run(self, data, classes, n_folds=10, percentage_used_in_classification=0.1):
-        features_ranks = multiprocessing.Manager().dict()
+    def run(self, data, labels, features_ranks=None):
+        if features_ranks is None:
+            features_ranks = self.__generate_features_ranks(data, labels)
 
-        cv = KFold(classes.shape[0], n_folds=n_folds)
-
-        processes = []
-        for i, (train_index, test_index) in enumerate(cv):
-            p = multiprocessing.Process(
-                target=self.feature_ranking.run_and_set_in_results,
-                kwargs={
-                    'data': data[:, train_index],
-                    'classes': classes[train_index],
-                    'results': features_ranks,
-                    'result_index': i
-                }
-            )
-            p.start()
-            processes.append(p)
-
-        for p in processes:
-            p.join()
-
-        # multi threading necessary ?
         features_indexes = {}
-        for i, ranking in features_ranks.items():
-            features_indexes[i] = self.highest_percent(ranking, percentage_used_in_classification)
+        for i, ranking in enumerate(features_ranks):
+            features_indexes[i] = self.highest_percent(ranking, self.percentage_used_in_classification)
 
-        shared_array_base = multiprocessing.Array(ctypes.c_double, n_folds * len(self.classifiers))
+        shared_array_base = multiprocessing.Array(ctypes.c_double, AccuracyBenchmark.n_fold * len(self.classifiers))
         classification_accuracies = np.ctypeslib.as_array(shared_array_base.get_obj())
-        classification_accuracies = classification_accuracies.reshape((n_folds, len(self.classifiers)))
+        classification_accuracies = classification_accuracies.reshape((AccuracyBenchmark.n_fold, len(self.classifiers)))
 
         processes = []
-        for i, (train_index, test_index) in enumerate(cv):
+        for i, (train_index, test_index) in enumerate(self.cv(labels.shape[0])):
             for j, classifier in enumerate(self.classifiers):
                 p = multiprocessing.Process(
                     target=classifier.run_and_set_in_results,
                     kwargs={
                         'data': data[features_indexes[i], :],
-                        'classes': classes,
+                        'classes': labels,
                         'train_index': train_index,
                         'test_index': test_index,
                         'results': classification_accuracies,
@@ -177,12 +198,15 @@ class AccuracyBenchmark:
 
         return classification_accuracies.mean(axis=0)
 
+    @staticmethod
+    def cv(sample_length):
+        return KFold(sample_length, n_folds=AccuracyBenchmark.n_fold)
+
     # 1% best features
     @staticmethod
     def highest_percent(features_rank, percentage):
         size = 1 + int(len(list(features_rank)) * percentage)
         return np.argsort(features_rank)[:-size:-1]
 
-
-
-
+    def get_measures(self):
+        return self.classifiers
