@@ -1,5 +1,5 @@
 from experiments import *
-from feature_ranking import SymmetricalUncertainty, Relief, SVM_RFE
+from feature_selector import SymmetricalUncertainty, Relief, SVM_RFE
 import robustness_measure
 import ensemble_methods
 # classifiers
@@ -7,7 +7,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 
-feature_rankings = [
+feature_selectors = [
     SymmetricalUncertainty(),
     Relief(),
     SVM_RFE()
@@ -28,9 +28,9 @@ import warnings
 warnings.filterwarnings('ignore')
 
 exp = EnsembleMethodExperiment(
-    [ensemble_methods.Mean(feature_rankings)],
-    RobustnessBenchmark(robustness_measures),
-    feature_rankings
+    [ensemble_methods.Mean(feature_selectors)],
+    AccuracyBenchmark(classifiers, feature_selection_method="weight"),
+    feature_selectors
 )
 exp.run("dexter")
 exp.print_results()

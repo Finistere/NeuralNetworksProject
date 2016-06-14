@@ -1,5 +1,5 @@
 from benchmarks import RobustnessBenchmark, AccuracyBenchmark, Benchmark
-from ensemble_methods import FeaturesRanks
+from ensemble_methods import FeatureSelection
 from tabulate import tabulate
 import numpy as np
 import csv
@@ -43,25 +43,25 @@ class Experiment:
 
 
 class RobustnessExperiment(Experiment):
-    def __init__(self, feature_rankings, robustness_measures):
+    def __init__(self, feature_selectors, robustness_measures):
         if not isinstance(robustness_measures, list):
             robustness_measures = [robustness_measures]
 
-        if not isinstance(feature_rankings, list):
-            feature_rankings = [feature_rankings]
+        if not isinstance(feature_selectors, list):
+            feature_selectors = [feature_selectors]
 
         self.robustness_measures = robustness_measures
-        self.feature_rankings = feature_rankings
-        self.results = np.zeros((len(robustness_measures), len(feature_rankings)))
+        self.feature_selectors = feature_selectors
+        self.results = np.zeros((len(robustness_measures), len(feature_selectors)))
 
         self.row_labels = [type(r).__name__ for r in self.robustness_measures]
-        self.col_labels = [f.__name__ for f in self.feature_rankings]
+        self.col_labels = [f.__name__ for f in self.feature_selectors]
 
     def run(self, data, labels):
         for i in range(self.results.shape[1]):
             benchmark = RobustnessBenchmark(
                 robustness_measures=self.robustness_measures,
-                feature_ranking=self.feature_rankings[i]
+                feature_selector=self.feature_selectors[i]
             )
             self.results[:, i] = benchmark.run(data, labels)
 
@@ -75,26 +75,26 @@ class RobustnessExperiment(Experiment):
 class AccuracyExperiment(Experiment):
     measure_name = "classifiers"
 
-    def __init__(self, feature_rankings, classifiers):
+    def __init__(self, feature_selectors, classifiers):
         if not isinstance(classifiers, list):
             classifiers = [classifiers]
 
-        if not isinstance(feature_rankings, list):
-            feature_rankings = [feature_rankings]
+        if not isinstance(feature_selectors, list):
+            feature_selectors = [feature_selectors]
 
-        results_shape = (len(classifiers), len(feature_rankings))
+        results_shape = (len(classifiers), len(feature_selectors))
 
         self.classifiers = classifiers
-        self.feature_rankings = feature_rankings
+        self.feature_selectors = feature_selectors
         self.results = np.zeros(results_shape)
         self.row_labels = [type(c).__name__ for c in self.classifiers]
-        self.col_labels = [f.__name__ for f in self.feature_rankings]
+        self.col_labels = [f.__name__ for f in self.feature_selectors]
 
     def run(self, data, labels):
         for i in range(self.results.shape[1]):
             benchmark = AccuracyBenchmark(
                 classifiers=self.classifiers,
-                feature_ranking=self.feature_rankings[i]
+                feature_selector=self.feature_selectors[i]
             )
             self.results[:, i] = benchmark.run(data, labels)
 
@@ -106,9 +106,9 @@ class AccuracyExperiment(Experiment):
 
 
 class DataSetExperiments:
-    def __init__(self, feature_rankings, robustness_measures, classifiers, working_dir=".."):
-        self.robustness_experiment = RobustnessExperiment(feature_rankings, robustness_measures)
-        self.accuracy_experiment = AccuracyExperiment(feature_rankings, classifiers)
+    def __init__(self, feature_selectors, robustness_measures, classifiers, working_dir=".."):
+        self.robustness_experiment = RobustnessExperiment(feature_selectors, robustness_measures)
+        self.accuracy_experiment = AccuracyExperiment(feature_selectors, classifiers)
         self.results_folder = working_dir
 
     def run_data_set(self, name, file_name="output.csv"):
@@ -124,30 +124,30 @@ class DataSetExperiments:
 
 
 class EnsembleMethodExperiment(Experiment):
-    def __init__(self, ensemble_methods, benchmark: Benchmark, feature_rankings=None):
+    def __init__(self, ensemble_methods, benchmark: Benchmark, feature_selectors=None):
         if not isinstance(ensemble_methods, list):
             ensemble_methods = [ensemble_methods]
 
         self.ensemble_methods = ensemble_methods
         self.benchmark = benchmark
-        self.feature_ranks = [] if feature_rankings is None else [FeaturesRanks(f) for f in feature_rankings]
-        self.results = np.zeros((len(benchmark.get_measures()), len(ensemble_methods) + len(self.feature_ranks)))
+        self.feature_selectors = [] if feature_selectors is None else [FeatureSelection(f) for f in feature_selectors]
+        self.results = np.zeros((len(benchmark.get_measures()), len(ensemble_methods) + len(self.feature_selectors)))
 
         self.row_labels = [m.__name__ for m in self.benchmark.get_measures()]
-        self.col_labels = [f.__name__ for f in self.feature_ranks] + [f.__name__ for f in ensemble_methods]
+        self.col_labels = [f.__name__ for f in self.feature_selectors] + [f.__name__ for f in ensemble_methods]
 
     def run(self, data_set):
 
         data, labels = DataSets.load(data_set)
         cv = self.benchmark.cv(labels.shape[0])
-        for i, feature_ranks in enumerate(self.feature_ranks):
+        for i, feature_selector in enumerate(self.feature_selectors):
             self.results[:, i] = self.benchmark.run(
                 data,
                 labels,
-                feature_ranks.load(data_set, cv)
+                feature_selector.load(data_set, cv, self.benchmark.feature_selection_method)
             )
 
-        offset = len(self.feature_ranks)
+        offset = len(self.feature_selectors)
         for i, ensemble_method in enumerate(self.ensemble_methods):
             self.results[:, offset + i] = self.benchmark.run(
                 data,
