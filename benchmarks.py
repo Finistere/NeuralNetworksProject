@@ -141,14 +141,14 @@ class ClassifierWrapper:
     def __init__(self, classifier):
         self.classifier = classifier
 
-    def run_and_set_in_results(self, data, classes, train_index, test_index, results, result_index):
+    def run_and_set_in_results(self, data, labels, train_index, test_index, results, result_index):
         self.classifier.fit(
             data[:, train_index].T,
-            classes[train_index]
+            labels[train_index]
         )
         results[result_index] = self.classifier.score(
             data[:, test_index].T,
-            classes[test_index]
+            labels[test_index]
         )
 
 
@@ -183,7 +183,7 @@ class AccuracyBenchmark(Benchmark):
                     target=classifier.run_and_set_in_results,
                     kwargs={
                         'data': data[features_indexes[i], :],
-                        'classes': labels,
+                        'labels': labels,
                         'train_index': train_index,
                         'test_index': test_index,
                         'results': classification_accuracies,

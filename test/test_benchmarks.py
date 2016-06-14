@@ -3,6 +3,19 @@ import numpy as np
 import robustness_measure
 import feature_ranking
 from sklearn.dummy import DummyClassifier
+from sklearn.cross_validation import KFold
+
+
+class TestFeatureRanksGenerator:
+    featureRankGenerator = FeatureRanksGenerator(feature_ranking.Dummy())
+
+    def test_generate(self):
+        data, labels = np.ones((10, 10)), np.arange(10)
+        expected_results = np.array([
+            np.arange(10),
+            np.arange(10),
+        ]).tolist()
+        assert expected_results == self.featureRankGenerator.generate(data, labels, KFold(10, n_folds=2)).tolist()
 
 
 class TestRobustnessBenchmark:
@@ -13,6 +26,36 @@ class TestRobustnessBenchmark:
 
     def test_robustness(self):
         assert 1 == self.benchmark.run(np.ones((10, 4)), np.arange(4))
+
+
+class TestClassifierWrapper:
+    classifier = ClassifierWrapper(DummyClassifier(strategy='constant', constant=1))
+
+    def test_run(self):
+        data = np.random.randn(200, 10)
+        labels = np.array([1, 1, 1, 0, 0, 2, 0, 2, 0, 1])
+
+        train_index = [range(7)]
+        test_index = [7, 8, 9]
+
+        results = np.zeros((2, 2))
+        result_index = (0, 1)
+
+        expected_result = [
+            [0, 1/3],
+            [0, 0]
+        ]
+
+        self.classifier.run_and_set_in_results(
+            data,
+            labels,
+            train_index,
+            test_index,
+            results,
+            result_index
+        )
+
+        assert expected_result == results.tolist()
 
 
 class TestAccuracyBenchmark:
@@ -30,11 +73,11 @@ class TestAccuracyBenchmark:
 
     def test_classification_accuracy(self):
         data = np.random.randn(200, 10)
-        classes = np.array([1, 1, 1, 0, 0, 2, 0, 2, 0, 1])
+        labels = np.array([1, 1, 1, 0, 0, 2, 0, 2, 0, 1])
 
         expected_accuracy = [4 / 10, 2 / 10]
 
-        assert expected_accuracy == self.benchmark.run(data, classes).tolist()
+        assert expected_accuracy == self.benchmark.run(data, labels).tolist()
 
 
 
