@@ -6,31 +6,31 @@ class DataSets:
     data_sets = {
         'arcene': (
             {
-                "path": "/ARCENE/ARCENE/arcene_train.data",
+                "path": "/ARCENE/ARCENE/arcene.data",
                 "transpose": True
             },
             {
-                'path': "/ARCENE/ARCENE/arcene_train.labels",
+                'path': "/ARCENE/ARCENE/arcene.labels",
             }
         ),
         'dexter': (
             {
-                "path": "/DEXTER/DEXTER/dexter_train.data",
+                "path": "/DEXTER/DEXTER/dexter.data",
                 "method": "sparse_matrix",
                 "args": [20000]
             },
             {
-                "path": "/DEXTER/DEXTER/dexter_train.labels",
+                "path": "/DEXTER/DEXTER/dexter.labels",
             }
         ),
         "dorothea": (
             {
-                "path": "/DOROTHEA/DOROTHEA/dorothea_train.data",
+                "path": "/DOROTHEA/DOROTHEA/dorothea.data",
                 "method": "sparse_binary_matrix",
                 "args": [100001]
             },
             {
-                "path": "/DOROTHEA/DOROTHEA/dorothea_train.labels",
+                "path": "/DOROTHEA/DOROTHEA/dorothea.labels",
             }
         )
     }
