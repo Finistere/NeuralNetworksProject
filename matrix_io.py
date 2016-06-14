@@ -12,11 +12,11 @@ def regular_matrix(path, **kwargs):
     return np.loadtxt(path, **kwargs)
 
 
-def sparse_matrix(path, nb_features, delimiter=' ', index_value_delimiter=':'):
+def sparse_matrix(path, column_count, delimiter=' ', index_value_delimiter=':'):
     indptr = [0]
     indices = []
     data = []
-    shape = [0, nb_features]
+    shape = [0, column_count]
 
     with open(path) as csvFile:
         reader = csv.reader(csvFile, delimiter=delimiter)
@@ -35,10 +35,10 @@ def sparse_matrix(path, nb_features, delimiter=' ', index_value_delimiter=':'):
     return csr_matrix((np.array(data), indices, indptr), shape).T.toarray()
 
 
-def sparse_binary_matrix(path, nb_features, delimiter=' '):
+def sparse_binary_matrix(path, column_count, delimiter=' '):
     indptr = [0]
     indices = []
-    shape = [0, nb_features]
+    shape = [0, column_count]
 
     with open(path) as csvFile:
         reader = csv.reader(csvFile, delimiter=delimiter)
