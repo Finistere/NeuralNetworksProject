@@ -1,14 +1,14 @@
 from experiments import *
 import numpy as np
 import robustness_measure
-import feature_ranking
+import feature_selector
 from sklearn.dummy import DummyClassifier
 
 
 class TestRobustnessExperiment:
     experiment = RobustnessExperiment(
         robustness_measure.Dummy(),
-        [feature_ranking.Dummy(), feature_ranking.Dummy()]
+        [feature_selector.Dummy(), feature_selector.Dummy()]
     )
 
     def test_run(self):
@@ -24,7 +24,7 @@ class TestRobustnessExperiment:
     def test_print_results(self):
         experiment = RobustnessExperiment(
             robustness_measure.Dummy(),
-            [feature_ranking.Dummy(), feature_ranking.Dummy()]
+            [feature_selector.Dummy(), feature_selector.Dummy()]
         )
         experiment.results= np.array([[0.89,0.1]])
         experiment.print_results()
@@ -33,7 +33,7 @@ class TestRobustnessExperiment:
 class TestAccuracyExperiment:
     experiment = AccuracyExperiment(
         DummyClassifier(strategy='constant', constant=1),
-        [feature_ranking.Dummy(), feature_ranking.Dummy()]
+        [feature_selector.Dummy(), feature_selector.Dummy()]
     )
 
     def test_run(self):

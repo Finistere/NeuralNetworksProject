@@ -1,13 +1,13 @@
 from benchmarks import *
 import numpy as np
 import robustness_measure
-import feature_ranking
+import feature_selector
 from sklearn.dummy import DummyClassifier
 from sklearn.cross_validation import KFold
 
 
 class TestFeatureRanksGenerator:
-    featureRankGenerator = FeatureRanksGenerator(feature_ranking.Dummy())
+    featureRankGenerator = FeatureSelectionGenerator(feature_selector.Dummy())
 
     def test_generate(self):
         data, labels = np.ones((10, 10)), np.arange(10)
@@ -20,7 +20,7 @@ class TestFeatureRanksGenerator:
 
 class TestRobustnessBenchmark:
     benchmark = RobustnessBenchmark(
-        feature_ranking=feature_ranking.Dummy(),
+        feature_selector=feature_selector.Dummy(),
         robustness_measures=robustness_measure.Dummy()
     )
 
@@ -60,7 +60,7 @@ class TestClassifierWrapper:
 
 class TestAccuracyBenchmark:
     benchmark = AccuracyBenchmark(
-        feature_ranking=feature_ranking.Dummy(),
+        feature_selector=feature_selector.Dummy(),
         classifiers=[
             DummyClassifier(strategy='constant', constant=1),
             DummyClassifier(strategy='constant', constant=2),

@@ -1,4 +1,4 @@
-from benchmarks import FeatureRanking
+from benchmarks import FeatureSelector
 import numpy as np
 # SU
 import skfeature.utility.mutual_information
@@ -10,14 +10,18 @@ import sklearn.grid_search
 import sklearn.feature_selection
 
 
-class Dummy(FeatureRanking):
+class Dummy(FeatureSelector):
     __name__ = "Dummy"
 
     def rank(self, data, classes):
         return np.arange(data.shape[0])
 
+    def weight(self, data, classes):
+        ranks = np.arange(data.shape[0])
+        return ranks / ranks.max()
 
-class SymmetricalUncertainty(FeatureRanking):
+
+class SymmetricalUncertainty(FeatureSelector):
 
     def rank(self, data, classes):
         features_weight = self.weight_features(data, classes)
@@ -34,7 +38,7 @@ class SymmetricalUncertainty(FeatureRanking):
         return features_weight
 
 
-class Relief(FeatureRanking):
+class Relief(FeatureSelector):
 
     def rank(self, data, classes):
         features_weight = self.weight_features(data, classes)
@@ -52,7 +56,7 @@ class Relief(FeatureRanking):
 
 
 
-class SVM_RFE(FeatureRanking):
+class SVM_RFE(FeatureSelector):
 
     def rank(self, data, classes):
         hyperparameter = self.find_hyperparameter_with_grid_search_cv(data,classes)
@@ -87,7 +91,7 @@ class SVM_RFE(FeatureRanking):
         return ordered_ranks
 
 
-class RF(FeatureRanking):
+class RF(FeatureSelector):
     def rank(self, data, classes):
         pass #TODO
 

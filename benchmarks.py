@@ -10,8 +10,8 @@ class RobustnessMeasure(metaclass=ABCMeta):
     def __init__(self):
         self.__name__ = type(self).__name__
 
-    def run_and_set_in_results(self, features_ranks, results, result_index):
-        results[result_index] = self.measure(features_ranks)
+    def run_and_set_in_results(self, features_selection, results, result_index):
+        results[result_index] = self.measure(features_selection)
 
     @abstractmethod
     # features ranks is matrix with each rows represent a feature, and the columns its rankings
@@ -19,16 +19,15 @@ class RobustnessMeasure(metaclass=ABCMeta):
         pass
 
 
-class FeatureRanking(metaclass=ABCMeta):
+class FeatureSelector(metaclass=ABCMeta):
     def __init__(self):
         self.__name__ = type(self).__name__
 
-    def run_and_append_to_list(self, data, classes, results_list):
-        features_weight = self.rank(data, classes)
-        results_list.append(self.rank_weights(features_weight))
+    def run_and_append_to_list(self, data, classes, results_list, method):
+        results_list.append(getattr(self, method)(data, classes))
 
-    def run_and_set_in_results(self, data, classes, results, result_index):
-        results[result_index] = self.rank(data, classes)
+    def run_and_set_in_results(self, data, classes, results, result_index, method):
+        results[result_index] = getattr(self, method)(data, classes)
 
     @abstractmethod
     # Each column is an observation, each row a feature
@@ -52,13 +51,14 @@ class FeatureRanking(metaclass=ABCMeta):
 
 
 class Benchmark(metaclass=ABCMeta):
-    feature_ranking = None
+    feature_selector = None
+    feature_selection_method = "rank"
 
-    def generate_features_ranks(self, data, labels):
-        if self.feature_ranking is None:
+    def generate_features_selection(self, data, labels):
+        if self.feature_selector is None:
             raise TypeError("feature_ranking needs to be defined")
-        generator = FeatureRanksGenerator(self.feature_ranking)
-        return generator.generate(data, labels, self.cv(labels.shape[0]))
+        generator = FeatureSelectionGenerator(self.feature_selector)
+        return generator.generate(data, labels, self.cv(labels.shape[0]), self.feature_selection_method)
 
     @staticmethod
     def cv(sample_size):
@@ -73,23 +73,24 @@ class Benchmark(metaclass=ABCMeta):
         pass
 
 
-class FeatureRanksGenerator:
-    def __init__(self, feature_ranking: FeatureRanking):
-        self.feature_ranking = feature_ranking
-        self.__name__ = self.feature_ranking.__name__
+class FeatureSelectionGenerator:
+    def __init__(self, feature_selectors: FeatureSelector):
+        self.feature_selectors = feature_selectors
+        self.__name__ = self.feature_selectors.__name__
 
-    def generate(self, data, labels, cv):
-        features_ranks = multiprocessing.Manager().dict()
+    def generate(self, data, labels, cv, method="rank"):
+        features_selection = multiprocessing.Manager().dict()
         processes = []
 
         for i, (train_index, test_index) in enumerate(cv):
             p = multiprocessing.Process(
-                target=self.feature_ranking.run_and_set_in_results,
+                target=self.feature_selectors.run_and_set_in_results,
                 kwargs={
                     'data': data[:, train_index],
                     'classes': labels[train_index],
-                    'results': features_ranks,
-                    'result_index': i
+                    'results': features_selection,
+                    'result_index': i,
+                    'method': method
                 }
             )
             p.start()
@@ -98,27 +99,29 @@ class FeatureRanksGenerator:
         for p in processes:
             p.join()
 
-        features_ranks_list = []
-        for i, ranking in features_ranks.items():
-            features_ranks_list.append(ranking)
+        features_selection_list = []
+        for i, ranking in features_selection.items():
+            features_selection_list.append(ranking)
 
-        return np.array(features_ranks_list)
+        return np.array(features_selection_list)
 
 
 class RobustnessBenchmark(Benchmark):
-    def __init__(self, robustness_measures, feature_ranking: FeatureRanking = None):
-        self.feature_ranking = feature_ranking
+    def __init__(self, robustness_measures, feature_selector: FeatureSelector = None, feature_selection_method=None):
+        self.feature_selector = feature_selector
+        if feature_selection_method is not None:
+            self.feature_selection_method = feature_selection_method
 
         if not isinstance(robustness_measures, list):
             robustness_measures = [robustness_measures]
 
         self.robustness_measures = robustness_measures
 
-    def run(self, data, labels, features_ranks=None):
-        if features_ranks is None:
-            features_ranks = self.generate_features_ranks(data, labels)
+    def run(self, data, labels, features_selection=None):
+        if features_selection is None:
+            features_selection = self.generate_features_selection(data, labels)
 
-        features_ranks = np.array(features_ranks).T
+        features_selection = np.array(features_selection).T
         shared_array_base = multiprocessing.Array(ctypes.c_double, len(self.robustness_measures))
         shared_robustness_array = np.ctypeslib.as_array(shared_array_base.get_obj())
         shared_robustness_array = shared_robustness_array.reshape(len(self.robustness_measures))
@@ -128,7 +131,7 @@ class RobustnessBenchmark(Benchmark):
             p = multiprocessing.Process(
                 target=self.robustness_measures[i].run_and_set_in_results,
                 kwargs={
-                    'features_ranks': features_ranks,
+                    'features_selection': features_selection,
                     'results': shared_robustness_array,
                     'result_index': i
                 }
@@ -169,20 +172,22 @@ class AccuracyBenchmark(Benchmark):
     percentage_used_in_classification = 0.1
     n_fold = 10
 
-    def __init__(self, classifiers, feature_ranking: FeatureRanking = None):
-        self.feature_ranking = feature_ranking
+    def __init__(self, classifiers, feature_selector: FeatureSelector = None, feature_selection_method=None):
+        self.feature_selector = feature_selector
+        if feature_selection_method is not None:
+            self.feature_selection_method = feature_selection_method
 
         if not isinstance(classifiers, list):
             classifiers = [classifiers]
 
         self.classifiers = [ClassifierWrapper(c) for c in classifiers]
 
-    def run(self, data, labels, features_ranks=None):
-        if features_ranks is None:
-            features_ranks = self.generate_features_ranks(data, labels)
+    def run(self, data, labels, features_selection=None):
+        if features_selection is None:
+            features_selection = self.generate_features_selection(data, labels)
 
         features_indexes = {}
-        for i, ranking in enumerate(features_ranks):
+        for i, ranking in enumerate(features_selection):
             features_indexes[i] = self.highest_percent(ranking, self.percentage_used_in_classification)
 
         shared_array_base = multiprocessing.Array(ctypes.c_double, AccuracyBenchmark.n_fold * len(self.classifiers))
@@ -217,9 +222,9 @@ class AccuracyBenchmark(Benchmark):
 
     # 1% best features
     @staticmethod
-    def highest_percent(features_rank, percentage):
-        size = 1 + int(len(list(features_rank)) * percentage)
-        return np.argsort(features_rank)[:-size:-1]
+    def highest_percent(features_selection, percentage):
+        size = 1 + int(len(list(features_selection)) * percentage)
+        return np.argsort(features_selection)[:-size:-1]
 
     def get_measures(self):
         return self.classifiers
