@@ -23,11 +23,11 @@ class FeatureSelector(metaclass=ABCMeta):
     def __init__(self):
         self.__name__ = type(self).__name__
 
-    def run_and_append_to_list(self, data, classes, results_list, method):
-        results_list.append(getattr(self, method)(data, classes))
+    def run_and_append_to_list(self, data, labels, results_list, method):
+        results_list.append(getattr(self, method)(data, labels))
 
-    def run_and_set_in_results(self, data, classes, results, result_index, method):
-        results[result_index] = getattr(self, method)(data, classes)
+    def run_and_set_in_results(self, data, labels, results, result_index, method):
+        results[result_index] = getattr(self, method)(data, labels)
 
     @abstractmethod
     # Each column is an observation, each row a feature
@@ -87,7 +87,7 @@ class FeatureSelectionGenerator:
                 target=self.feature_selectors.run_and_set_in_results,
                 kwargs={
                     'data': data[:, train_index],
-                    'classes': labels[train_index],
+                    'labels': labels[train_index],
                     'results': features_selection,
                     'result_index': i,
                     'method': method

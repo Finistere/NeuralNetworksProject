@@ -7,6 +7,7 @@ class DataSets:
         'arcene': (
             {
                 "path": "/ARCENE/ARCENE/arcene_train.data",
+                "transpose": True
             },
             {
                 'path': "/ARCENE/ARCENE/arcene_train.labels",
@@ -16,7 +17,8 @@ class DataSets:
             {
                 "path": "/DEXTER/DEXTER/dexter_train.data",
                 "method": "sparse_matrix",
-                "args": [20000]
+                "args": [20000],
+                "transpose": True
             },
             {
                 "path": "/DEXTER/DEXTER/dexter_train.labels",
@@ -26,7 +28,8 @@ class DataSets:
             {
                 "path": "/DOROTHEA/DOROTHEA/dorothea_train.data",
                 "method": "sparse_binary_matrix",
-                "args": [100001]
+                "args": [100001],
+                "transpose": True
             },
             {
                 "path": "/DOROTHEA/DOROTHEA/dorothea_train.labels",
@@ -41,8 +44,11 @@ class DataSets:
 
     @staticmethod
     def __load_data_set_file(info):
-        return getattr(matrix_io, info.get('method', 'regular_matrix'))(
+        data = getattr(matrix_io, info.get('method', 'regular_matrix'))(
             DataSets.root_dir + info['path'],
             *info.get('args', []),
             **info.get('kwargs', {})
         )
+        if info.get('transpose', False):
+            return data.T
+        return data
