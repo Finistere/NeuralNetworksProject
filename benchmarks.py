@@ -42,7 +42,7 @@ class FeatureRanking(metaclass=ABCMeta):
 class Benchmark(metaclass=ABCMeta):
     feature_ranking = None
 
-    def __generate_features_ranks(self, data, labels):
+    def generate_features_ranks(self, data, labels):
         if self.feature_ranking is None:
             raise TypeError("feature_ranking needs to be defined")
         generator = FeatureRanksGenerator(self.feature_ranking)
@@ -104,7 +104,7 @@ class RobustnessBenchmark(Benchmark):
 
     def run(self, data, labels, features_ranks=None):
         if features_ranks is None:
-            features_ranks = self.__generate_features_ranks(data, labels)
+            features_ranks = self.generate_features_ranks(data, labels)
 
         features_ranks = np.array(features_ranks).T
         shared_array_base = multiprocessing.Array(ctypes.c_double, len(self.robustness_measures))
@@ -166,7 +166,7 @@ class AccuracyBenchmark(Benchmark):
 
     def run(self, data, labels, features_ranks=None):
         if features_ranks is None:
-            features_ranks = self.__generate_features_ranks(data, labels)
+            features_ranks = self.generate_features_ranks(data, labels)
 
         features_indexes = {}
         for i, ranking in enumerate(features_ranks):

@@ -39,5 +39,5 @@ class TestSVM_RFE():
     def test_reverse_order(self):
         svm_rfe = feature_ranking.SVM_RFE()
         correctly_ordered_ranks = svm_rfe.reverse_order(
-                self.reversed_ordered_nonordinal_ranks)
+                self.reversed_ranks)
         assert np.allclose([4,2,3,4,4,2,1], correctly_ordered_ranks)

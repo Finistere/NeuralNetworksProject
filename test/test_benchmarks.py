@@ -34,7 +34,7 @@ class TestAccuracyBenchmark:
 
         expected_accuracy = [4 / 10, 2 / 10]
 
-        assert expected_accuracy == self.benchmark.run(data, classes, n_folds=10).tolist()
+        assert expected_accuracy == self.benchmark.run(data, classes).tolist()
 
 
 
