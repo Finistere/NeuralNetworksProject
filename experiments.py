@@ -1,4 +1,5 @@
 from benchmarks import RobustnessBenchmark, AccuracyBenchmark, Benchmark
+from ensemble_methods import FeaturesRanks
 from tabulate import tabulate
 import numpy as np
 import csv
@@ -123,26 +124,37 @@ class DataSetExperiments:
 
 
 class EnsembleMethodExperiment(Experiment):
-    def __init__(self, ensemble_methods, benchmark: Benchmark):
+    def __init__(self, ensemble_methods, benchmark: Benchmark, feature_rankings=None):
         if not isinstance(ensemble_methods, list):
             ensemble_methods = [ensemble_methods]
 
         self.ensemble_methods = ensemble_methods
         self.benchmark = benchmark
-        self.results = np.zeros((len(benchmark.get_measures()), len(ensemble_methods)))
+        self.feature_ranks = [] if feature_rankings is None else [FeaturesRanks(f) for f in feature_rankings]
+        self.results = np.zeros((len(benchmark.get_measures()), len(ensemble_methods) + len(self.feature_ranks)))
 
         self.row_labels = [m.__name__ for m in self.benchmark.get_measures()]
-        self.col_labels = [f.__name__ for f in ensemble_methods]
+        self.col_labels = [f.__name__ for f in self.feature_ranks] + [f.__name__ for f in ensemble_methods]
 
     def run(self, data_set):
 
         data, labels = DataSets.load(data_set)
-        for i, ensemble_method in enumerate(self.ensemble_methods):
+        cv = self.benchmark.cv(labels.shape[0])
+        for i, feature_ranks in enumerate(self.feature_ranks):
             self.results[:, i] = self.benchmark.run(
+                data,
+                labels,
+                feature_ranks.load(data_set, cv)
+            )
+
+        offset = len(self.feature_ranks)
+        for i, ensemble_method in enumerate(self.ensemble_methods):
+            self.results[:, offset + i] = self.benchmark.run(
                 data,
                 labels,
                 ensemble_method.ranks(data_set, self.benchmark)
             )
+
         return self.results
 
     def print_results(self):

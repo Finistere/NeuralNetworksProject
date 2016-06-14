@@ -48,7 +48,7 @@ class SVM_RFE(FeatureRanking):
         hyperparameter = self.find_hyperparameter_with_grid_search_cv(data,classes)
         linear_svm = sklearn.svm.SVC(kernel='linear', C=hyperparameter)
         recursive_feature_elimination = sklearn.feature_selection.RFE(estimator=linear_svm,
-            n_features_to_select=1, step=1)
+            n_features_to_select=1, step=0.1)
         recursive_feature_elimination.fit(data.T, classes)
         ordered_ranks = self.reverse_order(recursive_feature_elimination.ranking_)
         features_rank = self.rank_weights(ordered_ranks)
