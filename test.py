@@ -29,7 +29,8 @@ warnings.filterwarnings('ignore')
 
 exp = EnsembleMethodExperiment(
     [ensemble_methods.Mean(feature_rankings)],
-    RobustnessBenchmark(robustness_measures)
+    RobustnessBenchmark(robustness_measures),
+    feature_rankings
 )
-exp.run("dorothea")
+exp.run("dexter")
 exp.print_results()
