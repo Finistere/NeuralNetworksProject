@@ -2,6 +2,7 @@ import matrix_io
 
 
 class DataSets:
+    root_dir = ".."
     data_sets = {
         'arcene': (
             {
@@ -33,16 +34,15 @@ class DataSets:
         )
     }
 
-    def __init__(self, data_dir='..'):
-        self.data_folder = data_dir
+    @staticmethod
+    def load(name):
+        data, labels = DataSets.data_sets[name]
+        return DataSets.__load_data_set_file(data), DataSets.__load_data_set_file(labels)
 
-    def load(self, name):
-        data, labels = self.data_sets[name]
-        return self.__load_data_set_file(data), self.__load_data_set_file(labels)
-
-    def __load_data_set_file(self, info):
+    @staticmethod
+    def __load_data_set_file(info):
         return getattr(matrix_io, info.get('method', 'regular_matrix'))(
-            self.data_folder + info['path'],
+            DataSets.root_dir + info['path'],
             *info.get('args', []),
             **info.get('kwargs', {})
         )
