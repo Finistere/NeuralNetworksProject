@@ -140,6 +140,7 @@ class RobustnessBenchmark(Benchmark):
 class ClassifierWrapper:
     def __init__(self, classifier):
         self.classifier = classifier
+        self.__name__ = type(classifier).__name__
 
     def run_and_set_in_results(self, data, labels, train_index, test_index, results, result_index):
         self.classifier.fit(
