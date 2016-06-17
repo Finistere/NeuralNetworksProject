@@ -53,6 +53,7 @@ class FeatureSelector(metaclass=ABCMeta):
 class Benchmark(metaclass=ABCMeta):
     feature_selector = None
     feature_selection_method = "rank"
+    max_parallelism = multiprocessing.cpu_count()
 
     def generate_features_selection(self, data, labels):
         if self.feature_selector is None:
@@ -80,24 +81,22 @@ class FeatureSelectionGenerator:
 
     def generate(self, data, labels, cv, method="rank"):
         features_selection = multiprocessing.Manager().dict()
-        processes = []
 
-        for i, (train_index, test_index) in enumerate(cv):
-            p = multiprocessing.Process(
-                target=self.feature_selectors.run_and_set_in_results,
-                kwargs={
-                    'data': data[:, train_index],
-                    'labels': labels[train_index],
-                    'results': features_selection,
-                    'result_index': i,
-                    'method': method
-                }
-            )
-            p.start()
-            processes.append(p)
-
-        for p in processes:
-            p.join()
+        max_parallelism = getattr(self, "max_parallelism", Benchmark.max_parallelism)
+        with multiprocessing.Pool(processes=max_parallelism) as pool:
+            for i, (train_index, test_index) in enumerate(cv):
+                pool.apply_async(
+                    self.feature_selectors.run_and_set_in_results,
+                    kwds={
+                        'data': data[:, train_index],
+                        'labels': labels[train_index],
+                        'results': features_selection,
+                        'result_index': i,
+                        'method': method
+                    }
+                )
+            pool.close()
+            pool.join()
 
         features_selection_list = []
         for i, ranking in features_selection.items():
@@ -126,21 +125,18 @@ class RobustnessBenchmark(Benchmark):
         shared_robustness_array = np.ctypeslib.as_array(shared_array_base.get_obj())
         shared_robustness_array = shared_robustness_array.reshape(len(self.robustness_measures))
 
-        processes = []
-        for i in range(len(self.robustness_measures)):
-            p = multiprocessing.Process(
-                target=self.robustness_measures[i].run_and_set_in_results,
-                kwargs={
-                    'features_selection': features_selection,
-                    'results': shared_robustness_array,
-                    'result_index': i
-                }
-            )
-            p.start()
-            processes.append(p)
-
-        for p in processes:
-            p.join()
+        with multiprocessing.Pool(processes=self.max_parallelism) as pool:
+            for i in range(len(self.robustness_measures)):
+                pool.apply_async(
+                    self.robustness_measures[i].run_and_set_in_results,
+                    kwds={
+                        'features_selection': features_selection,
+                        'results': shared_robustness_array,
+                        'result_index': i
+                    }
+                )
+            pool.close()
+            pool.join()
 
         return shared_robustness_array
 
@@ -194,25 +190,22 @@ class AccuracyBenchmark(Benchmark):
         classification_accuracies = np.ctypeslib.as_array(shared_array_base.get_obj())
         classification_accuracies = classification_accuracies.reshape((AccuracyBenchmark.n_fold, len(self.classifiers)))
 
-        processes = []
-        for i, (train_index, test_index) in enumerate(self.cv(labels.shape[0])):
-            for j, classifier in enumerate(self.classifiers):
-                p = multiprocessing.Process(
-                    target=classifier.run_and_set_in_results,
-                    kwargs={
-                        'data': data[features_indexes[i], :],
-                        'labels': labels,
-                        'train_index': train_index,
-                        'test_index': test_index,
-                        'results': classification_accuracies,
-                        'result_index': (i, j)
-                    }
-                )
-                p.start()
-                processes.append(p)
-
-        for p in processes:
-            p.join()
+        with multiprocessing.Pool(processes=self.max_parallelism) as pool:
+            for i, (train_index, test_index) in enumerate(self.cv(labels.shape[0])):
+                for j, classifier in enumerate(self.classifiers):
+                    pool.apply_async(
+                        classifier.run_and_set_in_results,
+                        kwds={
+                            'data': data[features_indexes[i], :],
+                            'labels': labels,
+                            'train_index': train_index,
+                            'test_index': test_index,
+                            'results': classification_accuracies,
+                            'result_index': (i, j)
+                        }
+                    )
+            pool.close()
+            pool.join()
 
         return classification_accuracies.mean(axis=0)
 
