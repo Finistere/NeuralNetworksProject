@@ -95,8 +95,7 @@ class AnalyseFeatureSelection():
 class AnalyseWeights:
     # shape: (features x samples)
     def analyse_weights(self, weights):
-        numbering_as_string = [str(s) for s in range(weights.shape[1])]
-        column_names = map(lambda number: 'S' + number, numbering_as_string)
+        column_names = ['S'+str(s) for s in range(weights.shape[1])]
         weights_df = pd.DataFrame(weights, columns=column_names)
         weights_mean = weights_df.T.mean()
 
@@ -106,7 +105,13 @@ class AnalyseWeights:
 
     def weights_stats(self, weights, weights_mean):
         weights_mean_df = pd.DataFrame(weights_mean, columns=['mean'])
-        stats = pd.concat([weights, weights_mean_df], axis=1).describe()
+        stats_df = pd.concat([weights, weights_mean_df], axis=1)
+        stats_matrix = stats_df.as_matrix()
+        n_unique_values = [len(np.unique(stats_matrix[:,i])) for i in range(stats_matrix.shape[1])]
+        unique_df = pd.DataFrame(n_unique_values, columns=['unique']).T
+        unique_df.columns = ['S'+str(s) for s in range(weights.shape[1])] + ['mean']
+        stats = stats_df.describe().append(unique_df)
+
         return stats
 
     def weights_plot(self, weights, weights_mean):
