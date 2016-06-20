@@ -169,13 +169,18 @@ class ClassifierWrapper:
 
 
 class AccuracyBenchmark(Benchmark):
-    percentage_used_in_classification = 0.1
+    percentage_of_features = 0.01
     n_fold = 10
 
-    def __init__(self, classifiers, feature_selector: FeatureSelector = None, feature_selection_method=None):
+    def __init__(self, classifiers, feature_selector: FeatureSelector = None,
+                 feature_selection_method=None,
+                 percentage_of_features=None):
         self.feature_selector = feature_selector
         if feature_selection_method is not None:
             self.feature_selection_method = feature_selection_method
+
+        if percentage_of_features is not None:
+            self.percentage_of_features = percentage_of_features
 
         if not isinstance(classifiers, list):
             classifiers = [classifiers]
@@ -188,7 +193,7 @@ class AccuracyBenchmark(Benchmark):
 
         features_indexes = {}
         for i, ranking in enumerate(features_selection):
-            features_indexes[i] = self.highest_percent(ranking, self.percentage_used_in_classification)
+            features_indexes[i] = self.highest_percent(ranking, self.percentage_of_features)
 
         shared_array_base = multiprocessing.Array(ctypes.c_double, AccuracyBenchmark.n_fold * len(self.classifiers))
         classification_accuracies = np.ctypeslib.as_array(shared_array_base.get_obj())

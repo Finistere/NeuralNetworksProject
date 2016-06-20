@@ -17,8 +17,7 @@ class DataSets:
             {
                 "path": "/DEXTER/DEXTER/dexter_train.data",
                 "method": "sparse_matrix",
-                "args": [20000],
-                "transpose": True
+                "args": [20000]
             },
             {
                 "path": "/DEXTER/DEXTER/dexter_train.labels",
@@ -28,8 +27,7 @@ class DataSets:
             {
                 "path": "/DOROTHEA/DOROTHEA/dorothea_train.data",
                 "method": "sparse_binary_matrix",
-                "args": [100001],
-                "transpose": True
+                "args": [100001]
             },
             {
                 "path": "/DOROTHEA/DOROTHEA/dorothea_train.labels",
