@@ -68,9 +68,20 @@ class EnsembleMethod(metaclass=ABCMeta):
 
         ranks = []
         for i in range(bench_features_selection.shape[1]):
-            ranks.append(scipy.stats.rankdata(self.combine(bench_features_selection[:, i]), method='ordinal'))
+            ranks.append(scipy.stats.rankdata(
+                self.combine(
+                    self.normalize_weights(bench_features_selection[:, i])
+                ),
+                method='ordinal'
+            ))
 
         return np.array(ranks)
+
+    @staticmethod
+    def normalize_weights(weights):
+        centred_weights = (weights - weights.mean(axis=1)[:, np.newaxis])
+        normalized_weights = centred_weights / (weights.max(axis=1) - weights.min(axis=1))[:, np.newaxis]
+        return normalized_weights + 0.500000001
 
     @abstractmethod
     def combine(self, feature_ranks):
@@ -85,6 +96,16 @@ class Mean(EnsembleMethod):
 
     def combine(self, features_selection):
         return np.power(features_selection, self.power).mean(axis=0)
+
+
+class HMean(EnsembleMethod):
+    def __init__(self, feature_selectors, power=1):
+        super().__init__(feature_selectors)
+        self.__name__ = "HMean - {}".format(power)
+        self.power = power
+
+    def combine(self, features_selection):
+        return scipy.stats.hmean(np.power(features_selection, self.power), axis=0)
 
 
 class Stacking(FeatureSelector):
