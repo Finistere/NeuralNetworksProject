@@ -41,8 +41,9 @@ class FeatureSelector(metaclass=ABCMeta):
 
     def normalize_vector(self, vector, range_begin=0, range_end=1):
         vector_min = np.min(vector)
-        vector_normalized = range_begin + \
-                            ((vector - vector_min) * (range_end - range_begin) / (np.max(vector) - vector_min))
+        vector_normalized = range_begin + (
+            (vector - vector_min) * (range_end - range_begin) / (np.max(vector) - vector_min)
+        )
         return vector_normalized
 
     def rank_weights(self, features_weight):
@@ -50,10 +51,13 @@ class FeatureSelector(metaclass=ABCMeta):
         return np.array(features_rank)
 
 
+class ParallelProcessing:
+    max_parallelism = multiprocessing.cpu_count()
+
+
 class Benchmark(metaclass=ABCMeta):
     feature_selector = None
     feature_selection_method = "rank"
-    max_parallelism = multiprocessing.cpu_count()
 
     def generate_features_selection(self, data, labels):
         if self.feature_selector is None:
@@ -74,7 +78,7 @@ class Benchmark(metaclass=ABCMeta):
         pass
 
 
-class FeatureSelectionGenerator:
+class FeatureSelectionGenerator(ParallelProcessing):
     def __init__(self, feature_selectors: FeatureSelector):
         self.feature_selectors = feature_selectors
         self.__name__ = self.feature_selectors.__name__
@@ -82,8 +86,7 @@ class FeatureSelectionGenerator:
     def generate(self, data, labels, cv, method="rank"):
         features_selection = multiprocessing.Manager().dict()
 
-        max_parallelism = getattr(self, "max_parallelism", Benchmark.max_parallelism)
-        with multiprocessing.Pool(processes=max_parallelism) as pool:
+        with multiprocessing.Pool(processes=self.max_parallelism) as pool:
             for i, (train_index, test_index) in enumerate(cv):
                 pool.apply_async(
                     self.feature_selectors.run_and_set_in_results,
@@ -105,7 +108,7 @@ class FeatureSelectionGenerator:
         return np.array(features_selection_list)
 
 
-class RobustnessBenchmark(Benchmark):
+class RobustnessBenchmark(Benchmark, ParallelProcessing):
     def __init__(self, robustness_measures, feature_selector: FeatureSelector = None, feature_selection_method=None):
         self.feature_selector = feature_selector
         if feature_selection_method is not None:
@@ -164,7 +167,7 @@ class ClassifierWrapper:
         )
 
 
-class AccuracyBenchmark(Benchmark):
+class AccuracyBenchmark(Benchmark, ParallelProcessing):
     percentage_used_in_classification = 0.1
     n_fold = 10
 
@@ -213,7 +216,7 @@ class AccuracyBenchmark(Benchmark):
     def cv(sample_length):
         return KFold(sample_length, n_folds=AccuracyBenchmark.n_fold)
 
-    # 1% best features
+    # best features
     @staticmethod
     def highest_percent(features_selection, percentage):
         size = 1 + int(len(list(features_selection)) * percentage)
