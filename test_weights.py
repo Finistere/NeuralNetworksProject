@@ -1,7 +1,9 @@
-import numpy as np
-from analyse_weights import AnalyseWeights
+from analyse_weights import AnalyseBenchmarkResults
+from feature_selector import SymmetricalUncertainty, Relief, SVM_RFE
 
 
-weights = np.load("../feature_weights/arcene/KFold/SymmetricalUncertainty.npy")
-aw = AnalyseWeights()
-aw.run_analysis(weights.T)
+feature_selectors = [
+    SymmetricalUncertainty()]
+
+analysis = AnalyseBenchmarkResults(feature_selectors)
+analysis.run("arcene")

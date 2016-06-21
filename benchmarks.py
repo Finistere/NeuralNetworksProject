@@ -41,9 +41,8 @@ class FeatureSelector(metaclass=ABCMeta):
 
     def normalize_vector(self, vector, range_begin=0, range_end=1):
         vector_min = np.min(vector)
-        vector_normalized = range_begin + (
-            (vector - vector_min) * (range_end - range_begin) / (np.max(vector) - vector_min)
-        )
+        vector_normalized = range_begin + \
+                            ((vector - vector_min) * (range_end - range_begin) / (np.max(vector) - vector_min))
         return vector_normalized
 
     def rank_weights(self, features_weight):
@@ -51,26 +50,21 @@ class FeatureSelector(metaclass=ABCMeta):
         return np.array(features_rank)
 
 
-class ParallelProcessing:
-    max_parallelism = multiprocessing.cpu_count()
-
-
 class Benchmark(metaclass=ABCMeta):
     feature_selector = None
-    feature_selection_method = "rank"
 
     def generate_features_selection(self, data, labels):
         if self.feature_selector is None:
             raise TypeError("feature_ranking needs to be defined")
         generator = FeatureSelectionGenerator(self.feature_selector)
-        return generator.generate(data, labels, self.cv(labels.shape[0]), self.feature_selection_method)
+        return generator.generate(data, labels, self.cv(labels.shape[0]), "rank")
 
     @staticmethod
     def cv(sample_size):
         pass
 
     @abstractmethod
-    def run(self, data, labels, feature_ranks=None):
+    def run(self, data, labels, features_selection=None):
         pass
 
     @abstractmethod
@@ -78,12 +72,14 @@ class Benchmark(metaclass=ABCMeta):
         pass
 
 
-class FeatureSelectionGenerator(ParallelProcessing):
+class FeatureSelectionGenerator:
+    max_parallelism = multiprocessing.cpu_count()
+
     def __init__(self, feature_selectors: FeatureSelector):
         self.feature_selectors = feature_selectors
         self.__name__ = self.feature_selectors.__name__
 
-    def generate(self, data, labels, cv, method="rank"):
+    def generate(self, data, labels, cv, method):
         features_selection = multiprocessing.Manager().dict()
 
         with multiprocessing.Pool(processes=self.max_parallelism) as pool:
@@ -101,18 +97,12 @@ class FeatureSelectionGenerator(ParallelProcessing):
             pool.close()
             pool.join()
 
-        features_selection_list = []
-        for i, ranking in features_selection.items():
-            features_selection_list.append(ranking)
-
-        return np.array(features_selection_list)
+        return np.array([ranking for i, ranking in features_selection.items()])
 
 
-class RobustnessBenchmark(Benchmark, ParallelProcessing):
-    def __init__(self, robustness_measures, feature_selector: FeatureSelector = None, feature_selection_method=None):
+class RobustnessBenchmark(Benchmark):
+    def __init__(self, robustness_measures, feature_selector: FeatureSelector = None):
         self.feature_selector = feature_selector
-        if feature_selection_method is not None:
-            self.feature_selection_method = feature_selection_method
 
         if not isinstance(robustness_measures, list):
             robustness_measures = [robustness_measures]
@@ -128,18 +118,21 @@ class RobustnessBenchmark(Benchmark, ParallelProcessing):
         shared_robustness_array = np.ctypeslib.as_array(shared_array_base.get_obj())
         shared_robustness_array = shared_robustness_array.reshape(len(self.robustness_measures))
 
-        with multiprocessing.Pool(processes=self.max_parallelism) as pool:
-            for i in range(len(self.robustness_measures)):
-                pool.apply_async(
-                    self.robustness_measures[i].run_and_set_in_results,
-                    kwds={
-                        'features_selection': features_selection,
-                        'results': shared_robustness_array,
-                        'result_index': i
-                    }
-                )
-            pool.close()
-            pool.join()
+        processes = []
+        for i in range(len(self.robustness_measures)):
+            p = multiprocessing.Process(
+                target=self.robustness_measures[i].run_and_set_in_results,
+                kwargs={
+                    'features_selection': features_selection,
+                    'results': shared_robustness_array,
+                    'result_index': i
+                }
+            )
+            p.start()
+            processes.append(p)
+
+        for p in processes:
+            p.join()
 
         return shared_robustness_array
 
@@ -167,14 +160,15 @@ class ClassifierWrapper:
         )
 
 
-class AccuracyBenchmark(Benchmark, ParallelProcessing):
-    percentage_used_in_classification = 0.1
+class AccuracyBenchmark(Benchmark):
+    percentage_of_features = 0.01
     n_fold = 10
 
-    def __init__(self, classifiers, feature_selector: FeatureSelector = None, feature_selection_method=None):
+    def __init__(self, classifiers, feature_selector: FeatureSelector = None, percentage_of_features=None):
         self.feature_selector = feature_selector
-        if feature_selection_method is not None:
-            self.feature_selection_method = feature_selection_method
+
+        if percentage_of_features is not None:
+            self.percentage_of_features = percentage_of_features
 
         if not isinstance(classifiers, list):
             classifiers = [classifiers]
@@ -187,28 +181,31 @@ class AccuracyBenchmark(Benchmark, ParallelProcessing):
 
         features_indexes = {}
         for i, ranking in enumerate(features_selection):
-            features_indexes[i] = self.highest_percent(ranking, self.percentage_used_in_classification)
+            features_indexes[i] = self.highest_percent(ranking, self.percentage_of_features)
 
         shared_array_base = multiprocessing.Array(ctypes.c_double, AccuracyBenchmark.n_fold * len(self.classifiers))
         classification_accuracies = np.ctypeslib.as_array(shared_array_base.get_obj())
         classification_accuracies = classification_accuracies.reshape((AccuracyBenchmark.n_fold, len(self.classifiers)))
 
-        with multiprocessing.Pool(processes=self.max_parallelism) as pool:
-            for i, (train_index, test_index) in enumerate(self.cv(labels.shape[0])):
-                for j, classifier in enumerate(self.classifiers):
-                    pool.apply_async(
-                        classifier.run_and_set_in_results,
-                        kwds={
-                            'data': data[features_indexes[i], :],
-                            'labels': labels,
-                            'train_index': train_index,
-                            'test_index': test_index,
-                            'results': classification_accuracies,
-                            'result_index': (i, j)
-                        }
-                    )
-            pool.close()
-            pool.join()
+        processes = []
+        for i, (train_index, test_index) in enumerate(self.cv(labels.shape[0])):
+            for j, classifier in enumerate(self.classifiers):
+                p = multiprocessing.Process(
+                    target=classifier.run_and_set_in_results,
+                    kwargs={
+                        'data': data[features_indexes[i], :],
+                        'labels': labels,
+                        'train_index': train_index,
+                        'test_index': test_index,
+                        'results': classification_accuracies,
+                        'result_index': (i, j)
+                    }
+                )
+                p.start()
+                processes.append(p)
+
+        for p in processes:
+            p.join()
 
         return classification_accuracies.mean(axis=0)
 
@@ -216,7 +213,7 @@ class AccuracyBenchmark(Benchmark, ParallelProcessing):
     def cv(sample_length):
         return KFold(sample_length, n_folds=AccuracyBenchmark.n_fold)
 
-    # best features
+    # 1% best features
     @staticmethod
     def highest_percent(features_selection, percentage):
         size = 1 + int(len(list(features_selection)) * percentage)
@@ -224,3 +221,29 @@ class AccuracyBenchmark(Benchmark, ParallelProcessing):
 
     def get_measures(self):
         return self.classifiers
+
+
+class FMeasureBenchmark:
+    def __init__(self, classifiers, feature_selector: FeatureSelector = None, jaccard_percentage=0.01, beta=1):
+        from robustness_measure import JaccardIndex
+        self.robustness_benchmark = RobustnessBenchmark(
+            JaccardIndex(percentage=jaccard_percentage),
+            feature_selector=feature_selector
+        )
+        self.accuracy_benchmark = AccuracyBenchmark(
+            classifiers,
+            feature_selector=feature_selector,
+            percentage_of_features=jaccard_percentage
+        )
+        self.beta = beta
+
+    def run(self, data, labels, robustness_features_selection=None, accuracy_features_selection=None):
+        return np.mean(self.f_measure(
+            self.robustness_benchmark.run(data, labels, robustness_features_selection),
+            self.accuracy_benchmark.run(data, labels, accuracy_features_selection),
+            self.beta
+        ))
+
+    @staticmethod
+    def f_measure(robustness, accuracy, beta=1):
+        return (beta ** 2 * robustness * accuracy) / (beta ** 2 * robustness + accuracy)

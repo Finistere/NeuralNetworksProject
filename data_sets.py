@@ -1,9 +1,20 @@
 import matrix_io
+from sklearn import preprocessing
+import numpy as np
 
 
 class DataSets:
     root_dir = ".."
     data_sets = {
+        'colon': (
+            {
+                "path": "/Colon/data.txt"
+            },
+            {
+                "path": "/Colon/labels.txt",
+                "apply_transform": np.sign
+            }
+        ),
         'arcene': (
             {
                 "path": "/ARCENE/ARCENE/arcene.data",
@@ -37,8 +48,11 @@ class DataSets:
 
     @staticmethod
     def load(name):
-        data, labels = DataSets.data_sets[name]
-        return DataSets.__load_data_set_file(data), DataSets.__load_data_set_file(labels)
+        data_directory, labels_directory = DataSets.data_sets[name]
+        data = DataSets.__load_data_set_file(data_directory)
+        labels = DataSets.__load_data_set_file(labels_directory)
+        data_scaled = preprocessing.scale(data)
+        return data, labels
 
     @staticmethod
     def __load_data_set_file(info):
@@ -49,4 +63,7 @@ class DataSets:
         )
         if info.get('transpose', False):
             return data.T
+        apply_transform = info.get('apply_transform', False)
+        if apply_transform:
+            data = apply_transform(data)
         return data
