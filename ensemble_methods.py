@@ -1,50 +1,10 @@
-from benchmarks import FeatureSelector, FeatureSelectionGenerator, Benchmark
+from benchmarks import Benchmark
+from feature_selector import FeatureSelector
 import numpy as np
 import scipy.stats
 from abc import ABCMeta, abstractmethod
 from data_sets import DataSets
-import os
-import errno
-
-
-class FeatureSelection(FeatureSelectionGenerator):
-    def load(self, data_set, cv, method):
-        try:
-            return np.load(self.__file_name(data_set, cv, method) + ".npy")
-        except FileNotFoundError:
-            return self.__gen(data_set, cv, method)
-
-    def __file_name(self, data_set, cv, method):
-        return self.__dir_name(data_set, cv, method) + "/" + self.__name__
-
-    @staticmethod
-    def __dir_name(data_set, cv, method):
-        return "{root_dir}/feature_{method}s/{data_set}/{cv}".format(
-            root_dir=DataSets.root_dir,
-            method=method,
-            data_set=data_set,
-            cv=type(cv).__name__
-        )
-
-    def __gen(self, data_set, cv, method):
-        data, labels = DataSets.load(data_set)
-
-        print("Generating feature {method}s of {data_set} ({cv}) with {feature_selector}".format(
-            method=method,
-            data_set=data_set,
-            feature_selector=self.__name__,
-            cv=type(cv).__name__
-        ))
-        ranks = self.generate(data, labels, cv, method)
-
-        try:
-            os.makedirs(self.__dir_name(data_set, cv, method))
-        except OSError as exception:
-            if exception.errno != errno.EEXIST:
-                raise
-        np.save(self.__file_name(data_set, cv, method), ranks)
-
-        return ranks
+from feature_selection import FeatureSelection
 
 
 class EnsembleMethod(metaclass=ABCMeta):
@@ -88,6 +48,7 @@ class Mean(EnsembleMethod):
 
     def combine(self, features_selection):
         return np.power(features_selection, self.power).mean(axis=0)
+
 
 class SMean(EnsembleMethod):
     def __init__(self, feature_selectors, min_mean_max=[1, 1, 1]):

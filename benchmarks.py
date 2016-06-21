@@ -5,6 +5,7 @@ import multiprocessing
 import ctypes
 from feature_selector import FeatureSelector
 from robustness_measure import RobustnessMeasure, JaccardIndex
+from feature_selection import FeatureSelectionGenerator
 
 
 class Benchmark(metaclass=ABCMeta):
@@ -27,34 +28,6 @@ class Benchmark(metaclass=ABCMeta):
     @abstractmethod
     def get_measures(self):
         pass
-
-
-class FeatureSelectionGenerator:
-    max_parallelism = multiprocessing.cpu_count()
-
-    def __init__(self, feature_selectors: FeatureSelector):
-        self.feature_selectors = feature_selectors
-        self.__name__ = self.feature_selectors.__name__
-
-    def generate(self, data, labels, cv, method):
-        features_selection = multiprocessing.Manager().dict()
-
-        with multiprocessing.Pool(processes=self.max_parallelism) as pool:
-            for i, (train_index, test_index) in enumerate(cv):
-                pool.apply_async(
-                    self.feature_selectors.run_and_set_in_results,
-                    kwds={
-                        'data': data[:, train_index],
-                        'labels': labels[train_index],
-                        'results': features_selection,
-                        'result_index': i,
-                        'method': method
-                    }
-                )
-            pool.close()
-            pool.join()
-
-        return np.array([ranking for i, ranking in features_selection.items()])
 
 
 class RobustnessBenchmark(Benchmark):
