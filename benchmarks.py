@@ -1,50 +1,10 @@
 import numpy as np
-import scipy.stats
 from sklearn.cross_validation import KFold, ShuffleSplit
 from abc import ABCMeta, abstractmethod
 import multiprocessing
 import ctypes
-
-
-class RobustnessMeasure(metaclass=ABCMeta):
-    def __init__(self):
-        self.__name__ = type(self).__name__
-
-    def run_and_set_in_results(self, features_selection, results, result_index):
-        results[result_index] = self.measure(features_selection)
-
-    @abstractmethod
-    # features ranks is matrix with each rows represent a feature, and the columns its rankings
-    def measure(self, features_ranks):
-        pass
-
-
-class FeatureSelector(metaclass=ABCMeta):
-    def __init__(self):
-        self.__name__ = type(self).__name__
-
-    def run_and_set_in_results(self, data, labels, results, result_index, method):
-        results[result_index] = getattr(self, method)(data, labels)
-
-    # Each column is an observation, each row a feature
-    def rank(self, data, classes):
-        return self.rank_weights(self.weight(data, classes))
-
-    @abstractmethod
-    # Each column is an observation, each row a feature
-    def weight(self, data, classes):
-        pass
-
-    @staticmethod
-    def normalize(vector):
-        v_min = np.min(vector)
-        v_max = np.max(vector)
-        return (vector - v_min) / (v_max - v_min)
-
-    @staticmethod
-    def rank_weights(features_weight):
-        features_rank = scipy.stats.rankdata(features_weight, method='ordinal')
-        return np.array(features_rank)
+from feature_selector import FeatureSelector
+from robustness_measure import RobustnessMeasure, JaccardIndex
 
 
 class Benchmark(metaclass=ABCMeta):
@@ -103,6 +63,10 @@ class RobustnessBenchmark(Benchmark):
 
         if not isinstance(robustness_measures, list):
             robustness_measures = [robustness_measures]
+
+        for robustness_measure in robustness_measures:
+            if not isinstance(robustness_measure, RobustnessMeasure):
+                raise ValueError("At least one robustness measure does not inherit RobustnessMeasure")
 
         self.robustness_measures = robustness_measures
 
@@ -222,7 +186,6 @@ class AccuracyBenchmark(Benchmark):
 
 class FMeasureBenchmark:
     def __init__(self, classifiers, feature_selector: FeatureSelector = None, jaccard_percentage=0.01, beta=1):
-        from robustness_measure import JaccardIndex
         self.robustness_benchmark = RobustnessBenchmark(
             JaccardIndex(percentage=jaccard_percentage),
             feature_selector=feature_selector

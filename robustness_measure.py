@@ -1,6 +1,19 @@
-from benchmarks import RobustnessMeasure
+from abc import ABCMeta, abstractmethod
 import scipy.stats
 import numpy as np
+
+
+class RobustnessMeasure(metaclass=ABCMeta):
+    def __init__(self):
+        self.__name__ = type(self).__name__
+
+    def run_and_set_in_results(self, features_selection, results, result_index):
+        results[result_index] = self.measure(features_selection)
+
+    @abstractmethod
+    # features ranks is matrix with each rows represent a feature, and the columns its rankings
+    def measure(self, features_ranks):
+        pass
 
 
 class Dummy(RobustnessMeasure):

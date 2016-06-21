@@ -1,6 +1,6 @@
-from benchmarks import FeatureSelector
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 import numpy as np
+import scipy.stats
 # SU
 import skfeature.utility.mutual_information
 # Relief
@@ -11,6 +11,34 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.feature_selection import RFE
 # Lasso
 from sklearn.linear_model import LassoLarsCV
+
+
+class FeatureSelector(metaclass=ABCMeta):
+    def __init__(self):
+        self.__name__ = type(self).__name__
+
+    def run_and_set_in_results(self, data, labels, results, result_index, method):
+        results[result_index] = getattr(self, method)(data, labels)
+
+    # Each column is an observation, each row a feature
+    def rank(self, data, classes):
+        return self.rank_weights(self.weight(data, classes))
+
+    @abstractmethod
+    # Each column is an observation, each row a feature
+    def weight(self, data, classes):
+        pass
+
+    @staticmethod
+    def normalize(vector):
+        v_min = np.min(vector)
+        v_max = np.max(vector)
+        return (vector - v_min) / (v_max - v_min)
+
+    @staticmethod
+    def rank_weights(features_weight):
+        features_rank = scipy.stats.rankdata(features_weight, method='ordinal')
+        return np.array(features_rank)
 
 
 class Dummy(FeatureSelector):
@@ -31,7 +59,7 @@ class SymmetricalUncertainty(FeatureSelector):
             features_weight.append(
                 skfeature.utility.mutual_information.su_calculation(data[i], classes)
             )
-        return self.normalize(features_weight)
+        return self.normalize(np.array(features_weight))
 
 
 class Relief(FeatureSelector):
