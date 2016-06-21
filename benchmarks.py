@@ -179,4 +179,4 @@ class FMeasureBenchmark:
 
     @staticmethod
     def f_measure(robustness, accuracy, beta=1):
-        return (beta ** 2 * robustness * accuracy) / (beta ** 2 * robustness + accuracy)
+        return ((beta ** 2 + 1) * robustness * accuracy) / (beta ** 2 * robustness + accuracy)
