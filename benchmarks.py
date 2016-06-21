@@ -13,7 +13,7 @@ class Benchmark(metaclass=ABCMeta):
 
     def generate_features_selection(self, data, labels):
         if self.feature_selector is None:
-            raise TypeError("feature_ranking needs to be defined")
+            raise TypeError("feature_selector needs to be defined")
         generator = FeatureSelectionGenerator(self.feature_selector)
         return generator.generate(data, labels, self.cv(labels.shape[0]), "rank")
 
