@@ -13,7 +13,8 @@ class Experiment:
     row_labels = []
     col_labels = []
 
-    def __generate_results_table(self):
+    @property
+    def results_table(self):
         rows = [
             ["Measure"] + self.col_labels
         ]
@@ -25,8 +26,9 @@ class Experiment:
         return rows
 
     def print_results(self):
-        rows = self.__generate_results_table()
+        rows = self.results_table
         print(tabulate(rows[1:len(rows)], rows[0], tablefmt='pipe'))
+        print()
 
     def save_results(self, file_name="output.csv"):
         root_dir = DataSets.root_dir + "/results/" + type(self).__name__
@@ -39,7 +41,7 @@ class Experiment:
 
         with open(root_dir + "/" + file_name, "w") as f:
             writer = csv.writer(f)
-            writer.writerows(self.__generate_results_table())
+            writer.writerows(self.results_table)
 
 
 class RobustnessExperiment(Experiment):
@@ -159,7 +161,7 @@ class EnsembleMethodExperiment(Experiment):
         return self.results
 
     def print_results(self):
-        print("Ensemble Method: ")
+        print("Ensemble Method: {}".format(type(self.benchmark).__name__))
         super().print_results()
 
 
@@ -174,11 +176,8 @@ class EnsembleFMeasureExperiment(Experiment):
         self.beta = beta
         self.results = None
 
-        self.col_labels = ["Data Set"] + [f.__name__ for f in ensemble_methods]
-
     def run(self, data_sets):
         self.results = np.zeros((len(data_sets) + 1, len(self.ensemble_methods)))
-        self.row_labels = data_sets + ["Mean"]
 
         benchmark = FMeasureBenchmark(
             classifiers=self.classifiers,
@@ -203,10 +202,18 @@ class EnsembleFMeasureExperiment(Experiment):
                     ),
                 )
 
-        self.results[len(data_sets), :] = self.results[:len(data_sets)].mean(axis=0)
+        self.results[-1, :] = self.results[:-1].mean(axis=0)
+
+        order = np.argsort(self.results[-1])[::-1]
+        self.results = self.results[:, order]
+
+        self.row_labels = data_sets + ["Mean"]
+        self.col_labels = []
+        for i in order:
+            self.col_labels.append(self.ensemble_methods[i].__name__)
 
         return self.results
 
     def print_results(self):
-        print("Ensemble Method with {:.2%}".format(self.jaccard_percentage))
+        print("Ensemble Method with {:0%}".format(self.jaccard_percentage))
         super().print_results()
