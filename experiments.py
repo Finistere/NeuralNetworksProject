@@ -172,13 +172,13 @@ class EnsembleFMeasureExperiment(Experiment):
         self.classifiers = classifiers
         self.jaccard_percentage = jaccard_percentage
         self.beta = beta
-        self.results = np.zeros((1, len(ensemble_methods)))
+        self.results = None
 
-        self.row_labels = ["FMeasure {}".format(self.beta)]
-        self.col_labels = [f.__name__ for f in ensemble_methods]
+        self.col_labels = ["Data Set"] + [f.__name__ for f in ensemble_methods]
 
-    def run(self, data_set):
-        data, labels = DataSets.load(data_set)
+    def run(self, data_sets):
+        self.results = np.zeros((len(data_sets) + 1, len(self.ensemble_methods)))
+        self.row_labels = data_sets + ["Mean"]
 
         benchmark = FMeasureBenchmark(
             classifiers=self.classifiers,
@@ -186,19 +186,24 @@ class EnsembleFMeasureExperiment(Experiment):
             beta=self.beta,
         )
 
-        for i, ensemble_method in enumerate(self.ensemble_methods):
-            self.results[0, i] = benchmark.run(
-                data,
-                labels,
-                robustness_features_selection=ensemble_method.rank(
-                    data_set,
-                    benchmark.robustness_benchmark
-                ),
-                accuracy_features_selection=ensemble_method.rank(
-                    data_set,
-                    benchmark.accuracy_benchmark
-                ),
-            )
+        for i, data_set in enumerate(data_sets):
+            data, labels = DataSets.load(data_set)
+
+            for j, ensemble_method in enumerate(self.ensemble_methods):
+                self.results[i, j] = benchmark.run(
+                    data,
+                    labels,
+                    robustness_features_selection=ensemble_method.rank(
+                        data_set,
+                        benchmark.robustness_benchmark
+                    ),
+                    accuracy_features_selection=ensemble_method.rank(
+                        data_set,
+                        benchmark.accuracy_benchmark
+                    ),
+                )
+
+        self.results[len(data_sets), :] = self.results[:len(data_sets)].mean(axis=0)
 
         return self.results
 

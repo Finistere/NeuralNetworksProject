@@ -11,8 +11,6 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.feature_selection import RFE
 # Lasso
 from sklearn.linear_model import LassoLarsCV
-from sklearn.cross_validation import KFold
-
 
 
 class Dummy(FeatureSelector):
@@ -27,72 +25,59 @@ class Dummy(FeatureSelector):
 
 
 class SymmetricalUncertainty(FeatureSelector):
-    def rank(self, data, classes):
-        features_weight = self.weight_features(data, classes)
-        features_rank = self.rank_weights(features_weight)
-        return features_rank
-
     def weight(self, data, classes):
-        features_weight = self.weight_features(data, classes)
-        return features_weight
-
-    def weight_features(self, data, classes):
-        features_weight = [skfeature.utility.mutual_information.su_calculation(data[i], classes)
-                           for i in range(0, data.shape[0])]
-        return features_weight
+        features_weight = []
+        for i in range(0, data.shape[0]):
+            features_weight.append(
+                skfeature.utility.mutual_information.su_calculation(data[i], classes)
+            )
+        return self.normalize(features_weight)
 
 
 class Relief(FeatureSelector):
-    def rank(self, data, classes):
-        features_weight = self.weight_features(data, classes)
-        features_rank = self.rank_weights(features_weight)
-        return features_rank
-
     def weight(self, data, classes):
         features_weight = skfeature.function.similarity_based.reliefF.reliefF(data.T, classes)
-        features_weight_normalized = self.normalize_vector(features_weight)
-        return features_weight_normalized
 
-    def weight_features(self, data, classes):
-        features_weight = skfeature.function.similarity_based.reliefF.reliefF(data.T, classes)
-        return features_weight
+        return self.normalize(features_weight)
 
 
 class ClassifierFeatureSelector(FeatureSelector, metaclass=ABCMeta):
+
     # TODO implement iterative grid search using scipy.stats.expon(scale=100) http://scikit-learn.org/stable/modules/grid_search.html
-    def find_best_hyperparameter(self, data, classes, classifier, parameter):
-        tuned_parameters = [{parameter: [1, 10, 100, 1000]}]
-        classifiers = GridSearchCV(
-            classifier, tuned_parameters, cv=5, scoring='precision')
-        classifiers.fit(data.T, classes)
-        return classifiers.best_params_[parameter]
+    @staticmethod
+    def find_best_hyper_parameter(data, classes, classifier, parameter):
+        grid_search = GridSearchCV(
+            classifier,
+            {
+                parameter: [1, 10, 100, 1000]
+            },
+            cv=5,
+            scoring='precision'
+        )
+        grid_search.fit(data.T, classes)
+        return grid_search.best_params_[parameter]
 
 
 class SVM_RFE(ClassifierFeatureSelector):
-    def rank(self, data, classes):
-        hyperparameter = self.find_best_hyperparameter_SVC(data, classes)
-        linear_svm = SVC(kernel='linear', C=hyperparameter)
-        recursive_feature_elimination = RFE(
-            estimator=linear_svm, n_features_to_select=1, step=0.1)
-        recursive_feature_elimination.fit(data.T, classes)
-        ordered_ranks = self.reverse_order(recursive_feature_elimination.ranking_)
-        features_rank = self.rank_weights(ordered_ranks)
-        return features_rank
-
     def weight(self, data, classes):
-        hyperparameter = self.find_best_hyperparameter_SVC(data, classes)
-        linear_svm = SVC(kernel='linear', C=hyperparameter)
-        recursive_feature_elimination = RFE(
-            estimator=linear_svm, n_features_to_select=1, step=0.1)
-        recursive_feature_elimination.fit(data.T, classes)
-        ordered_ranks = self.reverse_order(recursive_feature_elimination.ranking_)
-        rank_normalized = self.normalize_vector(ordered_ranks)
-        return rank_normalized
+        rfe = RFE(
+            estimator=SVC(
+                kernel='linear',
+                C=self.find_best_hyper_parameter_SVC(data, classes)
+            ),
+            n_features_to_select=1,
+            step=0.1
+        )
+        rfe.fit(data.T, classes)
+        ordered_ranks = self.reverse_order(rfe.ranking_)
 
-    def find_best_hyperparameter_SVC(self, data, classes):
-        return self.find_best_hyperparameter(data, classes, SVC(), "C")
+        return self.normalize(ordered_ranks)
 
-    def reverse_order(self, ranks):
+    def find_best_hyper_parameter_SVC(self, data, classes):
+        return self.find_best_hyper_parameter(data, classes, SVC(), "C")
+
+    @staticmethod
+    def reverse_order(ranks):
         ordered_ranks = -ranks + np.max(ranks) + 1
         return ordered_ranks
 
@@ -113,8 +98,9 @@ class LassoFeatureSelector(ClassifierFeatureSelector):
         nonzero_regularization_parameters = np.ma.masked_array(lasso.coef_path_, [lasso.coef_path_ == 0])
         regularization_parameters_dimension = 1
         features_weight = np.mean(nonzero_regularization_parameters, axis=regularization_parameters_dimension)
-        features_weight_normalized = self.normalize_vector(features_weight)
-        return features_weight_normalized
+
+        return self.normalize(features_weight)
+
 
 class RF(FeatureSelector):
     def rank(self, data, classes):

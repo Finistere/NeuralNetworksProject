@@ -6,6 +6,20 @@ from sklearn.dummy import DummyClassifier
 from sklearn.cross_validation import KFold
 
 
+class TestFeatureSelector:
+    def test_normalize(self):
+        a = np.arange(5)
+        expected_result = np.arange(5) / 4
+
+        assert expected_result.tolist() == FeatureSelector.normalize(a).tolist()
+
+    def test_rank_weights(self):
+        weights = np.arange(5) / 4
+        expected_results = np.arange(5) + 1
+
+        assert expected_results.tolist() == FeatureSelector.rank_weights(weights).tolist()
+
+
 class TestFeatureRanksGenerator:
     featureRankGenerator = FeatureSelectionGenerator(feature_selector.Dummy())
 
