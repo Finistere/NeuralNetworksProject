@@ -18,7 +18,7 @@ class DataSets:
         'arcene': (
             {
                 "path": "/ARCENE/ARCENE/arcene.data",
-                "transpose": True
+                "apply_transform": np.transpose
             },
             {
                 'path': "/ARCENE/ARCENE/arcene.labels",
@@ -61,9 +61,7 @@ class DataSets:
             *info.get('args', []),
             **info.get('kwargs', {})
         )
-        if info.get('transpose', False):
-            return data.T
         apply_transform = info.get('apply_transform', False)
         if apply_transform:
-            data = apply_transform(data)
+            return apply_transform(data)
         return data

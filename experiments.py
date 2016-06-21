@@ -166,18 +166,19 @@ class EnsembleMethodExperiment(Experiment):
 
 
 class EnsembleFMeasureExperiment(Experiment):
-    def __init__(self, classifiers, ensemble_methods, jaccard_percentage=0.01, beta=1):
+    def __init__(self, classifiers, ensemble_methods, jaccard_percentage=0.01, beta=1, feature_selectors=None):
         if not isinstance(ensemble_methods, list):
             ensemble_methods = [ensemble_methods]
 
         self.ensemble_methods = ensemble_methods
+        self.feature_selectors = [] if feature_selectors is None else [FeatureSelection(f) for f in feature_selectors]
         self.classifiers = classifiers
         self.jaccard_percentage = jaccard_percentage
         self.beta = beta
         self.results = None
 
     def run(self, data_sets):
-        self.results = np.zeros((len(data_sets) + 1, len(self.ensemble_methods)))
+        self.results = np.zeros((len(data_sets) + 1, len(self.ensemble_methods) + len(self.feature_selectors)))
 
         benchmark = FMeasureBenchmark(
             classifiers=self.classifiers,
@@ -185,11 +186,31 @@ class EnsembleFMeasureExperiment(Experiment):
             beta=self.beta,
         )
 
+        offset = len(self.feature_selectors)
+        robustness_cv = benchmark.robustness_benchmark.cv(10)
+        accuracy_cv = benchmark.accuracy_benchmark.cv(10)
+
         for i, data_set in enumerate(data_sets):
             data, labels = DataSets.load(data_set)
 
-            for j, ensemble_method in enumerate(self.ensemble_methods):
+            for j, feature_selector in enumerate(self.feature_selectors):
                 self.results[i, j] = benchmark.run(
+                    data,
+                    labels,
+                    robustness_features_selection=feature_selector.load(
+                        data_set,
+                        robustness_cv,
+                        "rank"
+                    ),
+                    accuracy_features_selection=feature_selector.load(
+                        data_set,
+                        accuracy_cv,
+                        "rank"
+                    )
+                )
+
+            for j, ensemble_method in enumerate(self.ensemble_methods):
+                self.results[i, offset + j] = benchmark.run(
                     data,
                     labels,
                     robustness_features_selection=ensemble_method.rank(
@@ -210,10 +231,13 @@ class EnsembleFMeasureExperiment(Experiment):
         self.row_labels = data_sets + ["Mean"]
         self.col_labels = []
         for i in order:
-            self.col_labels.append(self.ensemble_methods[i].__name__)
+            if i >= offset:
+                self.col_labels.append(self.ensemble_methods[i - offset].__name__)
+            else:
+                self.col_labels.append(self.feature_selectors[i].__name__)
 
         return self.results
 
     def print_results(self):
-        print("Ensemble Method with {:0%}".format(self.jaccard_percentage))
+        print("Ensemble Method with {:.0%} features".format(self.jaccard_percentage))
         super().print_results()
