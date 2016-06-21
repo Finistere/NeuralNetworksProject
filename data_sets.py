@@ -1,9 +1,20 @@
 import matrix_io
 from sklearn import preprocessing
+import numpy as np
+
 
 class DataSets:
     root_dir = ".."
     data_sets = {
+        'colon': (
+            {
+                "path": "/Colon/data.txt"
+            },
+            {
+                "path": "/Colon/labels.txt",
+                "apply_transform": np.sign
+            }
+        ),
         'arcene': (
             {
                 "path": "/ARCENE/ARCENE/arcene_train.data",
@@ -52,4 +63,7 @@ class DataSets:
         )
         if info.get('transpose', False):
             return data.T
+        apply_transform = info.get('apply_transform', False)
+        if apply_transform:
+            data = apply_transform(data)
         return data

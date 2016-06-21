@@ -35,7 +35,7 @@ class FeatureSelection(FeatureSelectionGenerator):
             feature_selector=self.__name__,
             cv=type(cv).__name__
         ))
-        ranks = self.generate(data, labels, cv)
+        ranks = self.generate(data, labels, cv, method)
 
         try:
             os.makedirs(self.__dir_name(data_set, cv, method))
@@ -48,22 +48,23 @@ class FeatureSelection(FeatureSelectionGenerator):
 
 
 class EnsembleMethod(metaclass=ABCMeta):
-    def __init__(self, feature_selectors):
+    def __init__(self, feature_selectors, features_type="weight"):
         self.__name__ = type(self).__name__
+        self.features_type = features_type
 
         if not isinstance(feature_selectors, list):
             feature_selectors = [feature_selectors]
 
         self.feature_selectors = [FeatureSelection(f) for f in feature_selectors]
 
-    def ranks(self, data_set, benchmark: Benchmark):
+    def rank(self, data_set, benchmark: Benchmark):
         bench_features_selection = []
 
         _, labels = DataSets.load(data_set)
         cv = benchmark.cv(labels.shape[0])
 
         for f in self.feature_selectors:
-            bench_features_selection.append(f.load(data_set, cv, benchmark.feature_selection_method))
+            bench_features_selection.append(f.load(data_set, cv, self.features_type))
         bench_features_selection = np.array(bench_features_selection)
 
         ranks = []
@@ -89,8 +90,8 @@ class EnsembleMethod(metaclass=ABCMeta):
 
 
 class Mean(EnsembleMethod):
-    def __init__(self, feature_selectors, power=1):
-        super().__init__(feature_selectors)
+    def __init__(self, feature_selectors, power=1, **kwargs):
+        super().__init__(feature_selectors, **kwargs)
         self.__name__ = "Mean - {}".format(power)
         self.power = power
 
@@ -99,13 +100,26 @@ class Mean(EnsembleMethod):
 
 
 class HMean(EnsembleMethod):
-    def __init__(self, feature_selectors, power=1):
-        super().__init__(feature_selectors)
+    def __init__(self, feature_selectors, power=1, **kwargs):
+        super().__init__(feature_selectors, **kwargs)
         self.__name__ = "HMean - {}".format(power)
         self.power = power
 
     def combine(self, features_selection):
         return scipy.stats.hmean(np.power(features_selection, self.power), axis=0)
+
+
+class SMean(EnsembleMethod):
+    def __init__(self, feature_selectors, min_mean_max=[1, 1, 1]):
+        super().__init__(feature_selectors)
+        self.weights = np.array(min_mean_max)
+        self.__name__ = "SMean - {} {} {}".format(*min_mean_max)
+
+    def combine(self, features_selection):
+        f_mean = np.mean(features_selection, axis=0)
+        f_max = np.max(features_selection, axis=0)
+        f_min = np.min(features_selection, axis=0)
+        return (np.vstack((f_min, f_mean, f_max)) * self.weights[:, np.newaxis]).mean(axis=0)
 
 
 class Stacking(FeatureSelector):

@@ -15,7 +15,7 @@ class TestFeatureRanksGenerator:
             np.arange(10),
             np.arange(10),
         ]).tolist()
-        assert expected_results == self.featureRankGenerator.generate(data, labels, KFold(10, n_folds=2)).tolist()
+        assert expected_results == self.featureRankGenerator.generate(data, labels, KFold(10, n_folds=2), "rank").tolist()
 
 
 class TestRobustnessBenchmark:
