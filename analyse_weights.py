@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-from data_sets import DataSets
+from data_sets import Analysis, Weights
 import pandas as pd
 import numpy as np
 from feature_selector import FeatureSelector
@@ -20,9 +20,9 @@ class AnalyseBenchmarkResults():
 
         self.feature_selection_method = feature_selection_method
 
-    def run(self, data_set):
+    def run(self, data_set, save_to_file=False):
         for i in range(len(self.feature_selectors)):
-            analysis = AnalyseFeatureSelection(self.feature_selectors[i])
+            analysis = AnalyseFeatureSelection(self.feature_selectors[i], save_to_file)
             analysis.generate(
                 data_set,
                 self.cv(),
@@ -33,69 +33,38 @@ class AnalyseBenchmarkResults():
         return ShuffleSplit(0)
 
 
-class AnalyseFeatureSelection():
-    def __init__(self, feature_selector: FeatureSelector, save_to_file = False):
-        self.__name__ = feature_selector.__name__
+class AnalyseFeatureSelection:
+    def __init__(self, feature_selector: FeatureSelector, save_to_file=False):
+        self.feature_selector = feature_selector
         self.save_to_file = save_to_file
 
-    def generate(self, data_set, cv, method):
-        weights = self.load(data_set, cv, method)
-
+    def generate(self, data_set, cv, assessment_method):
+        weights = Weights.load(data_set, cv, assessment_method, self.feature_selector)
         stats, fig = AnalyseWeights().analyse_weights(weights.T)
 
         try:
-            os.makedirs(self.__dir_name_results(data_set, cv, method))
+            os.makedirs(Analysis.dir_name(data_set, cv, assessment_method))
         except OSError as exception:
             if exception.errno != errno.EEXIST:
                 raise
 
-        directory = self.__file_name_results(data_set, cv, method)
+        directory = Analysis.file_name(data_set, cv, assessment_method, self.feature_selector)
 
-        fig.suptitle("Weight analysis for " + self.__name__, fontsize=14, fontweight='bold')
+        fig.suptitle("Weight analysis for " + self.feature_selector.__name__, fontsize=14, fontweight='bold')
         fig.subplots_adjust(top=0.9)
 
-        if(self.save_to_file):
+        if self.save_to_file:
             fig.savefig(directory + '.png')
-            stats.to_pickle(directory + '.pkl')
+            stats.to_csv(directory + '.csv')
 
         plt.show()
         print(stats)
-
-    def load(self, data_set, cv, method):
-        try:
-            filename = self.__file_name_weigths(data_set, cv, method) + ".npy"
-            return np.load(filename)
-        except FileNotFoundError:
-            raise "Weight " + filename + " not found"
-
-    def __file_name_weigths(self, data_set, cv, method):
-        return self.__dir_name_weigths(data_set, cv, method) + "/" + self.__name__
-
-    @staticmethod
-    def __dir_name_weigths(data_set, cv, method):
-        return "{root_dir}/feature_{method}s/{data_set}/{cv}".format(
-            root_dir=DataSets.root_dir,
-            method=method,
-            data_set=data_set,
-            cv=type(cv).__name__
-        )
-    def __file_name_results(self, data_set, cv, method):
-        return self.__dir_name_results(data_set, cv, method) + "/" + self.__name__
-
-    @staticmethod
-    def __dir_name_results(data_set, cv, method):
-        return "{root_dir}/{method}s_results/{data_set}/{cv}".format(
-            root_dir=DataSets.root_dir,
-            method=method,
-            data_set=data_set,
-            cv=type(cv).__name__
-        )
 
 
 class AnalyseWeights:
     # shape: (features x samples)
     def analyse_weights(self, weights):
-        column_names = ['S'+str(s) for s in range(weights.shape[1])]
+        column_names = ['S' + str(s) for s in range(weights.shape[1])]
         weights_df = pd.DataFrame(weights, columns=column_names)
         weights_mean = weights_df.T.mean()
 
@@ -107,9 +76,9 @@ class AnalyseWeights:
         weights_mean_df = pd.DataFrame(weights_mean, columns=['mean'])
         stats_df = pd.concat([weights, weights_mean_df], axis=1)
         stats_matrix = stats_df.as_matrix()
-        n_unique_values = [len(np.unique(stats_matrix[:,i])) for i in range(stats_matrix.shape[1])]
+        n_unique_values = [len(np.unique(stats_matrix[:, i])) for i in range(stats_matrix.shape[1])]
         unique_df = pd.DataFrame(n_unique_values, columns=['unique']).T
-        unique_df.columns = ['S'+str(s) for s in range(weights.shape[1])] + ['mean']
+        unique_df.columns = ['S' + str(s) for s in range(weights.shape[1])] + ['mean']
         stats = stats_df.describe().append(unique_df)
 
         return stats

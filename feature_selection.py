@@ -2,7 +2,7 @@ import numpy as np
 import multiprocessing
 import os
 import errno
-from data_sets import DataSets
+from data_sets import DataSets, Weights
 from feature_selector import FeatureSelector
 
 
@@ -37,21 +37,9 @@ class FeatureSelectionGenerator:
 class FeatureSelection(FeatureSelectionGenerator):
     def load(self, data_set, cv, method):
         try:
-            return np.load(self.__file_name(data_set, cv, method) + ".npy")
+            return Weights.load(data_set, cv, method, self)
         except FileNotFoundError:
             return self.__gen(data_set, cv, method)
-
-    def __file_name(self, data_set, cv, method):
-        return self.__dir_name(data_set, cv, method) + "/" + self.__name__
-
-    @staticmethod
-    def __dir_name(data_set, cv, method):
-        return "{root_dir}/feature_{method}s/{data_set}/{cv}".format(
-            root_dir=DataSets.root_dir,
-            method=method,
-            data_set=data_set,
-            cv=type(cv).__name__
-        )
 
     def __gen(self, data_set, cv, method):
         data, labels = DataSets.load(data_set)
