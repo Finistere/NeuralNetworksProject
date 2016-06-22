@@ -150,6 +150,7 @@ class AccuracyBenchmark(Benchmark):
     # 1% best features
     @staticmethod
     def highest_percent(features_selection, percentage):
+        # TODO change to int(feature_selection.size...
         size = 1 + int(len(list(features_selection)) * percentage)
         return np.argsort(features_selection)[:-size:-1]
 
