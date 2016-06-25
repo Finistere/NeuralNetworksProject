@@ -51,8 +51,8 @@ class Mean(EnsembleMethod):
 
 
 class SMean(EnsembleMethod):
-    def __init__(self, feature_selectors, min_mean_max=[1, 1, 1]):
-        super().__init__(feature_selectors)
+    def __init__(self, feature_selectors, min_mean_max=[1, 1, 1], **kwargs):
+        super().__init__(feature_selectors, **kwargs)
         self.weights = np.array(min_mean_max)
         self.__name__ = "SMean - {} {} {}".format(*min_mean_max)
 

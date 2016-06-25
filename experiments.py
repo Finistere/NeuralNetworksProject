@@ -239,5 +239,5 @@ class EnsembleFMeasureExperiment(Experiment):
         return self.results
 
     def print_results(self):
-        print("Ensemble Method with {:.0%} features".format(self.jaccard_percentage))
+        print("Ensemble Method with {:.0%} features and beta={}".format(self.jaccard_percentage, self.beta))
         super().print_results()
