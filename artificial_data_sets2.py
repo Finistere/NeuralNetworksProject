@@ -3,14 +3,12 @@ import numpy as np
 
 class ArtificialData:
     @staticmethod
-    def generate(n_samples, n_features, significant_features, sample_distribution, noise_distribution=None):
-        if significant_features <= 0 or significant_features > n_samples:
+    def generate(n_samples, n_features, n_significant_features, sample_distribution, noise_distribution=None):
+        if n_significant_features <= 0 or n_significant_features > n_samples:
             raise ValueError("significant needs to be positive and inferior to the number of samples")
 
-        if significant_features < 1:
-            n_significant_features = np.ceil(significant_features * n_features)
-        else:
-            n_significant_features = significant_features
+        if n_significant_features < 1:
+            n_significant_features = np.ceil(n_significant_features * n_features)
 
         shape = (n_features, n_samples)
         samples = sample_distribution(shape)
@@ -45,7 +43,7 @@ class ArtificialData:
         return ArtificialData.generate(
             n_samples,
             n_features,
-            significant_features=significant,
+            n_significant_features=significant,
             sample_distribution=lambda s: np.random.normal(mean, variance, s),
             noise_distribution=None if noise_variance == 0 else lambda s: np.random.normal(0, noise_variance, s)
         )
