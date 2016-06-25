@@ -44,6 +44,15 @@ class DataSets:
             {
                 "path": "/DOROTHEA/DOROTHEA/dorothea.labels",
             }
+        ),
+        "artificial": (
+            {
+                "path": "/ARTIFICIAL/ARTIFICIAL/artificial.data",
+                "method": "regular_matrix",
+            },
+            {
+                "path": "/ARTIFICIAL/ARTIFICIAL/artificial.labels",
+            }
         )
     }
 
@@ -69,6 +78,7 @@ class DataSets:
 
 
 class Weights:
+    @staticmethod
     def load(data_set, cv, assessment_method, feature_method):
         try:
             filename = Weights.file_name(data_set, cv, assessment_method, feature_method) + ".npy"
@@ -93,6 +103,7 @@ class Weights:
 
 
 class Analysis:
+    @staticmethod
     def load_csv(data_set, cv, assessment_method, feature_method):
         try:
             filename = Analysis.file_name(data_set, cv, assessment_method, feature_method) + ".csv"
