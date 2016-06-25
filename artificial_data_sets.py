@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import scipy.stats
 
 
@@ -55,15 +56,26 @@ class ArtificialDataSet:
         self.artificial_noise_features = ArtificialNoiseSample(n_noise_features, n_samples, type_of_noise_features,
                                                                noise_features_variance)
 
-    def obtain_artificial_data_set(self):
+    def init_data_set(self):
         self.artificial_labeled_samples.init_labeled_samples()
         self.artificial_labeled_samples_noise.init_samples()
         self.artificial_noise_features.init_samples()
 
+    def obtain_artificial_data_set(self):
+        self.init_data_set()
         samples = self.artificial_labeled_samples.samples + self.artificial_labeled_samples_noise.samples
         noise_features = self.artificial_noise_features.samples
         artificial_data_set = np.vstack((samples, noise_features))
-        return artificial_data_set
+        return artificial_data_set, self.artificial_labeled_samples.labels
+
+    def save_data_set(self):
+        data_set, labels = self.obtain_artificial_data_set()
+        if not os.path.exists('../ARTIFICIAL/ARTIFICIAL/'): os.makedirs('../ARTIFICIAL/ARTIFICIAL/')
+        np.savetxt('../ARTIFICIAL/ARTIFICIAL/artificial.data', data_set)
+        np.savetxt('../ARTIFICIAL/ARTIFICIAL/artificial.labels', labels)
+        os.rename('../ARTIFICIAL/ARTIFICIAL/artificial.data.npy', '../ARTIFICIAL/ARTIFICIAL/artificial.data')
+        os.rename('../ARTIFICIAL/ARTIFICIAL/artificial.labels.npy', '../ARTIFICIAL/ARTIFICIAL/artificial.labels')
+        return 1
 
 
 def get_distribution_function(distribution_fun, fun_args):
