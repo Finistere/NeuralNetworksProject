@@ -80,8 +80,8 @@ class DataSets:
 class Weights:
     @staticmethod
     def load(data_set, cv, assessment_method, feature_method):
+        filename = Weights.file_name(data_set, cv, assessment_method, feature_method) + ".npy"
         try:
-            filename = Weights.file_name(data_set, cv, assessment_method, feature_method) + ".npy"
             weights = np.load(filename)
             return weights
         except FileNotFoundError:
@@ -105,8 +105,8 @@ class Weights:
 class Analysis:
     @staticmethod
     def load_csv(data_set, cv, assessment_method, feature_method):
+        filename = Analysis.file_name(data_set, cv, assessment_method, feature_method) + ".csv"
         try:
-            filename = Analysis.file_name(data_set, cv, assessment_method, feature_method) + ".csv"
             stats = pd.read_csv(filename)
             return stats
         except FileNotFoundError:
