@@ -1,72 +1,115 @@
 import numpy as np
 import os
 import scipy.stats
+from abc import ABCMeta, abstractmethod
 
 
 class ArtificialSample:
-    # own distribution_function has to support argument numpy array (n_features x n_samples)
-    #  and return numpy array (n_samples) binary
-    def __init__(self, n_features, n_samples, distribution_fun='normal', distribution_args=None):
+    def __init__(self, n_features=0, n_samples=0, distribution_fun='normal', distribution_args=None):
         self.n_features = n_features
         self.n_samples = n_samples
         self.distribution_fun = distribution_fun
         self.distribution_args = distribution_args
-        self.samples = None
+        self.data = None
 
-    def init_samples(self):
+    @abstractmethod
+    def init_data(self, n_features=None, n_samples=None):
+        pass
+
+
+class ArtificialUnivariateSample(ArtificialSample):
+    # own distribution_function has to support argument numpy array (n_features x n_samples)
+    #  and return numpy array (n_samples) binary
+    def init_data(self, n_features=None, n_samples=None):
+        if n_samples is not None: self.n_samples = n_samples
+        if n_features is not None: self.n_features = n_features
         distribution_function = get_distribution_function(self.distribution_fun, self.distribution_args)
-        self.samples = np.array([distribution_function(self.n_samples) for i in range(self.n_features)])
+        self.data = np.array([distribution_function(self.n_samples) for i in range(self.n_features)])
 
 
-class ArtificialLabeledSample(ArtificialSample):
-    def __init__(self, n_features, n_samples, distribution_fun='normal', distribution_args=None,
-                 label_fun='linear', label_args=None):
-        super().__init__(n_features, n_samples, distribution_fun, distribution_args)
-        self.label_fun = label_fun
-        self.label_args = label_args
-        self.labels = None
-
-    def init_labeled_samples(self):
-        if self.samples is None: self.init_samples()
-        distribution_function = get_distribution_function(self.distribution_fun, self.distribution_args)
-        label_function = get_label_function(self.label_fun, self.label_args)
-        self.samples = np.array([distribution_function(self.n_samples) for i in range(self.n_features)])
-        self.labels = label_function(self.samples)
-
-
-class ArtificialNoiseSample(ArtificialSample):
-    #type_of_noise function has to support argument sigma
-    def __init__(self, n_features, n_samples, type_of_noise='normal', variance=0.1):
+class ArtificialSampleNoise(ArtificialUnivariateSample):
+    # type_of_noise function has to support argument sigma
+    def __init__(self, n_features=0, n_samples=0, type_of_noise='normal', variance=0.1):
         fun_args = {'sigma': variance, 'mean': 0}
         super().__init__(n_features, n_samples, type_of_noise, fun_args)
         self.type_of_noise = type_of_noise
         self.variance = variance
 
 
+class ArtificialMultivariateSample(ArtificialSample):
+    # own distribution_function has to support argument numpy array (n_samples)
+    # and return numpy array (n_features, n_samples) binary
+    def init_data(self, n_features=None, n_samples=None):
+        if n_samples is not None: self.n_samples = n_samples
+        if n_features is not None: self.n_features = n_features
+        distribution_function = get_multivariate_distribution_function(self.distribution_fun, self.distribution_args,
+                                                                       self.n_features)
+        self.data = distribution_function(self.n_samples)
+
+
+class ArtificialLabeledSample:
+    def __init__(self, samples: ArtificialSample, label_fun='linear', label_args=None):
+        samples_list = samples
+        if not isinstance(samples, list):
+            samples_list = [samples]
+
+        n_samples = samples_list[0].n_samples
+        for sample in samples_list:
+            if sample.n_samples != n_samples:
+                print("Not all samples have same n_sample")
+                raise
+
+        self.samples = samples_list
+        self.label_fun = label_fun
+        self.label_args = label_args
+        self.labels = None
+
+    def init_data(self):
+        for sample in self.samples:
+            if sample.data is None: sample.init_data()
+
+    def init_labeled_samples(self):
+        label_function = get_label_function(self.label_fun, self.label_args)
+        self.init_data()
+        data = self.get_merged_data()
+        self.labels = label_function(data)
+
+    def get_merged_data(self):
+        return get_merged_samples(self.samples)
+
+
 class ArtificialDataSet:
     # sample noise: noise added to each sample
     # noise features: features consist out of noise
-    def __init__(self, n_features, n_samples, distribution_fun='normal', distribution_args=None,
-                 classification_fun='linear', type_of_noise='normal', noise_variance=0.1, n_noise_features=0,
-                 type_of_noise_features='normal', noise_features_variance=0.1):
-        self.artificial_labeled_samples = ArtificialLabeledSample(n_features, n_samples, distribution_fun,
-                                                                 distribution_args, classification_fun)
-        self.artificial_labeled_samples_noise = ArtificialNoiseSample(n_features, n_samples, type_of_noise,
-                                                                     noise_variance)
-        self.artificial_noise_features = ArtificialNoiseSample(n_noise_features, n_samples, type_of_noise_features,
-                                                               noise_features_variance)
+    def __init__(self, samples: ArtificialSample, noise_samples: ArtificialSampleNoise,
+                 noise_features: ArtificialSample, label_fun='linear', label_args=None):
+        samples_list = samples
+        if not isinstance(samples, list):
+            samples_list = [samples]
+        noise_features_list = noise_features
+        if not isinstance(noise_features, list):
+            noise_features_list = [noise_features]
+
+        if samples_list[0].n_samples != noise_samples.n_samples:
+            print("noise_sample and samples do not have the same size")
+            raise
+
+        self.labeled_samples = ArtificialLabeledSample(samples, label_fun, label_args)
+        self.noise_samples = noise_samples
+        self.noise_features = noise_features_list
 
     def init_data_set(self):
-        self.artificial_labeled_samples.init_labeled_samples()
-        self.artificial_labeled_samples_noise.init_samples()
-        self.artificial_noise_features.init_samples()
+        self.labeled_samples.init_labeled_samples()
+        self.noise_samples.init_data()
+        for noise_feature in self.noise_features:
+            if noise_feature.data is None: noise_feature.init_data()
 
     def obtain_artificial_data_set(self):
         self.init_data_set()
-        samples = self.artificial_labeled_samples.samples + self.artificial_labeled_samples_noise.samples
-        noise_features = self.artificial_noise_features.samples
+        samples = self.labeled_samples.get_merged_data() + self.noise_samples.data
+        noise_features = get_merged_samples(self.noise_features)
         artificial_data_set = np.vstack((samples, noise_features))
-        return artificial_data_set, self.artificial_labeled_samples.labels
+        return artificial_data_set, self.labeled_samples.labels
 
     def save_data_set(self):
         data_set, labels = self.obtain_artificial_data_set()
@@ -76,6 +119,23 @@ class ArtificialDataSet:
         os.rename('../ARTIFICIAL/ARTIFICIAL/artificial.data.npy', '../ARTIFICIAL/ARTIFICIAL/artificial.data')
         os.rename('../ARTIFICIAL/ARTIFICIAL/artificial.labels.npy', '../ARTIFICIAL/ARTIFICIAL/artificial.labels')
         return 1
+
+
+def get_merged_samples(sample_list):
+    if not (isinstance(sample_list, list) or isinstance(sample_list[0], ArtificialSample)):
+        print("Input should be list of ArtificialSample")
+        raise
+
+    total_features = 0
+    for sample in sample_list:
+        total_features += sample.n_features
+
+    data = np.zeros((total_features, sample_list[0].n_samples))
+    current_feature = 0
+    for sample in sample_list:
+        data[current_feature:current_feature + sample.n_features] = sample.data
+
+    return data
 
 
 def get_distribution_function(distribution_fun, fun_args):
@@ -88,6 +148,8 @@ def get_distribution_function(distribution_fun, fun_args):
     elif callable(distribution_fun):
         def distribution_function(**distribution_args):
             return distribution_fun(**distribution_args)
+    elif distribution_fun is None:
+        distribution_function = np.zeros
 
     return distribution_function
 
@@ -125,6 +187,29 @@ def _uniform(fun_args=None):
     return uniform_function
 
 
+def get_multivariate_distribution_function(multivariate_distribution_fun, fun_args, n_features):
+    if multivariate_distribution_fun == 'normal':
+        multivariate_distribution_function = _multivariate_normal(fun_args, n_features)
+    elif callable(multivariate_distribution_fun):
+        def distribution_function(**distribution_args):
+            return multivariate_distribution_fun(**distribution_args)
+    elif multivariate_distribution_fun is None:
+        multivariate_distribution_function = np.zeros
+
+    return multivariate_distribution_function
+
+
+def _multivariate_normal(fun_args, n_features):
+    fun_args = {} if fun_args is None else fun_args
+    mean = fun_args.get('mean', np.zeros(n_features))
+    sigma = fun_args.get('sigma', np.eye(n_features))
+
+    def multivariate_normal(n_samples):
+        return np.random.multivariate_normal(mean=mean, cov=sigma, size=n_samples).T
+
+    return multivariate_normal
+
+
 def get_label_function(label_fun, fun_args):
     if label_fun == 'linear':
         label_function = _linear_aggregation(fun_args)
@@ -146,6 +231,6 @@ def _linear_aggregation(fun_args=None):
             assert weights.size == samples.shape[1]
             weighted_samples = np.dot(samples, weights)
 
-        return np.sign(np.sum(weighted_samples, axis=1))
+        return np.sign(np.sum(weighted_samples, axis=0))
 
     return linear_aggregation

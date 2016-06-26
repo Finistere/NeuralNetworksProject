@@ -2,52 +2,92 @@ import artificial_data_sets
 import numpy as np
 
 
-class TestArtificialSample:
+class TestArtificialUnivariateSample:
     n_features = 10
     n_samples = 5
-    artificial_sample = artificial_data_sets.ArtificialSample(n_features=n_features, n_samples=n_samples)
+    artificial_sample = artificial_data_sets.ArtificialUnivariateSample(n_features=n_features, n_samples=n_samples)
 
     def init_samples(self):
         self.artificial_sample.init_samples()
-        assert self.artificial_sample.samples.shape[0] == self.n_features
-        assert self.artificial_sample.samples.shape[1] == self.n_samples
+        assert self.artificial_sample.data.shape[0] == self.n_features
+        assert self.artificial_sample.data.shape[1] == self.n_samples
+
+
+class TestArtificialSampleNoise:
+    n_features = 10
+    n_samples = 5
+    artificial_sample = artificial_data_sets.ArtificialSampleNoise(n_features=n_features, n_samples=n_samples)
+
+    def init_samples(self):
+        self.artificial_sample.init_samples()
+        assert self.artificial_sample.data.shape[0] == self.n_features
+        assert self.artificial_sample.data.shape[1] == self.n_samples
+
+
+class TestArtificialMultivariateSample:
+    n_features = 10
+    n_samples = 5
+    artificial_sample = artificial_data_sets.ArtificialMultivariateSample(n_features=n_features, n_samples=n_samples)
+
+    def init_samples(self):
+        self.artificial_sample.init_samples()
+        assert self.artificial_sample.data.shape[0] == self.n_features
+        assert self.artificial_sample.data.shape[1] == self.n_samples
 
 
 class TestArtificialLabeledSample:
     n_features = 10
     n_samples = 5
-    artificial_labeled_sample = artificial_data_sets.ArtificialLabeledSample(n_features=n_features, n_samples=n_samples)
+    artificial_sample = artificial_data_sets.ArtificialUnivariateSample(n_features=n_features, n_samples=n_samples)
+    artificial_labeled_samples = artificial_data_sets.ArtificialLabeledSample(artificial_sample)
 
-    def test_obtain_artificial_data_set(self):
-        self.artificial_labeled_sample.init_labeled_samples()
-        assert self.artificial_labeled_sample.samples.shape[0] == self.n_features
-        assert self.artificial_labeled_sample.samples.shape[1] == self.n_samples
+    def test_init_labeled_samples(self):
+        self.artificial_labeled_samples.init_labeled_samples()
+        assert self.artificial_labeled_sample.samples.data.shape[0] == self.n_features
+        assert self.artificial_labeled_sample.samples.data.shape[1] == self.n_samples
         assert self.artificial_labeled_sample.labels.size == self.n_samples
 
 
-class TestArtificialNoiseSample:
+class TestListArtificialDataSet:
+    n_features = 10
     n_samples = 5
-    n_noise_features = 100
-    artificial_noise_sample = artificial_data_sets.ArtificialNoiseSample(n_samples=n_samples,
-                                                                         n_features=n_noise_features)
+    n_noise_features = 95
+    artificial_sample_univariate = artificial_data_sets.ArtificialUnivariateSample(n_features=n_features,
+                                                                                   n_samples=n_samples)
+    artificial_sample_multivariate = artificial_data_sets.ArtificialMultivariateSample(n_features=n_features,
+                                                                                       n_samples=n_samples)
+    artificial_sample_noise = artificial_data_sets.ArtificialSampleNoise(n_features=n_features, n_samples=n_samples)
+    artificial_noise_univariate = artificial_data_sets.ArtificialUnivariateSample(n_features=n_noise_features,
+                                                                               n_samples=n_samples)
+    artificial_noise_multivariate = artificial_data_sets.ArtificialMultivariateSample(n_features=n_features,
+                                                                                       n_samples=n_samples)
+    artificial_data_set = artificial_data_sets.ArtificialDataSet(
+        [artificial_sample_univariate, artificial_sample_multivariate], artificial_sample_noise,
+        [artificial_noise_univariate,artificial_noise_multivariate])
 
     def test_obtain_artificial_data_set(self):
-        self.artificial_noise_sample.init_samples()
-        assert self.artificial_noise_sample.samples.shape[0] == self.n_noise_features
-        assert self.artificial_noise_sample.samples.shape[1] == self.n_samples
+        data_set, labels = self.artificial_data_set.obtain_artificial_data_set()
+        assert data_set.shape[0] == (self.n_features + self.n_noise_features)
+        assert data_set.shape[1] == self.n_samples
+        assert labels.size == self.n_samples
 
 
 class TestArtificialDataSet:
     n_features = 10
     n_samples = 5
-    n_noise_features = 100
-    artificial_data_set = artificial_data_sets.ArtificialDataSet(n_features=n_features, n_samples=n_samples,
-                                                                 n_noise_features=n_noise_features)
+    n_noise_features = 95
+    artificial_sample = artificial_data_sets.ArtificialUnivariateSample(n_features=n_features, n_samples=n_samples)
+    artificial_sample_noise = artificial_data_sets.ArtificialSampleNoise(n_features=n_features, n_samples=n_samples)
+    artificial_noise_feature = artificial_data_sets.ArtificialUnivariateSample(n_features=n_noise_features,
+                                                                               n_samples=n_samples)
+    artificial_data_set = artificial_data_sets.ArtificialDataSet(artificial_sample, artificial_sample_noise,
+                                                                 artificial_noise_feature)
 
     def test_obtain_artificial_data_set(self):
-        data_set = self.artificial_data_set.obtain_artificial_data_set()
+        data_set, labels = self.artificial_data_set.obtain_artificial_data_set()
         assert data_set.shape[0] == (self.n_features + self.n_noise_features)
         assert data_set.shape[1] == self.n_samples
+        assert labels.size == self.n_samples
 
 
 class TestDistributionFunctions:
