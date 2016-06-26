@@ -53,10 +53,10 @@ class FeatureSelection(FeatureSelectionGenerator):
         ranks = self.generate(data, labels, cv, method)
 
         try:
-            os.makedirs(self.__dir_name(data_set, cv, method))
+            os.makedirs(Weights.dir_name(data_set, cv, method))
         except OSError as exception:
             if exception.errno != errno.EEXIST:
                 raise
-        np.save(self.__file_name(data_set, cv, method), ranks)
+        np.save(Weights.file_name(data_set, cv, method, self.__name__), ranks)
 
         return ranks

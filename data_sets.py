@@ -93,10 +93,10 @@ class Weights:
         return Weights.dir_name(data_set, cv, assessment_method) + "/" + feature_method.__name__
 
     @staticmethod
-    def dir_name(data_set, cv, method):
+    def dir_name(data_set, cv, assessment_method):
         return "{root_dir}/feature_{method}s/{data_set}/{cv}".format(
             root_dir=DataSets.root_dir,
-            method=method,
+            method=assessment_method,
             data_set=data_set,
             cv=type(cv).__name__
         )
