@@ -61,8 +61,7 @@ class DataSets:
         data_directory, labels_directory = DataSets.data_sets[name]
         data = DataSets.__load_data_set_file(data_directory)
         labels = DataSets.__load_data_set_file(labels_directory)
-        data_scaled = preprocessing.scale(data)
-        return data_scaled, labels
+        return data, labels
 
     @staticmethod
     def __load_data_set_file(info):

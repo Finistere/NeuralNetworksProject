@@ -29,7 +29,7 @@ warnings.filterwarnings('ignore')
 
 exp = EnsembleMethodExperiment(
     [ensemble_methods.Mean(feature_selectors)],
-    RobustnessBenchmark(robustness_measures, feature_selection_method="weight"),
+    RobustnessBenchmark(robustness_measures),
     feature_selectors
 )
 exp.run("arcene")

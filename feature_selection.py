@@ -57,6 +57,6 @@ class FeatureSelection(FeatureSelectionGenerator):
         except OSError as exception:
             if exception.errno != errno.EEXIST:
                 raise
-        np.save(Weights.file_name(data_set, cv, method, self.__name__), ranks)
+        np.save(Weights.file_name(data_set, cv, method, self), ranks)
 
         return ranks
