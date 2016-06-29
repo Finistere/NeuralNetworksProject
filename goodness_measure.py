@@ -62,3 +62,14 @@ class Precision(GoodnessMeasure):
         return data.true_positive / data.n_significant
 
 
+class XPrecision(GoodnessMeasure):
+    def goodness(self, data: RankData):
+        p = 0
+        alpha = 0.5
+        n = data.n_significant
+        for i in range(data.sorted_indices.shape[0] // n):
+            positives = (data.sorted_indices[n * i: n * (i+1)] < n).sum() / n
+            p += alpha ** i * positives
+        return p
+
+

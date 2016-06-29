@@ -94,6 +94,7 @@ class ArtificialData:
     @staticmethod
     def multiple_distribution(distributions, shares):
         def distribution(s, distributions=distributions, shares=np.array(shares)):
+            shares /= shares.sum()
             shares = np.array([int(share * s[0]) for share in shares])
             shares[0] += s[0] - shares.sum()
 
