@@ -21,12 +21,12 @@ class FeatureSelector(metaclass=ABCMeta):
         results[result_index] = getattr(self, method)(data, labels)
 
     # Each column is an observation, each row a feature
-    def rank(self, data, classes):
-        return self.rank_weights(self.weight(data, classes))
+    def rank(self, data, labels):
+        return self.rank_weights(self.weight(data, labels))
 
     @abstractmethod
     # Each column is an observation, each row a feature
-    def weight(self, data, classes):
+    def weight(self, data, labels):
         pass
 
     @staticmethod
@@ -44,27 +44,27 @@ class FeatureSelector(metaclass=ABCMeta):
 class Dummy(FeatureSelector):
     __name__ = "Dummy"
 
-    def rank(self, data, classes):
+    def rank(self, data, labels):
         return np.arange(data.shape[0])
 
-    def weight(self, data, classes):
+    def weight(self, data, labels):
         ranks = np.arange(data.shape[0])
         return ranks / ranks.max()
 
 
 class SymmetricalUncertainty(FeatureSelector):
-    def weight(self, data, classes):
+    def weight(self, data, labels):
         features_weight = []
         for i in range(0, data.shape[0]):
             features_weight.append(
-                skfeature.utility.mutual_information.su_calculation(data[i], classes)
+                skfeature.utility.mutual_information.su_calculation(data[i], labels)
             )
         return self.normalize(np.array(features_weight))
 
 
 class Relief(FeatureSelector):
-    def weight(self, data, classes):
-        features_weight = skfeature.function.similarity_based.reliefF.reliefF(data.T, classes)
+    def weight(self, data, labels):
+        features_weight = skfeature.function.similarity_based.reliefF.reliefF(data.T, labels)
 
         return self.normalize(features_weight)
 
@@ -87,16 +87,20 @@ class ClassifierFeatureSelector(FeatureSelector, metaclass=ABCMeta):
 
 
 class SVM_RFE(ClassifierFeatureSelector):
-    def weight(self, data, classes):
+    def __init__(self, step=0.1):
+        super().__init__()
+        self.step = step
+
+    def weight(self, data, labels):
         rfe = RFE(
             estimator=SVC(
                 kernel='linear',
-                C=self.find_best_hyper_parameter_SVC(data, classes)
+                C=self.find_best_hyper_parameter_SVC(data, labels)
             ),
             n_features_to_select=1,
-            step=0.1
+            step=self.step
         )
-        rfe.fit(data.T, classes)
+        rfe.fit(data.T, labels)
         ordered_ranks = self.reverse_order(rfe.ranking_)
 
         return self.normalize(ordered_ranks)
@@ -111,18 +115,18 @@ class SVM_RFE(ClassifierFeatureSelector):
 
 
 class LassoFeatureSelector(ClassifierFeatureSelector):
-    def rank(self, data, classes):
+    def rank(self, data, labels):
         lasso = LassoLarsCV()
-        lasso.fit(data.T, classes)
+        lasso.fit(data.T, labels)
         nonzero_regularization_parameters = np.ma.masked_array(lasso.coef_path_, [lasso.coef_path_ == 0])
         regularization_parameters_dimension = 1
         features_weight = np.mean(nonzero_regularization_parameters, axis=regularization_parameters_dimension)
         features_rank = self.rank_weights(features_weight)
         return features_rank
 
-    def weight(self, data, classes):
+    def weight(self, data, labels):
         lasso = LassoLarsCV()
-        lasso.fit(data.T, classes)
+        lasso.fit(data.T, labels)
         nonzero_regularization_parameters = np.ma.masked_array(lasso.coef_path_, [lasso.coef_path_ == 0])
         regularization_parameters_dimension = 1
         features_weight = np.mean(nonzero_regularization_parameters, axis=regularization_parameters_dimension)
@@ -131,8 +135,8 @@ class LassoFeatureSelector(ClassifierFeatureSelector):
 
 
 class RF(FeatureSelector):
-    def rank(self, data, classes):
+    def rank(self, data, labels):
         pass  # TODO
 
-    def weight(self, data, classes):
+    def weight(self, data, labels):
         pass  # TODO

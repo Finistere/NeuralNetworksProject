@@ -104,17 +104,17 @@ class Stacking(FeatureSelector):
         self.p = p
         self.__name__ = "Stacking - {} {}".format(self.combination, self.p)
 
-    def rank(self, data, classes):
+    def rank(self, data, labels):
         features_rankings = []
         for feature_selector in self.feature_selectors:
-            features_rankings.append(feature_selector.rank(data, classes))
+            features_rankings.append(feature_selector.rank(data, labels))
         features_rankings = np.array(features_rankings)
         return self.rank_weights(self.combine(features_rankings))
 
-    def weight(self, data, classes):
+    def weight(self, data, labels):
         features_weights = []
         for feature_selector in self.feature_selectors:
-            features_weights.append(feature_selector.weight(data, classes))
+            features_weights.append(feature_selector.weight(data, labels))
         features_weights = np.array(features_weights)
         return self.combine(features_weights)
 
