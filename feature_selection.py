@@ -2,7 +2,7 @@ import numpy as np
 import multiprocessing
 import os
 import errno
-from data_sets import DataSets, Weights
+from data_sets import DataSets, PreComputedData
 from feature_selector import FeatureSelector
 
 
@@ -37,26 +37,52 @@ class FeatureSelectionGenerator:
 class FeatureSelection(FeatureSelectionGenerator):
     def load(self, data_set, cv, method):
         try:
-            return Weights.load(data_set, cv, method, self)
+            return PreComputedData.load(data_set, cv, method, self)
         except FileNotFoundError:
-            return self.__gen(data_set, cv, method)
+            return getattr(self, method)(data_set, cv)
 
-    def __gen(self, data_set, cv, method):
-        data, labels = DataSets.load(data_set)
+    def rank(self, data_set, cv):
+        try:
+            return PreComputedData.load(data_set, cv, "weight", self)
+        except FileNotFoundError:
+            weights = self.weight(data_set, cv)
 
-        print("Generating feature {method}s of {data_set} ({cv}) with {feature_selector}".format(
-            method=method,
+            ranks = np.array([FeatureSelector.rank_weights(w) for w in weights])
+            self.__save(data_set, cv, "rank", ranks)
+
+            return ranks
+
+    def weight(self, data_set, cv):
+        print("=> Generating feature {method}s of {data_set} ({cv}) with {feature_selector}".format(
+            method="weight",
             data_set=data_set,
             feature_selector=self.__name__,
             cv=type(cv).__name__
         ))
-        ranks = self.generate(data, labels, cv, method)
+
+        data, labels = DataSets.load(data_set)
 
         try:
-            os.makedirs(Weights.dir_name(data_set, cv, method))
+            cv_indices = PreComputedData.load_cv(data_set, cv)
+        except FileNotFoundError:
+            try:
+                os.makedirs(PreComputedData.cv_dir(data_set, cv))
+            except OSError as exception:
+                if exception.errno != errno.EEXIST:
+                    raise
+
+            cv_indices = list(cv)
+            np.save(PreComputedData.cv_file_name(data_set, cv), cv_indices)
+
+        weights = self.generate(data, labels, cv_indices, "weight")
+        self.__save(data_set, cv, "weight", weights)
+
+        return weights
+
+    def __save(self, data_set, cv, method, feature_selection):
+        try:
+            os.makedirs(PreComputedData.dir_name(data_set, cv, method))
         except OSError as exception:
             if exception.errno != errno.EEXIST:
                 raise
-        np.save(Weights.file_name(data_set, cv, method, self), ranks)
-
-        return ranks
+        np.save(PreComputedData.file_name(data_set, cv, method, self), feature_selection)

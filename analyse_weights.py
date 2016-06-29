@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-from data_sets import Analysis, Weights
+from data_sets import Analysis, PreComputedData
 import pandas as pd
 import numpy as np
 from feature_selector import FeatureSelector
@@ -39,7 +39,7 @@ class AnalyseFeatureSelection:
         self.save_to_file = save_to_file
 
     def generate(self, data_set, cv, assessment_method):
-        weights = Weights.load(data_set, cv, assessment_method, self.feature_selector)
+        weights = PreComputedData.load(data_set, cv, assessment_method, self.feature_selector)
         stats, fig = AnalyseWeights().analyse_weights(weights.T)
 
         try:

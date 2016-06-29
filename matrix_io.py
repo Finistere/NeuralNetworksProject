@@ -12,6 +12,10 @@ def regular_matrix(path, **kwargs):
     return np.loadtxt(path, **kwargs)
 
 
+def numpy_matrix(path, **kwargs):
+    return np.load(path, **kwargs)
+
+
 def sparse_matrix(path, column_count, delimiter=' ', index_value_delimiter=':'):
     indptr = [0]
     indices = []

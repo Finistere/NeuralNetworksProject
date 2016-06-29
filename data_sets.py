@@ -2,6 +2,9 @@ import matrix_io
 from sklearn import preprocessing
 import numpy as np
 import pandas as pd
+import os
+import errno
+import shutil
 
 
 class DataSets:
@@ -47,14 +50,33 @@ class DataSets:
         ),
         "artificial": (
             {
-                "path": "/ARTIFICIAL/ARTIFICIAL/artificial.data",
-                "method": "regular_matrix",
+                "path": "/ARTIFICIAL/ARTIFICIAL/artificial.data.npy",
+                "method": "numpy_matrix",
             },
             {
-                "path": "/ARTIFICIAL/ARTIFICIAL/artificial.labels",
+                "path": "/ARTIFICIAL/ARTIFICIAL/artificial.labels.npy",
+                "method": "numpy_matrix",
             }
         )
     }
+
+    @staticmethod
+    def save_artificial(data, labels):
+        PreComputedData.delete("artificial")
+
+        artificial_data_dir = DataSets.root_dir + "/ARTIFICIAL/ARTIFICIAL"
+
+        try:
+            os.makedirs(artificial_data_dir)
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise
+
+        data_file_name = artificial_data_dir + "/artificial.data"
+        label_file_name = artificial_data_dir + "/artificial.labels"
+
+        np.save(data_file_name, data)
+        np.save(label_file_name, labels)
 
     @staticmethod
     def load(name):
@@ -76,28 +98,62 @@ class DataSets:
         return data
 
 
-class Weights:
+class PreComputedData:
     @staticmethod
-    def load(data_set, cv, assessment_method, feature_method):
-        filename = Weights.file_name(data_set, cv, assessment_method, feature_method) + ".npy"
+    def load(data_set, cv, assessment_method, feature_selector):
+        filename = PreComputedData.file_name(data_set, cv, assessment_method, feature_selector)
         try:
-            weights = np.load(filename)
-            return weights
+            return np.load(filename)
         except FileNotFoundError:
             print("File " + filename + " not found")
             raise
 
     @staticmethod
-    def file_name(data_set, cv, assessment_method, feature_method):
-        return Weights.dir_name(data_set, cv, assessment_method) + "/" + feature_method.__name__
+    def file_name(data_set, cv, assessment_method, feature_selector):
+        return "{data_dir}/{feature_selector}.npy".format(
+            data_dir=PreComputedData.dir_name(data_set, cv, assessment_method),
+            feature_selector=feature_selector.__name__
+        )
+
+    @staticmethod
+    def load_cv(data_set, cv):
+        file_name = PreComputedData.cv_file_name(data_set, cv)
+        try:
+            return np.load(file_name)
+        except FileNotFoundError:
+            print("CV {} was never generated".format(type(cv).__name__))
+            raise
+
+    @staticmethod
+    def delete(data_set):
+        try:
+            shutil.rmtree(PreComputedData.root_dir(data_set))
+        except FileNotFoundError:
+            pass
+
+    @staticmethod
+    def cv_file_name(data_set, cv):
+        return PreComputedData.cv_dir(data_set, cv) + "/indices.npy"
 
     @staticmethod
     def dir_name(data_set, cv, assessment_method):
-        return "{root_dir}/feature_{method}s/{data_set}/{cv}".format(
-            root_dir=DataSets.root_dir,
-            method=assessment_method,
-            data_set=data_set,
+        return "{cv_dir}/{method}".format(
+            cv_dir=PreComputedData.cv_dir(data_set, cv),
+            method=assessment_method
+        )
+
+    @staticmethod
+    def cv_dir(data_set, cv):
+        return "{data_set_dir}/{cv}".format(
+            data_set_dir=PreComputedData.root_dir(data_set),
             cv=type(cv).__name__
+        )
+
+    @staticmethod
+    def root_dir(data_set):
+        return "{root_dir}/pre_computed_data/{data_set}".format(
+            root_dir=DataSets.root_dir,
+            data_set=data_set
         )
 
 

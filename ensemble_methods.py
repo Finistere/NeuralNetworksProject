@@ -3,8 +3,9 @@ from feature_selector import FeatureSelector
 import numpy as np
 import scipy.stats
 from abc import ABCMeta, abstractmethod
-from data_sets import DataSets
+from data_sets import DataSets, PreComputedData
 from feature_selection import FeatureSelection
+from sklearn.cross_validation import KFold
 
 
 class EnsembleMethod(metaclass=ABCMeta):
@@ -27,16 +28,21 @@ class EnsembleMethod(metaclass=ABCMeta):
             bench_features_selection.append(f.load(data_set, cv, self.features_type))
         bench_features_selection = np.array(bench_features_selection)
 
-        ranks = []
-        for i in range(bench_features_selection.shape[1]):
-            ranks.append(FeatureSelector.rank_weights(
-                self.combine(bench_features_selection[:, i])
-            ))
+        data, labels = DataSets.load(data_set)
+        cv_indices = PreComputedData.load_cv(data_set, cv)
 
-        return np.array(ranks)
+        feature_selection = []
+        for i in range(bench_features_selection.shape[1]):
+            feature_selection.append(FeatureSelector.rank_weights(self.combine(
+                bench_features_selection[:, i],
+                data[:, cv_indices[i][0]],
+                labels[cv_indices[i][0]]
+             )))
+
+        return np.array(feature_selection)
 
     @abstractmethod
-    def combine(self, feature_ranks):
+    def combine(self, feature_selection, data, labels):
         pass
 
 
@@ -46,7 +52,7 @@ class Mean(EnsembleMethod):
         self.__name__ = "Mean - {}".format(power)
         self.power = power
 
-    def combine(self, features_selection):
+    def combine(self, features_selection, data, labels):
         return np.power(features_selection, self.power).mean(axis=0)
 
 
@@ -56,7 +62,34 @@ class SMean(EnsembleMethod):
         self.weights = np.array(min_mean_max)
         self.__name__ = "SMean - {} {} {}".format(*min_mean_max)
 
-    def combine(self, features_selection):
+    def combine(self, features_selection, data, labels):
+        f_mean = np.mean(features_selection, axis=0)
+        f_max = np.max(features_selection, axis=0)
+        f_min = np.min(features_selection, axis=0)
+        return (np.vstack((f_min, f_mean, f_max)) * self.weights[:, np.newaxis]).mean(axis=0)
+
+
+class SMeanWithClassifier(EnsembleMethod):
+    def __init__(self, feature_selectors, classifiers, min_mean_max=[1, 1, 1], **kwargs):
+        super().__init__(feature_selectors, **kwargs)
+        self.weights = np.array(min_mean_max)
+        self.__name__ = "SMeanWithClassifier - {} {} {}".format(*min_mean_max)
+        self.classifiers = classifiers
+
+    def combine(self, features_selection, data, labels):
+        cv = KFold(labels.shape[0])
+        accuracy = np.zeros(len(self.feature_selectors))
+
+        for i in range(len(self.feature_selectors)):
+            best_features_indices = np.argsort(features_selection[i])[:-int(features_selection[i].shape[0] / 100):-1]
+            for train_index, test_index in cv:
+                for c in self.classifiers:
+                    c.fit(data[np.ix_(best_features_indices, train_index)].T, labels[train_index])
+                    accuracy[i] += c.score(data[np.ix_(best_features_indices, test_index)].T, labels[test_index])
+
+        print(np.exp(accuracy))
+        features_selection = (features_selection.T * np.exp(accuracy)).T
+
         f_mean = np.mean(features_selection, axis=0)
         f_max = np.max(features_selection, axis=0)
         f_min = np.min(features_selection, axis=0)

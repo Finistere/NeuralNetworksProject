@@ -3,7 +3,7 @@ import scipy.stats
 import numpy as np
 
 
-class RobustnessMeasure(metaclass=ABCMeta):
+class Measure(metaclass=ABCMeta):
     def __init__(self):
         self.__name__ = type(self).__name__
 
@@ -16,7 +16,7 @@ class RobustnessMeasure(metaclass=ABCMeta):
         pass
 
 
-class Dummy(RobustnessMeasure):
+class Dummy(Measure):
     def measure(self, features_ranks):
         return 1
 
@@ -26,7 +26,7 @@ def mean_of_lower_triangular(matrix):
     return np.mean(matrix[lower_triangular_index])
 
 
-class Spearman(RobustnessMeasure):
+class Spearman(Measure):
 
     def __init__(self):
         super().__init__()
@@ -37,7 +37,7 @@ class Spearman(RobustnessMeasure):
         return mean_of_lower_triangular(spearman_correlation_matrix)
 
 
-class JaccardIndex(RobustnessMeasure):
+class JaccardIndex(Measure):
 
     def __init__(self, percentage=0.1):
         super().__init__()

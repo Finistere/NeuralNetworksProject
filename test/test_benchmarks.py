@@ -19,9 +19,9 @@ class TestFeatureRanksGenerator:
 
 
 class TestRobustnessBenchmark:
-    benchmark = RobustnessBenchmark(
+    benchmark = MeasureBenchmark(
         feature_selector=feature_selector.Dummy(),
-        robustness_measures=robustness_measure.Dummy()
+        measure=robustness_measure.Dummy()
     )
 
     def test_robustness(self):

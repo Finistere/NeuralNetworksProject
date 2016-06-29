@@ -6,7 +6,7 @@ from sklearn.dummy import DummyClassifier
 
 
 class TestRobustnessExperiment:
-    experiment = RobustnessExperiment(
+    experiment = MeasureExperiment(
         robustness_measure.Dummy(),
         [feature_selector.Dummy(), feature_selector.Dummy()]
     )
@@ -22,7 +22,7 @@ class TestRobustnessExperiment:
         assert expected_results == self.experiment.run(data, classes).tolist()
 
     def test_print_results(self):
-        experiment = RobustnessExperiment(
+        experiment = MeasureExperiment(
             robustness_measure.Dummy(),
             [feature_selector.Dummy(), feature_selector.Dummy()]
         )

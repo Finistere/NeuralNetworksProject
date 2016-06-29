@@ -4,7 +4,7 @@ from abc import ABCMeta, abstractmethod
 import multiprocessing
 import ctypes
 from feature_selector import FeatureSelector
-from robustness_measure import RobustnessMeasure, JaccardIndex
+from robustness_measure import Measure, JaccardIndex
 from feature_selection import FeatureSelectionGenerator
 
 
@@ -30,35 +30,35 @@ class Benchmark(metaclass=ABCMeta):
         pass
 
 
-class RobustnessBenchmark(Benchmark):
-    def __init__(self, robustness_measures, feature_selector: FeatureSelector = None):
+class MeasureBenchmark(Benchmark):
+    def __init__(self, measure, feature_selector: FeatureSelector = None):
         self.feature_selector = feature_selector
 
-        if not isinstance(robustness_measures, list):
-            robustness_measures = [robustness_measures]
+        if not isinstance(measure, list):
+            measure = [measure]
 
-        for robustness_measure in robustness_measures:
-            if not isinstance(robustness_measure, RobustnessMeasure):
+        for robustness_measure in measure:
+            if not isinstance(robustness_measure, Measure):
                 raise ValueError("At least one robustness measure does not inherit RobustnessMeasure")
 
-        self.robustness_measures = robustness_measures
+        self.measures = measure
 
     def run(self, data, labels, features_selection=None):
         if features_selection is None:
             features_selection = self.generate_features_selection(data, labels)
 
         features_selection = np.array(features_selection).T
-        shared_array_base = multiprocessing.Array(ctypes.c_double, len(self.robustness_measures))
-        shared_robustness_array = np.ctypeslib.as_array(shared_array_base.get_obj())
-        shared_robustness_array = shared_robustness_array.reshape(len(self.robustness_measures))
+        shared_array_base = multiprocessing.Array(ctypes.c_double, len(self.measures))
+        shared_measures_array = np.ctypeslib.as_array(shared_array_base.get_obj())
+        shared_measures_array = shared_measures_array.reshape(len(self.measures))
 
         processes = []
-        for i in range(len(self.robustness_measures)):
+        for i in range(len(self.measures)):
             p = multiprocessing.Process(
-                target=self.robustness_measures[i].run_and_set_in_results,
+                target=self.measures[i].run_and_set_in_results,
                 kwargs={
                     'features_selection': features_selection,
-                    'results': shared_robustness_array,
+                    'results': shared_measures_array,
                     'result_index': i
                 }
             )
@@ -68,14 +68,14 @@ class RobustnessBenchmark(Benchmark):
         for p in processes:
             p.join()
 
-        return shared_robustness_array
+        return shared_measures_array
 
     @staticmethod
     def cv(sample_length):
         return ShuffleSplit(sample_length, n_iter=10, test_size=0.1)
 
     def get_measures(self):
-        return self.robustness_measures
+        return self.measures
 
 
 class ClassifierWrapper:
@@ -160,7 +160,7 @@ class AccuracyBenchmark(Benchmark):
 
 class FMeasureBenchmark:
     def __init__(self, classifiers, feature_selector: FeatureSelector = None, jaccard_percentage=0.01, beta=1):
-        self.robustness_benchmark = RobustnessBenchmark(
+        self.robustness_benchmark = MeasureBenchmark(
             JaccardIndex(percentage=jaccard_percentage),
             feature_selector=feature_selector
         )

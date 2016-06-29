@@ -1,4 +1,4 @@
-from benchmarks import RobustnessBenchmark, AccuracyBenchmark, Benchmark, FMeasureBenchmark
+from benchmarks import MeasureBenchmark, AccuracyBenchmark, Benchmark, FMeasureBenchmark
 from ensemble_methods import FeatureSelection
 from tabulate import tabulate
 import numpy as np
@@ -44,25 +44,25 @@ class Experiment:
             writer.writerows(self.results_table)
 
 
-class RobustnessExperiment(Experiment):
-    def __init__(self, feature_selectors, robustness_measures):
-        if not isinstance(robustness_measures, list):
-            robustness_measures = [robustness_measures]
+class MeasureExperiment(Experiment):
+    def __init__(self, feature_selectors, measures):
+        if not isinstance(measures, list):
+            measures = [measures]
 
         if not isinstance(feature_selectors, list):
             feature_selectors = [feature_selectors]
 
-        self.robustness_measures = robustness_measures
+        self.measures = measures
         self.feature_selectors = feature_selectors
-        self.results = np.zeros((len(robustness_measures), len(feature_selectors)))
+        self.results = np.zeros((len(measures), len(feature_selectors)))
 
-        self.row_labels = [type(r).__name__ for r in self.robustness_measures]
+        self.row_labels = [type(r).__name__ for r in self.measures]
         self.col_labels = [f.__name__ for f in self.feature_selectors]
 
     def run(self, data, labels):
         for i in range(self.results.shape[1]):
-            benchmark = RobustnessBenchmark(
-                robustness_measures=self.robustness_measures,
+            benchmark = MeasureBenchmark(
+                measure=self.measures,
                 feature_selector=self.feature_selectors[i]
             )
             self.results[:, i] = benchmark.run(data, labels)
@@ -108,17 +108,17 @@ class AccuracyExperiment(Experiment):
 
 
 class DataSetExperiments:
-    def __init__(self, feature_selectors, robustness_measures, classifiers, working_dir=".."):
-        self.robustness_experiment = RobustnessExperiment(feature_selectors, robustness_measures)
+    def __init__(self, feature_selectors, measures, classifiers, working_dir=".."):
+        self.measure_experiment = MeasureExperiment(feature_selectors, measures)
         self.accuracy_experiment = AccuracyExperiment(feature_selectors, classifiers)
         self.results_folder = working_dir
 
     def run_data_set(self, name, file_name="output.csv"):
         data, labels = DataSets.load(name)
 
-        self.robustness_experiment.run(data, labels)
-        self.robustness_experiment.print_results()
-        self.robustness_experiment.save_results(file_name)
+        self.measure_experiment.run(data, labels)
+        self.measure_experiment.print_results()
+        self.measure_experiment.save_results(file_name)
 
         self.accuracy_experiment.run(data, labels)
         self.accuracy_experiment.print_results()
