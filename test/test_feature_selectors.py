@@ -16,6 +16,17 @@ class TestFeatureSelector:
 
         assert expected_results.tolist() == FeatureSelector.rank_weights(weights).tolist()
 
+    def test_rank_weights(self):
+        weights = np.arange(5) / 4
+        expected_results = np.arange(5) + 1
+
+        assert expected_results.tolist() == FeatureSelector.rank_weights(weights).tolist()
+
+    def test_rank_weights(self):
+        weights = np.array([0.5,0.1,0.5,0.6])
+        assert np.any([3., 1., 2., 4.] == FeatureSelector.rank_weights(weights).tolist(),
+                      [2., 1., 3., 4.] == FeatureSelector.rank_weights(weights).tolist())
+
 
 class TestDummy:
     features_weight = [0.5, 1.0, 0.5, 0.7, 0.7]

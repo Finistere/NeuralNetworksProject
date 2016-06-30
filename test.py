@@ -1,5 +1,5 @@
 from experiments import *
-from feature_selector import SymmetricalUncertainty, Relief, SVM_RFE
+from feature_selector import SymmetricalUncertainty, Relief, SVM_RFE, LassoFeatureSelector
 import robustness_measure
 import goodness_measure
 import ensemble_methods
@@ -12,13 +12,15 @@ from artificial_data_sets2 import ArtificialData, ArtificialLabels
 feature_selectors = [
     SymmetricalUncertainty(),
     Relief(),
-    SVM_RFE()
+    SVM_RFE(),
+    LassoFeatureSelector()
 ]
 measures = [
     robustness_measure.Spearman(),
     robustness_measure.JaccardIndex(percentage=0.01),
     robustness_measure.JaccardIndex(percentage=0.05),
-    # goodness_measure.Precision(100)
+    goodness_measure.Precision(100),
+    goodness_measure.XPrecision(100)
 ]
 classifiers = [
     KNeighborsClassifier(3),
@@ -33,7 +35,7 @@ warnings.filterwarnings('ignore')
 DataSets.save_artificial(
     *ArtificialData.generate(
         n_samples=300,
-        n_features=1e4,
+        n_features=1e3,
         n_significant_features=100,
         feature_distribution=ArtificialData.multivariate_normal(
             mean=ArtificialData.uniform(0, 1),
@@ -75,12 +77,14 @@ e_methods = [
 # exp.run(["colon", "arcene", "dexter"])
 # exp.print_results()
 
+dataset = "arcene"
+
 robustness_exp = EnsembleMethodExperiment(
     e_methods,
     MeasureBenchmark(measures),
     feature_selectors
 )
-robustness_exp.run("dexter")
+robustness_exp.run(dataset)
 robustness_exp.print_results()
 
 accuracy_exp = EnsembleMethodExperiment(
@@ -88,6 +92,5 @@ accuracy_exp = EnsembleMethodExperiment(
     AccuracyBenchmark(classifiers),
     feature_selectors
 )
-accuracy_exp.run("dexter")
+accuracy_exp.run(dataset)
 accuracy_exp.print_results()
-

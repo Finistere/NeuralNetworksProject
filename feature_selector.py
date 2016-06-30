@@ -10,7 +10,7 @@ from sklearn.svm import SVC
 from sklearn.grid_search import GridSearchCV
 from sklearn.feature_selection import RFE
 # Lasso
-from sklearn.linear_model import LassoLarsCV
+from sklearn.linear_model import LassoCV
 
 
 class FeatureSelector(metaclass=ABCMeta):
@@ -32,13 +32,23 @@ class FeatureSelector(metaclass=ABCMeta):
     @staticmethod
     def normalize(vector):
         v_min = np.min(vector)
+        if v_min < 0:
+            vector += v_min
+            v_min = 0
         v_max = np.max(vector)
-        return (vector - v_min) / (v_max - v_min)
+        normalized = (vector-v_min) / (v_max-v_min)
+        return normalized
 
     @staticmethod
     def rank_weights(features_weight):
         features_rank = scipy.stats.rankdata(features_weight, method='ordinal')
-        return np.array(features_rank)
+        # shuffle same features
+        unique_values = np.unique(features_weight)
+        for unique_value in unique_values:
+            unique_value_args = np.argwhere(features_weight == unique_value).reshape(-1)
+            unique_value_args_shuffled = np.random.permutation(unique_value_args)
+            features_rank[unique_value_args] = features_rank[unique_value_args_shuffled]
+        return features_rank
 
 
 class Dummy(FeatureSelector):
@@ -59,7 +69,7 @@ class SymmetricalUncertainty(FeatureSelector):
             features_weight.append(
                 skfeature.utility.mutual_information.su_calculation(data[i], labels)
             )
-        return self.normalize(np.array(features_weight))
+        return np.array(features_weight)
 
 
 class Relief(FeatureSelector):
@@ -116,22 +126,15 @@ class SVM_RFE(ClassifierFeatureSelector):
 
 class LassoFeatureSelector(ClassifierFeatureSelector):
     def rank(self, data, labels):
-        lasso = LassoLarsCV()
+        lasso = LassoCV()
         lasso.fit(data.T, labels)
-        nonzero_regularization_parameters = np.ma.masked_array(lasso.coef_path_, [lasso.coef_path_ == 0])
-        regularization_parameters_dimension = 1
-        features_weight = np.mean(nonzero_regularization_parameters, axis=regularization_parameters_dimension)
-        features_rank = self.rank_weights(features_weight)
+        features_rank = self.rank_weights(np.abs(lasso.coef_))
         return features_rank
 
     def weight(self, data, labels):
-        lasso = LassoLarsCV()
+        lasso = LassoCV()
         lasso.fit(data.T, labels)
-        nonzero_regularization_parameters = np.ma.masked_array(lasso.coef_path_, [lasso.coef_path_ == 0])
-        regularization_parameters_dimension = 1
-        features_weight = np.mean(nonzero_regularization_parameters, axis=regularization_parameters_dimension)
-
-        return self.normalize(features_weight)
+        return self.normalize(np.abs(lasso.coef_))
 
 
 class RF(FeatureSelector):

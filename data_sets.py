@@ -174,7 +174,7 @@ class Analysis:
 
     @staticmethod
     def dir_name(data_set, cv, method):
-        return "{root_dir}/{method}s_analyse/{data_set}/{cv}".format(
+        return "{root_dir}/pre_computed_data/{data_set}/{cv}".format(
             root_dir=DataSets.root_dir,
             method=method,
             data_set=data_set,
