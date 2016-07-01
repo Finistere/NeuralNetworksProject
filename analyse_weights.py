@@ -6,13 +6,13 @@ import numpy as np
 from feature_selector import FeatureSelector
 from sklearn.cross_validation import ShuffleSplit
 from sklearn.decomposition import PCA
-from sklearn.manifold import LocallyLinearEmbedding
+from sklearn.manifold import TSNE
 import os
 import errno
 
 
 class AnalyseBenchmarkResults():
-    def __init__(self, feature_selector: FeatureSelector = None, feature_selection_method="weight"):
+    def __init__(self, feature_selector: FeatureSelector = None):
         self.feature_selector = feature_selector
 
         if not isinstance(feature_selector, list):
@@ -20,15 +20,12 @@ class AnalyseBenchmarkResults():
         else:
             self.feature_selectors = feature_selector
 
-        self.feature_selection_method = feature_selection_method
-
     def run(self, data_set, save_to_file=False):
         for i in range(len(self.feature_selectors)):
             analysis = AnalyseFeatureSelection(self.feature_selectors[i], save_to_file)
             analysis.generate(
                 data_set,
-                self.cv(),
-                self.feature_selection_method)
+                self.cv())
 
     @staticmethod
     def cv():
@@ -40,23 +37,35 @@ class AnalyseFeatureSelection:
         self.feature_selector = feature_selector
         self.save_to_file = save_to_file
 
-    def generate(self, data_set, cv, assessment_method):
+    def generate(self, data_set, cv):
         data, labels = DataSets.load(data_set)
-        weights = PreComputedData.load(data_set, cv, assessment_method, self.feature_selector)
+        weights = PreComputedData.load(data_set, cv, "weight", self.feature_selector)
+        ranks = PreComputedData.load(data_set, cv, "rank", self.feature_selector)
         stats, fig = AnalyseWeights.analyse_weights(weights.T)
+        fig_pca, fig_tsne = Analyse2D.analyse_2d(data, labels, ranks)
 
-        self.plot_weights_data(stats, fig)
-
-        if self.save_to_file:
-            file_name = Analysis.file_name(data_set, cv, assessment_method, self.feature_selector)
-            AnalyseFeatureSelection.create_directory(Analysis.dir_name(data_set, cv, assessment_method))
-            AnalyseFeatureSelection.save_weights_data(stats, fig, file_name)
-
-    def plot_weights_data(self, stats, fig):
-        fig.suptitle("Weight analysis for " + self.feature_selector.__name__, fontsize=14, fontweight='bold')
-        fig.subplots_adjust(top=0.9)
+        self.update_pca_plot(fig_pca)
+        self.update_tsne_plot(fig_tsne)
+        self.update_weights_plots(stats, fig)
         plt.show()
         print(stats)
+
+        if self.save_to_file:
+            file_name = Analysis.file_name(data_set, cv, "weight", self.feature_selector)
+            AnalyseFeatureSelection.create_directory(Analysis.dir_name(data_set, cv, "weight"))
+            AnalyseFeatureSelection.save_weights_data(stats, fig, file_name)
+
+    def update_weights_plots(self, stats, fig):
+        fig.suptitle("Weight analysis for " + self.feature_selector.__name__, fontsize=14, fontweight='bold')
+        fig.subplots_adjust(top=0.9)
+
+    def update_pca_plot(self, fig):
+        fig.suptitle("PCA for " + self.feature_selector.__name__, fontsize=14, fontweight='bold')
+        fig.subplots_adjust(top=0.95)
+
+    def update_tsne_plot(self, fig):
+        fig.suptitle("TSNE for " + self.feature_selector.__name__, fontsize=14, fontweight='bold')
+        fig.subplots_adjust(top=0.95)
 
     @staticmethod
     def save_weights_data(stats, fig, file_name):
@@ -134,13 +143,56 @@ class AnalyseWeights:
 
 class Analyse2D:
     @staticmethod
-    def analyse_weights(data_set, weights):
-        data, labels = DataSets.load(data_set)
+    def analyse_2d(data, labels, ranks):
+        fig_pca = Analyse2D.pca_plot(data, labels, ranks)
+        fig_tsne = Analyse2D.tsne_plot(data, labels, ranks)
+        return fig_pca, fig_tsne
 
     @staticmethod
-    def pca_plot(data, labels, weights):
+    def select_p_features(data, ranks, p):
+        ranks_args_sorted_descending = np.argsort(ranks)[::-1]
+        num_features_to_select = int(len(ranks) * p)
+        data_filtered = data[ranks_args_sorted_descending[:num_features_to_select]]
+        return data_filtered
+
+    @staticmethod
+    def pca_plot(data, labels, ranks):
         pca = PCA()
-        pca.fit(data.T)
-        pca.transform(data.T)
+        transformed_data = pca.fit_transform(data.T).T[:2]
 
+        number_of_plots = len(ranks) + 1
 
+        fig = plt.figure(figsize=(15, 20))
+        ax = plt.subplot(round(number_of_plots / 2.), 2, 1)
+        ax.set_title("With all features")
+        ax.scatter(*transformed_data, c=labels)
+
+        for i in range(len(ranks)):
+            data_filtered = Analyse2D.select_p_features(data, ranks[i], p=0.01)
+            transformed_data_filtered = pca.fit_transform(data_filtered.T).T[:2]
+
+            ax = plt.subplot(round(number_of_plots / 2.), 2, i + 2)
+            ax.set_title("With filtered features using ranks from S" + str(i))
+            ax.scatter(*transformed_data_filtered, c=labels)
+        return fig
+
+    @staticmethod
+    def tsne_plot(data, labels, ranks):
+        tsne = TSNE()
+        transformed_data = tsne.fit_transform(data.T).T[:2]
+
+        number_of_plots = len(ranks) + 1
+
+        fig = plt.figure(figsize=(15, 20))
+        ax = plt.subplot(round(number_of_plots / 2.), 2, 1)
+        ax.set_title("With all features")
+        ax.scatter(*transformed_data, c=labels)
+
+        for i in range(len(ranks)):
+            data_filtered = Analyse2D.select_p_features(data, ranks[i], p=0.01)
+            transformed_data_filtered = tsne.fit_transform(data_filtered.T).T[:2]
+
+            ax = plt.subplot(round(number_of_plots / 2.), 2, i + 2)
+            ax.set_title("With filtered features using ranks from S" + str(i))
+            ax.scatter(*transformed_data_filtered, c=labels)
+        return fig
