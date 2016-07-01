@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from sklearn import preprocessing
 import numpy as np
 import scipy.stats
 # SU
@@ -31,13 +32,7 @@ class FeatureSelector(metaclass=ABCMeta):
 
     @staticmethod
     def normalize(vector):
-        v_min = np.min(vector)
-        if v_min < 0:
-            vector += v_min
-            v_min = 0
-        v_max = np.max(vector)
-        normalized = (vector-v_min) / (v_max-v_min)
-        return normalized
+        return preprocessing.MinMaxScaler().fit_transform(vector)
 
     @staticmethod
     def rank_weights(features_weight):
@@ -126,15 +121,16 @@ class SVM_RFE(ClassifierFeatureSelector):
 
 class LassoFeatureSelector(ClassifierFeatureSelector):
     def rank(self, data, labels):
-        lasso = LassoCV()
+        lasso = LassoCV(cv=2, normalize=True)
         lasso.fit(data.T, labels)
         features_rank = self.rank_weights(np.abs(lasso.coef_))
         return features_rank
 
     def weight(self, data, labels):
-        lasso = LassoCV()
+        lasso = LassoCV(cv=2, normalize=True)
         lasso.fit(data.T, labels)
-        return self.normalize(np.abs(lasso.coef_))
+        normalized = self.normalize(np.abs(lasso.coef_))
+        return normalized
 
 
 class RF(FeatureSelector):
