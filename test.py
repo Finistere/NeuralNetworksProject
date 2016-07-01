@@ -20,7 +20,7 @@ measures = [
     robustness_measure.Spearman(),
     robustness_measure.JaccardIndex(percentage=0.01),
     robustness_measure.JaccardIndex(percentage=0.05),
-    goodness_measure.Precision(1000),
+    goodness_measure.Precision(100),
     goodness_measure.XPrecision(100)
 ]
 classifiers = [
@@ -78,20 +78,30 @@ e_methods = [
 # exp.run(["colon", "arcene", "dexter"])
 # exp.print_results()
 
-dataset = "artificial"
 
 robustness_exp = EnsembleMethodExperiment(
     e_methods,
     MeasureBenchmark(measures),
     feature_selectors
 )
-robustness_exp.run(dataset)
-robustness_exp.print_results()
 
 accuracy_exp = EnsembleMethodExperiment(
     e_methods,
     AccuracyBenchmark(classifiers),
     feature_selectors
 )
+
+dataset = "artificial"
+
+robustness_exp.run(dataset)
+robustness_exp.print_results()
+
+dataset = "arcene"
+
+accuracy_exp.run(dataset)
+accuracy_exp.print_results()
+
+dataset = "dexter"
+
 accuracy_exp.run(dataset)
 accuracy_exp.print_results()
