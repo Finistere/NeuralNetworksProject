@@ -132,6 +132,15 @@ class LassoFeatureSelector(ClassifierFeatureSelector):
         normalized = self.normalize(np.abs(lasso.coef_))
         return normalized
 
+class Random(ClassifierFeatureSelector):
+    def rank(self, data, labels):
+        features_rank = np.arange(1,len(data)+1)
+        np.random.shuffle(features_rank)
+        return features_rank
+
+    def weight(self, data, labels):
+        weights = np.random.uniform(0,1,len(data))
+        return weights
 
 class RF(FeatureSelector):
     def rank(self, data, labels):
