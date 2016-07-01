@@ -1,5 +1,5 @@
 from experiments import *
-from feature_selector import SymmetricalUncertainty, Relief, SVM_RFE, LassoFeatureSelector
+from feature_selector import SymmetricalUncertainty, Relief, SVM_RFE, LassoFeatureSelector, Random
 import robustness_measure
 import goodness_measure
 import ensemble_methods
@@ -13,13 +13,14 @@ feature_selectors = [
     SymmetricalUncertainty(),
     Relief(),
     SVM_RFE(),
-    LassoFeatureSelector()
+    LassoFeatureSelector(),
+    Random()
 ]
 measures = [
     robustness_measure.Spearman(),
     robustness_measure.JaccardIndex(percentage=0.01),
     robustness_measure.JaccardIndex(percentage=0.05),
-    goodness_measure.Precision(100),
+    goodness_measure.Precision(1000),
     goodness_measure.XPrecision(100)
 ]
 classifiers = [
@@ -35,7 +36,7 @@ warnings.filterwarnings('ignore')
 DataSets.save_artificial(
     *ArtificialData.generate(
         n_samples=300,
-        n_features=1e3,
+        n_features=1e4,
         n_significant_features=100,
         feature_distribution=ArtificialData.multivariate_normal(
             mean=ArtificialData.uniform(0, 1),
@@ -77,7 +78,7 @@ e_methods = [
 # exp.run(["colon", "arcene", "dexter"])
 # exp.print_results()
 
-dataset = "arcene"
+dataset = "artificial"
 
 robustness_exp = EnsembleMethodExperiment(
     e_methods,
