@@ -102,7 +102,7 @@ class SVM_RFE(ClassifierFeatureSelector):
                 kernel='linear',
                 C=self.find_best_hyper_parameter_SVC(data, labels)
             ),
-            n_features_to_select=1,
+            n_features_to_select=round(len(data)*0.01),
             step=self.step
         )
         rfe.fit(data.T, labels)
