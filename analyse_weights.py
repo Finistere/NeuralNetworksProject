@@ -165,7 +165,7 @@ class Analyse2D:
         fig = plt.figure(figsize=(15, 20))
         ax = plt.subplot(round(number_of_plots / 2.), 2, 1)
         ax.set_title("With all features")
-        ax.scatter(*transformed_data, c=labels)
+        ax.scatter(*transformed_data, c=labels, cmap="viridis")
 
         for i in range(len(ranks)):
             data_filtered = Analyse2D.select_p_features(data, ranks[i], p=0.01)
@@ -173,7 +173,7 @@ class Analyse2D:
 
             ax = plt.subplot(round(number_of_plots / 2.), 2, i + 2)
             ax.set_title("With filtered features using ranks from S" + str(i))
-            ax.scatter(*transformed_data_filtered, c=labels)
+            ax.scatter(*transformed_data_filtered, c=labels, cmap="viridis")
         return fig
 
     @staticmethod
@@ -186,7 +186,7 @@ class Analyse2D:
         fig = plt.figure(figsize=(15, 20))
         ax = plt.subplot(round(number_of_plots / 2.), 2, 1)
         ax.set_title("With all features")
-        ax.scatter(*transformed_data, c=labels)
+        ax.scatter(*transformed_data, c=labels, cmap="viridis")
 
         for i in range(len(ranks)):
             data_filtered = Analyse2D.select_p_features(data, ranks[i], p=0.01)
@@ -194,5 +194,5 @@ class Analyse2D:
 
             ax = plt.subplot(round(number_of_plots / 2.), 2, i + 2)
             ax.set_title("With filtered features using ranks from S" + str(i))
-            ax.scatter(*transformed_data_filtered, c=labels)
+            ax.scatter(*transformed_data_filtered, c=labels, cmap="viridis")
         return fig
