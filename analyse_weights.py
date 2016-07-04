@@ -20,9 +20,9 @@ class AnalyseBenchmarkResults():
         else:
             self.feature_selectors = feature_selector
 
-    def run(self, data_set, save_to_file=False):
+    def run(self, data_set, features_to_filter=0.01, save_to_file=False):
         for i in range(len(self.feature_selectors)):
-            analysis = AnalyseFeatureSelection(self.feature_selectors[i], save_to_file)
+            analysis = AnalyseFeatureSelection(self.feature_selectors[i], features_to_filter, save_to_file)
             analysis.generate(
                 data_set,
                 self.cv())
@@ -33,27 +33,28 @@ class AnalyseBenchmarkResults():
 
 
 class AnalyseFeatureSelection:
-    def __init__(self, feature_selector: FeatureSelector, save_to_file=False):
+    def __init__(self, feature_selector: FeatureSelector, features_to_filter, save_to_file=False):
         self.feature_selector = feature_selector
+        self.features_to_filter = features_to_filter
         self.save_to_file = save_to_file
 
     def generate(self, data_set, cv):
         data, labels = DataSets.load(data_set)
         weights = PreComputedData.load(data_set, cv, "weight", self.feature_selector)
         ranks = PreComputedData.load(data_set, cv, "rank", self.feature_selector)
-        stats, fig = AnalyseWeights.analyse_weights(weights.T)
-        fig_pca, fig_tsne = Analyse2D.analyse_2d(data, labels, ranks)
+        stats, fig_hist_and_box, _, _ = AnalyseWeights.analyse_weights(weights.T)
+        #fig_pca, fig_tsne = Analyse2D.analyse_2d(data, labels, ranks, self.features_to_filter)
 
-        self.update_pca_plot(fig_pca)
-        self.update_tsne_plot(fig_tsne)
-        self.update_weights_plots(stats, fig)
+        self.update_weights_plots(stats, fig_hist_and_box)
+        #self.update_pca_plot(fig_pca)
+        #self.update_tsne_plot(fig_tsne)
         plt.show()
         print(stats)
 
         if self.save_to_file:
             file_name = Analysis.file_name(data_set, cv, "weight", self.feature_selector)
             AnalyseFeatureSelection.create_directory(Analysis.dir_name(data_set, cv, "weight"))
-            AnalyseFeatureSelection.save_weights_data(stats, fig, file_name)
+            AnalyseFeatureSelection.save_weights_data(stats, fig_hist_and_box, file_name)
 
     def update_weights_plots(self, stats, fig):
         fig.suptitle("Weight analysis for " + self.feature_selector.__name__, fontsize=14, fontweight='bold')
@@ -90,9 +91,10 @@ class AnalyseWeights:
         weights_mean = weights_df.T.mean()
 
         stats = AnalyseWeights.weights_stats(weights_df, weights_mean)
-        fig = AnalyseWeights.weights_plot(weights_df, weights_mean)
-        return stats, fig
-
+        fig_hist_and_box = AnalyseWeights.weights_hist(weights_df, weights_mean)
+        fig_plot = AnalyseWeights.weights_plot(weights, weights_mean, sorted=False)
+        fig_plot_sorted = AnalyseWeights.weights_plot(weights, weights_mean, sorted=True)
+        return stats, fig_hist_and_box, fig_plot, fig_plot_sorted
     @staticmethod
     def weights_stats(weights, weights_mean):
         weights_mean_df = pd.DataFrame(weights_mean, columns=['mean'])
@@ -105,7 +107,7 @@ class AnalyseWeights:
         return stats
 
     @staticmethod
-    def weights_plot(weights, weights_mean):
+    def weights_hist(weights, weights_mean):
         fig = plt.figure(figsize=(15, 10))
         sample_size = weights.shape[1]
         gs = GridSpec(round(sample_size / 3 + 0.5), 6)
@@ -116,6 +118,29 @@ class AnalyseWeights:
         for i in range(sample_size):
             ax = fig.add_subplot(gs[int(i / 3), 3 + (i % 3)])
             AnalyseWeights.plot_hist(weights, weights_mean, ax, i)
+
+        fig.tight_layout()
+        return fig
+
+    @staticmethod
+    def weights_plot(weights, weights_mean, sorted):
+        fig = plt.figure(figsize=(15, 20))
+        plot_rows = len(weights.T) + 2 // 2
+        weights_mean_processed = np.sort(weights_mean) if sorted else weights_mean
+        for i in range(len(weights.T)):
+            weights_processed = np.sort(weights.T[i]) if sorted else weights.T[i]
+            ax = plt.subplot(plot_rows , 2, i+1)
+            if not sorted:
+                ax.plot(weights_processed,  markersize='4', marker='o', linestyle='None')
+            else:
+                ax.plot(weights_processed, linewidth=2)
+
+
+        ax = plt.subplot(plot_rows, 2, i + 2)
+        if not sorted:
+            ax.plot(weights_mean_processed, c='orange', markersize='4', marker='o', linestyle='None')
+        else:
+            ax.plot(weights_mean_processed, c='orange', linewidth='2')
 
         fig.tight_layout()
         return fig
@@ -143,9 +168,9 @@ class AnalyseWeights:
 
 class Analyse2D:
     @staticmethod
-    def analyse_2d(data, labels, ranks):
-        fig_pca = Analyse2D.pca_plot(data, labels, ranks)
-        fig_tsne = Analyse2D.tsne_plot(data, labels, ranks)
+    def analyse_2d(data, labels, ranks, features_to_filter):
+        fig_pca = Analyse2D.pca_plot(data, labels, ranks, features_to_filter)
+        fig_tsne = Analyse2D.tsne_plot(data, labels, ranks, features_to_filter)
         return fig_pca, fig_tsne
 
     @staticmethod
@@ -156,7 +181,7 @@ class Analyse2D:
         return data_filtered
 
     @staticmethod
-    def pca_plot(data, labels, ranks):
+    def pca_plot(data, labels, ranks, features_to_filter):
         pca = PCA()
         transformed_data = pca.fit_transform(data.T).T[:2]
 
@@ -168,7 +193,7 @@ class Analyse2D:
         ax.scatter(*transformed_data, c=labels, cmap="viridis")
 
         for i in range(len(ranks)):
-            data_filtered = Analyse2D.select_p_features(data, ranks[i], p=0.01)
+            data_filtered = Analyse2D.select_p_features(data, ranks[i], p=features_to_filter)
             transformed_data_filtered = pca.fit_transform(data_filtered.T).T[:2]
 
             ax = plt.subplot(round(number_of_plots / 2.), 2, i + 2)
@@ -177,7 +202,7 @@ class Analyse2D:
         return fig
 
     @staticmethod
-    def tsne_plot(data, labels, ranks):
+    def tsne_plot(data, labels, ranks, features_to_filter):
         tsne = TSNE()
         transformed_data = tsne.fit_transform(data.T).T[:2]
 
@@ -189,7 +214,7 @@ class Analyse2D:
         ax.scatter(*transformed_data, c=labels, cmap="viridis")
 
         for i in range(len(ranks)):
-            data_filtered = Analyse2D.select_p_features(data, ranks[i], p=0.01)
+            data_filtered = Analyse2D.select_p_features(data, ranks[i], p=features_to_filter)
             transformed_data_filtered = tsne.fit_transform(data_filtered.T).T[:2]
 
             ax = plt.subplot(round(number_of_plots / 2.), 2, i + 2)

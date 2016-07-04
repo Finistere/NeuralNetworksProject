@@ -11,4 +11,4 @@ feature_selectors = [
 ]
 
 analysis = AnalyseBenchmarkResults(feature_selectors)
-analysis.run("arcene")
+analysis.run("dexter")
