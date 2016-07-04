@@ -1,3 +1,4 @@
+from data_sets import DataSets
 from robustness_measure import Measure
 from abc import ABCMeta, abstractmethod
 import numpy as np
@@ -30,9 +31,11 @@ class RankData:
 
 
 class GoodnessMeasure(Measure, metaclass=ABCMeta):
-    def __init__(self, n_significant_features):
+    def __init__(self, data_set_name):
         super().__init__()
-        self.n_significant_features = n_significant_features
+        feat_labels_path = DataSets.get_feature_labels_directory(data_set_name)
+        feature_probe_labels = np.loadtxt(feat_labels_path)
+        self.n_significant_features = np.sum([feature_probe_labels == 1])
 
     def measure(self, features_ranks):
         goodness = []

@@ -1,12 +1,13 @@
 import numpy as np
 
-
 class ArtificialLabels:
     @staticmethod
-    def linear():
-        def labeling(samples):
-            weights = np.random.uniform(-1, 1, samples.shape[0])
-            return np.sign(weights.dot(samples)).T
+    def linear(weights=None):
+
+        def labeling(samples, weights=weights):
+            if weights==None:
+                weights = np.random.uniform(-1, 1, samples.shape[0])
+            return np.sign(weights.dot(samples))
         return labeling
 
     @staticmethod
@@ -44,7 +45,8 @@ class ArtificialData:
 
         labels = ArtificialData.__label_loop_wrapper(labeling)(samples[:n_significant_features])
 
-        return samples, labels
+        feature_labels = np.hstack((np.ones(n_significant_features),-np.ones(n_features-n_significant_features)))
+        return samples, labels, feature_labels
 
     @staticmethod
     def __label_loop_wrapper(labeling, n_iter=10, tolerance=0.95):
