@@ -87,7 +87,6 @@ class SMeanWithClassifier(EnsembleMethod):
                     c.fit(data[np.ix_(best_features_indices, train_index)].T, labels[train_index])
                     accuracy[i] += c.score(data[np.ix_(best_features_indices, test_index)].T, labels[test_index])
 
-        print(np.exp(accuracy))
         features_selection = (features_selection.T * np.exp(accuracy)).T
 
         f_mean = np.mean(features_selection, axis=0)

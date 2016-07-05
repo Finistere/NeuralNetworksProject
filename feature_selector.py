@@ -75,7 +75,6 @@ class Relief(FeatureSelector):
 
 
 class ClassifierFeatureSelector(FeatureSelector, metaclass=ABCMeta):
-
     # TODO implement iterative grid search using scipy.stats.expon(scale=100) http://scikit-learn.org/stable/modules/grid_search.html
     @staticmethod
     def find_best_hyper_parameter(data, classes, classifier, parameter):
@@ -102,7 +101,7 @@ class SVM_RFE(ClassifierFeatureSelector):
                 kernel='linear',
                 C=self.find_best_hyper_parameter_SVC(data, labels)
             ),
-            n_features_to_select=round(len(data)*0.01),
+            n_features_to_select=round(len(data) * 0.01),
             step=self.step
         )
         rfe.fit(data.T, labels)
@@ -132,15 +131,17 @@ class LassoFeatureSelector(ClassifierFeatureSelector):
         normalized = self.normalize(np.abs(lasso.coef_))
         return normalized
 
+
 class Random(ClassifierFeatureSelector):
     def rank(self, data, labels):
-        features_rank = np.arange(1,len(data)+1)
+        features_rank = np.arange(1, len(data) + 1)
         np.random.shuffle(features_rank)
         return features_rank
 
     def weight(self, data, labels):
-        weights = np.random.uniform(0,1,len(data))
+        weights = np.random.uniform(0, 1, len(data))
         return weights
+
 
 class RF(FeatureSelector):
     def rank(self, data, labels):

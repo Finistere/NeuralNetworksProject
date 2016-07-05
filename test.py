@@ -1,5 +1,5 @@
 from experiments import *
-from feature_selector import SymmetricalUncertainty, Relief, SVM_RFE, LassoFeatureSelector, Random
+from feature_selector import SymmetricalUncertainty, Relief, SVM_RFE, LassoFeatureSelector, Random, FeatureSelector
 import robustness_measure
 import goodness_measure
 import ensemble_methods
@@ -9,11 +9,14 @@ from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from artificial_data_sets2 import ArtificialData, ArtificialLabels
 
-feature_selectors = [
+em_feature_selectors = [
     SymmetricalUncertainty(),
     Relief(),
     SVM_RFE(),
     LassoFeatureSelector(),
+]
+
+feature_selectors = em_feature_selectors + [
     Random()
 ]
 
@@ -30,7 +33,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 total_features = 1e4
-n_significant_features = total_features*0.01
+n_significant_features = int(total_features*0.01)
 DataSets.save_artificial(
     *ArtificialData.generate(
         n_samples=300,
@@ -38,13 +41,13 @@ DataSets.save_artificial(
         n_significant_features=n_significant_features,
         feature_distribution=ArtificialData.multivariate_normal(
             mean=np.zeros(n_significant_features),
-            cov=ArtificialData.uniform(-1, 1)
+            cov=ArtificialData.uniform(-2, 2)
         ),
         insignificant_feature_distribution=ArtificialData.multiple_distribution(
-            distributions=[ArtificialData.uniform(0, 1), ArtificialData.uniform(1, 2)],
+            distributions=[ArtificialData.uniform(-1, 1), ArtificialData.normal(0, 1)],
             shares=[0.5, 0.5]
         ),
-        noise_distribution=None,
+        noise_distribution=ArtificialData.normal(0, 0.05),
         labeling=ArtificialLabels.linear(weights=np.ones(n_significant_features))
     )
 )
@@ -57,10 +60,10 @@ DataSets.save_artificial(
 
 
 e_methods = [
-    ensemble_methods.Mean(feature_selectors),
-    ensemble_methods.SMean(feature_selectors, min_mean_max=[9, 3, 1]),
+    ensemble_methods.Mean(em_feature_selectors),
+    ensemble_methods.SMean(em_feature_selectors, min_mean_max=[9, 3, 1]),
     ensemble_methods.SMeanWithClassifier(
-        feature_selectors,
+        em_feature_selectors,
         classifiers,
         min_mean_max=[9, 3, 1]
     ),
@@ -77,8 +80,6 @@ e_methods = [
 # exp.print_results()
 
 
-
-
 robustnessf_exp = EnsembleFMeasureExperiment(
     classifiers,
     e_methods,
@@ -93,13 +94,14 @@ accuracy_exp = EnsembleMethodExperiment(
 )
 
 
-def do_complete_analysis(dataset):
+def do_complete_analysis(data_set, append_results=False):
+    print(data_set)
     measures = [
         robustness_measure.Spearman(),
         robustness_measure.JaccardIndex(percentage=0.01),
         robustness_measure.JaccardIndex(percentage=0.05),
-        goodness_measure.Precision(dataset),
-        goodness_measure.XPrecision(dataset)
+        goodness_measure.Precision(data_set),
+        goodness_measure.XPrecision(data_set)
     ]
     robustness_exp = EnsembleMethodExperiment(
         e_methods,
@@ -107,15 +109,27 @@ def do_complete_analysis(dataset):
         feature_selectors
     )
 
-    robustness_exp.run(dataset)
+    robustness_exp.run(data_set)
     robustness_exp.print_results()
-    robustness_exp.save_results(dataset+"_rob.csv")
-    accuracy_exp.run(dataset)
+    robustness_exp.save_results(data_set + "_rob.csv", append_results)
+    accuracy_exp.run(data_set)
     accuracy_exp.print_results()
-    accuracy_exp.save_results(dataset+"_acc.csv")
-    robustnessf_exp.run([dataset])
+    accuracy_exp.save_results(data_set + "_acc.csv", append_results)
+    robustnessf_exp.run([data_set])
     robustnessf_exp.print_results()
-    robustnessf_exp.save_results(dataset+".csv")
+    robustnessf_exp.save_results(data_set + ".csv", append_results)
     return
 
-do_complete_analysis("artificial")
+do_complete_analysis("gisette")
+do_complete_analysis("artificial", True)
+# do_complete_analysis("arcene")
+# do_complete_analysis("dexter")
+
+# jc = robustness_measure.JaccardIndex(0.01)
+#
+# print(jc.measure(np.array([
+#     FeatureSelector.rank_weights(np.random.uniform(0, 1, 1e4)),
+#     FeatureSelector.rank_weights(np.random.uniform(0, 1, 1e4)),
+#     FeatureSelector.rank_weights(np.random.uniform(0, 1, 1e4)),
+#     FeatureSelector.rank_weights(np.random.uniform(0, 1, 1e4)),
+# ]).T))

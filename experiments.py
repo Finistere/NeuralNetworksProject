@@ -30,7 +30,7 @@ class Experiment:
         print(tabulate(rows[1:len(rows)], rows[0], tablefmt='pipe'))
         print()
 
-    def save_results(self, file_name="output.csv"):
+    def save_results(self, file_name="output.csv", append=False):
         root_dir = DataSets.root_dir + "/results/" + type(self).__name__
 
         try:
@@ -39,7 +39,7 @@ class Experiment:
             if exception.errno != errno.EEXIST:
                 raise
 
-        with open(root_dir + "/" + file_name, "w") as f:
+        with open(root_dir + "/" + file_name, 'a' if append else 'w') as f:
             writer = csv.writer(f)
             writer.writerows(self.results_table)
 

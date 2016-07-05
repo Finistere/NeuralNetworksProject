@@ -33,11 +33,16 @@ class RankData:
 class GoodnessMeasure(Measure, metaclass=ABCMeta):
     def __init__(self, data_set_name):
         super().__init__()
-        feat_labels_path = DataSets.get_feature_labels_directory(data_set_name)
-        feature_probe_labels = np.loadtxt(feat_labels_path)
-        self.n_significant_features = np.sum([feature_probe_labels == 1])
+        feature_probe_labels = DataSets.load_features_labels(data_set_name)
+        if feature_probe_labels is None:
+            self.n_significant_features = None
+        else:
+            self.n_significant_features = np.sum([feature_probe_labels == 1])
 
     def measure(self, features_ranks):
+        if not self.n_significant_features:
+            return 0
+
         goodness = []
         for i in range(features_ranks.shape[1]):
             goodness.append(self.goodness(

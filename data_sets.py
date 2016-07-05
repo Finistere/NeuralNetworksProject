@@ -12,7 +12,6 @@ class DataSets:
     data_sets = {
         'colon': (
             {
-                "feat_labels": None,
                 "path": "/COLON/COLON/colon.data",
             },
             {
@@ -53,6 +52,15 @@ class DataSets:
                 "path": "/DOROTHEA/DOROTHEA/dorothea.labels",
             }
         ),
+        "gisette": (
+            {
+                "path": "/GISETTE/GISETTE/gisette_train.data",
+                "apply_transform": np.transpose,
+            },
+            {
+                "path": "/GISETTE/GISETTE/gisette_train.labels",
+            }
+        ),
         "artificial": (
             {
                 "feat_labels": "/ARTIFICIAL/ARTIFICIAL/artificial_feat.labels",
@@ -87,12 +95,18 @@ class DataSets:
         np.savetxt(feature_label_file_name, feature_labels, fmt='%d')
 
     @staticmethod
-    def load(name):
-        data_directory, labels_directory = DataSets.data_sets[name]
-        data = DataSets.__load_data_set_file(data_directory)
-        labels = DataSets.__load_data_set_file(labels_directory)
-        data_sorted = DataSets.__sort_features_probes(data, name)
-        return data_sorted, labels
+    def load(data_set):
+        data_info, labels_info = DataSets.data_sets[data_set]
+        labels = DataSets.__load_data_set_file(labels_info)
+        data = DataSets.__load_data_set_file(data_info)
+
+        feature_labels = DataSets.load_features_labels(data_set)
+        if feature_labels is not None:
+            features = data[[feature_labels == 1]]
+            probes = data[[feature_labels == -1]]
+            data = np.vstack((features, probes))
+
+        return data, labels
 
     @staticmethod
     def __load_data_set_file(info):
@@ -107,23 +121,15 @@ class DataSets:
         return data
 
     @staticmethod
-    def get_feature_labels_directory(name):
-        data_info, _ = DataSets.data_sets[name]
-        return DataSets.root_dir + data_info['feat_labels']
+    def load_features_labels(data_set):
+        data_info, _ = DataSets.data_sets[data_set]
+        feat_labels_filename = data_info.get('feat_labels', None)
 
+        if feat_labels_filename is not None:
+            return np.loadtxt(DataSets.root_dir + feat_labels_filename)
 
-    # sort the features and probes, result is an array sorted first features and then probes
-    @staticmethod
-    def __sort_features_probes(data, name):
-        feature_labels_directory = DataSets.get_feature_labels_directory(name)
-        if feature_labels_directory is None: return data
-        feature_probe_labels = np.loadtxt(feature_labels_directory)
-        feature_indices = [feature_probe_labels == 1]
-        probe_indices = [feature_probe_labels == -1]
-        features = data[feature_indices]
-        probes = data[probe_indices]
-        data_sorted = np.vstack((features,probes))
-        return data_sorted
+        return None
+
 
 class PreComputedData:
     @staticmethod
