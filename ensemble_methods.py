@@ -6,9 +6,12 @@ from abc import ABCMeta, abstractmethod
 from data_sets import DataSets, PreComputedData
 from feature_selection import FeatureSelection
 from sklearn.cross_validation import KFold
+import multiprocessing
 
 
 class EnsembleMethod(metaclass=ABCMeta):
+    max_parallelism = multiprocessing.cpu_count()
+
     def __init__(self, feature_selectors, features_type="weight"):
         self.__name__ = type(self).__name__
         self.features_type = features_type
@@ -31,15 +34,28 @@ class EnsembleMethod(metaclass=ABCMeta):
         data, labels = DataSets.load(data_set)
         cv_indices = PreComputedData.load_cv(data_set, cv)
 
-        feature_selection = []
-        for i in range(bench_features_selection.shape[1]):
-            feature_selection.append(FeatureSelector.rank_weights(self.combine(
-                bench_features_selection[:, i],
-                data[:, cv_indices[i][0]],
-                labels[cv_indices[i][0]]
-             )))
+        feature_selection = multiprocessing.Manager().dict()
 
-        return np.array(feature_selection)
+        with multiprocessing.Pool(processes=self.max_parallelism) as pool:
+            for i in range(bench_features_selection.shape[1]):
+                pool.apply_async(
+                    self.run_and_set_in_results,
+                    kwds={
+                        'results': feature_selection,
+                        'result_index': i,
+                        'feature_selection': bench_features_selection[:, i],
+                        'data': data[:, cv_indices[i][0]],
+                        'labels': labels[cv_indices[i][0]]
+                    }
+                )
+            pool.close()
+            pool.join()
+
+        return np.array([ranking for i, ranking in feature_selection.items()])
+
+    def run_and_set_in_results(self, results, result_index, feature_selection, data, labels):
+        np.random.seed()
+        results[result_index] = FeatureSelector.rank_weights(self.combine(feature_selection, data, labels))
 
     @abstractmethod
     def combine(self, feature_selection, data, labels):

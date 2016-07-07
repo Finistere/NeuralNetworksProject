@@ -54,11 +54,11 @@ class DataSets:
         ),
         "gisette": (
             {
-                "path": "/GISETTE/GISETTE/gisette_train.data",
+                "path": "/GISETTE/GISETTE/gisette_valid.data",
                 "apply_transform": np.transpose,
             },
             {
-                "path": "/GISETTE/GISETTE/gisette_train.labels",
+                "path": "/GISETTE/GISETTE/gisette_valid.labels",
             }
         ),
         "artificial": (

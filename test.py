@@ -120,10 +120,11 @@ def do_complete_analysis(data_set, append_results=False):
     robustnessf_exp.save_results(data_set + ".csv", append_results)
     return
 
-do_complete_analysis("gisette")
 do_complete_analysis("artificial", True)
+# do_complete_analysis("colon")
 # do_complete_analysis("arcene")
 # do_complete_analysis("dexter")
+# do_complete_analysis("gisette")
 
 # jc = robustness_measure.JaccardIndex(0.01)
 #

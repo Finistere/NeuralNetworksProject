@@ -1,13 +1,14 @@
 import numpy as np
 
+
 class ArtificialLabels:
     @staticmethod
     def linear(weights=None):
-
         def labeling(samples, weights=weights):
-            if weights==None:
+            if weights is None:
                 weights = np.random.uniform(-1, 1, samples.shape[0])
-            return np.sign(weights.dot(samples))
+            labels = weights.dot(samples)
+            return np.sign(labels - np.median(labels))
         return labeling
 
     @staticmethod
@@ -43,24 +44,10 @@ class ArtificialData:
         if noise_distribution:
             samples += noise_distribution((n_features, n_samples))
 
-        labels = ArtificialData.__label_loop_wrapper(labeling)(samples[:n_significant_features])
+        labels = labeling(samples[:n_significant_features])
 
         feature_labels = np.hstack((np.ones(n_significant_features),-np.ones(n_features-n_significant_features)))
         return samples, labels, feature_labels
-
-    @staticmethod
-    def __label_loop_wrapper(labeling, n_iter=10, tolerance=0.95):
-        def foo(samples):
-            i = 0
-            while True:
-                i += 1
-                labels = labeling(samples)
-                # not every label is the same
-                if np.abs(labels.sum()) < samples.shape[1] * tolerance:
-                    return labels
-                if i > n_iter:
-                    raise Exception("Labels could not be generated after {} iterations".format(n_iter))
-        return foo
 
     @staticmethod
     def constant(c):

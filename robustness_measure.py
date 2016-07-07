@@ -8,6 +8,7 @@ class Measure(metaclass=ABCMeta):
         self.__name__ = type(self).__name__
 
     def run_and_set_in_results(self, features_selection, results, result_index):
+        np.random.seed()
         results[result_index] = self.measure(features_selection)
 
     @abstractmethod

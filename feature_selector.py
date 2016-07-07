@@ -19,6 +19,7 @@ class FeatureSelector(metaclass=ABCMeta):
         self.__name__ = type(self).__name__
 
     def run_and_set_in_results(self, data, labels, results, result_index, method):
+        np.random.seed()
         results[result_index] = getattr(self, method)(data, labels)
 
     # Each column is an observation, each row a feature
@@ -133,10 +134,10 @@ class LassoFeatureSelector(ClassifierFeatureSelector):
 
 
 class Random(ClassifierFeatureSelector):
-    def rank(self, data, labels):
-        features_rank = np.arange(1, len(data) + 1)
-        np.random.shuffle(features_rank)
-        return features_rank
+    # def rank(self, data, labels):
+    #     features_rank = np.arange(1, len(data) + 1)
+    #     np.random.shuffle(features_rank)
+    #     return features_rank
 
     def weight(self, data, labels):
         weights = np.random.uniform(0, 1, len(data))

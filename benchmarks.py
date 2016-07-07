@@ -84,6 +84,7 @@ class ClassifierWrapper:
         self.__name__ = type(classifier).__name__
 
     def run_and_set_in_results(self, data, labels, train_index, test_index, results, result_index):
+        np.random.seed()
         self.classifier.fit(
             data[:, train_index].T,
             labels[train_index]
@@ -122,24 +123,30 @@ class AccuracyBenchmark(Benchmark):
         classification_accuracies = classification_accuracies.reshape((AccuracyBenchmark.n_fold, len(self.classifiers)))
 
         processes = []
-        for i, (train_index, test_index) in enumerate(self.cv(labels.shape[0])):
-            for j, classifier in enumerate(self.classifiers):
-                p = multiprocessing.Process(
-                    target=classifier.run_and_set_in_results,
-                    kwargs={
-                        'data': data[features_indexes[i], :],
-                        'labels': labels,
-                        'train_index': train_index,
-                        'test_index': test_index,
-                        'results': classification_accuracies,
-                        'result_index': (i, j)
-                    }
-                )
-                p.start()
-                processes.append(p)
+        try:
+            for i, (train_index, test_index) in enumerate(self.cv(labels.shape[0])):
+                for j, classifier in enumerate(self.classifiers):
+                    p = multiprocessing.Process(
+                        target=classifier.run_and_set_in_results,
+                        kwargs={
+                            'data': data[features_indexes[i], :],
+                            'labels': labels,
+                            'train_index': train_index,
+                            'test_index': test_index,
+                            'results': classification_accuracies,
+                            'result_index': (i, j)
+                        }
+                    )
+                    p.start()
+                    processes.append(p)
 
-        for p in processes:
-            p.join()
+            for p in processes:
+                p.join()
+        except KeyError as e:
+            print(data.shape)
+            print(features_indexes)
+            print(features_selection)
+            raise
 
         return classification_accuracies.mean(axis=0)
 
