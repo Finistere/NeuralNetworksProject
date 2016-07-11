@@ -1,5 +1,5 @@
 from benchmarks import MeasureBenchmark, AccuracyBenchmark, Benchmark, FMeasureBenchmark
-from ensemble_methods import FeatureSelection
+from feature_selector import DataSetFeatureSelector
 from tabulate import tabulate
 import numpy as np
 import csv
@@ -107,88 +107,93 @@ class AccuracyExperiment(Experiment):
         super().print_results()
 
 
-class DataSetExperiments:
-    def __init__(self, feature_selectors, measures, classifiers, working_dir=".."):
-        self.measure_experiment = MeasureExperiment(feature_selectors, measures)
-        self.accuracy_experiment = AccuracyExperiment(feature_selectors, classifiers)
-        self.results_folder = working_dir
-
-    def run_data_set(self, name, file_name="output.csv"):
-        data, labels = DataSets.load(name)
-
-        self.measure_experiment.run(data, labels)
-        self.measure_experiment.print_results()
-        self.measure_experiment.save_results(file_name)
-
-        self.accuracy_experiment.run(data, labels)
-        self.accuracy_experiment.print_results()
-        self.accuracy_experiment.save_results(file_name)
-
-
-class EnsembleMethodExperiment(Experiment):
-    def __init__(self, ensemble_methods, benchmark: Benchmark, feature_selectors=None):
-        if not isinstance(ensemble_methods, list):
-            ensemble_methods = [ensemble_methods]
-
-        self.ensemble_methods = ensemble_methods
+class DataSetExperiment(Experiment):
+    def __init__(self, benchmark: Benchmark, data_set_feature_selectors):
         self.benchmark = benchmark
-        self.feature_selectors = [] if feature_selectors is None else [FeatureSelection(f) for f in feature_selectors]
-        self.results = np.zeros((len(benchmark.get_measures()), len(ensemble_methods) + len(self.feature_selectors)))
+
+        if not isinstance(data_set_feature_selectors, list):
+            data_set_feature_selectors = [data_set_feature_selectors]
+
+        for data_set_feature_selector in data_set_feature_selectors:
+            if not isinstance(data_set_feature_selector, DataSetFeatureSelector):
+                raise ValueError("Only DataSetFeatureSelector can be used")
+
+        self.feature_selectors = data_set_feature_selectors
+
+        self.results = np.zeros((len(benchmark.get_measures()), len(self.feature_selectors)))
 
         self.row_labels = [m.__name__ for m in self.benchmark.get_measures()]
-        self.col_labels = [f.__name__ for f in self.feature_selectors] + [f.__name__ for f in ensemble_methods]
+        self.col_labels = [f.__name__ for f in self.feature_selectors]
 
     def run(self, data_set):
         data, labels = DataSets.load(data_set)
-        cv = self.benchmark.cv(labels.shape[0])
 
         for i, feature_selector in enumerate(self.feature_selectors):
             self.results[:, i] = self.benchmark.run(
                 data,
                 labels,
-                feature_selector.load(data_set, cv, "rank")
-            )
-
-        offset = len(self.feature_selectors)
-
-        for i, ensemble_method in enumerate(self.ensemble_methods):
-            self.results[:, offset + i] = self.benchmark.run(
-                data,
-                labels,
-                ensemble_method.rank(data_set, self.benchmark)
+                feature_selector.rank_data_set(data_set, self.benchmark.cv)
             )
 
         return self.results
 
     def print_results(self):
-        print("Ensemble Method: {}".format(type(self.benchmark).__name__))
+        print("DataSet Experiment: {}".format(type(self.benchmark).__name__))
         super().print_results()
 
 
-class EnsembleFMeasureExperiment(Experiment):
-    def __init__(self, classifiers, ensemble_methods, jaccard_percentage=0.01, beta=1, feature_selectors=None):
-        if not isinstance(ensemble_methods, list):
-            ensemble_methods = [ensemble_methods]
+class RawDataSetExperiment:
+    def __init__(self, benchmark: Benchmark, data_set_feature_selectors):
+        self.benchmark = benchmark
 
-        self.ensemble_methods = ensemble_methods
-        self.feature_selectors = [] if feature_selectors is None else [FeatureSelection(f) for f in feature_selectors]
+        if not isinstance(data_set_feature_selectors, list):
+            data_set_feature_selectors = [data_set_feature_selectors]
+
+        for data_set_feature_selector in data_set_feature_selectors:
+            if not isinstance(data_set_feature_selector, DataSetFeatureSelector):
+                raise ValueError("Only DataSetFeatureSelector can be used")
+
+        self.feature_selectors = data_set_feature_selectors
+
+    def run(self, data_sets):
+        results = []
+
+        for i, data_set in enumerate(data_sets):
+            data, labels = DataSets.load(data_set)
+            results.append([])
+            for feature_selector in self.feature_selectors:
+                results[i].append(self.benchmark.run_raw_result(
+                    data,
+                    labels,
+                    feature_selector.rank_data_set(data_set, self.benchmark.cv)
+                ))
+
+        return np.array(results)
+
+
+class EnsembleFMeasureExperiment(Experiment):
+    def __init__(self, classifiers, data_set_feature_selectors, jaccard_percentage=0.01, beta=1):
+        if not isinstance(data_set_feature_selectors, list):
+            data_set_feature_selectors = [data_set_feature_selectors]
+
+        for data_set_feature_selector in data_set_feature_selectors:
+            if not isinstance(data_set_feature_selector, DataSetFeatureSelector):
+                raise ValueError("Only DataSetFeatureSelector can be used")
+
+        self.feature_selectors = data_set_feature_selectors
         self.classifiers = classifiers
         self.jaccard_percentage = jaccard_percentage
         self.beta = beta
         self.results = None
 
     def run(self, data_sets):
-        self.results = np.zeros((len(data_sets) + 1, len(self.ensemble_methods) + len(self.feature_selectors)))
+        self.results = np.zeros((len(data_sets) + 1, len(self.feature_selectors)))
 
         benchmark = FMeasureBenchmark(
             classifiers=self.classifiers,
             jaccard_percentage=self.jaccard_percentage,
             beta=self.beta,
         )
-
-        offset = len(self.feature_selectors)
-        robustness_cv = benchmark.robustness_benchmark.cv(10)
-        accuracy_cv = benchmark.accuracy_benchmark.cv(10)
 
         for i, data_set in enumerate(data_sets):
             data, labels = DataSets.load(data_set)
@@ -197,30 +202,14 @@ class EnsembleFMeasureExperiment(Experiment):
                 self.results[i, j] = benchmark.run(
                     data,
                     labels,
-                    robustness_features_selection=feature_selector.load(
+                    robustness_features_selection=feature_selector.rank_data_set(
                         data_set,
-                        robustness_cv,
-                        "rank"
+                        benchmark.robustness_benchmark.cv,
                     ),
-                    accuracy_features_selection=feature_selector.load(
+                    accuracy_features_selection=feature_selector.rank_data_set(
                         data_set,
-                        accuracy_cv,
-                        "rank"
+                        benchmark.accuracy_benchmark.cv
                     )
-                )
-
-            for j, ensemble_method in enumerate(self.ensemble_methods):
-                self.results[i, offset + j] = benchmark.run(
-                    data,
-                    labels,
-                    robustness_features_selection=ensemble_method.rank(
-                        data_set,
-                        benchmark.robustness_benchmark
-                    ),
-                    accuracy_features_selection=ensemble_method.rank(
-                        data_set,
-                        benchmark.accuracy_benchmark
-                    ),
                 )
 
         self.results[-1, :] = self.results[:-1].mean(axis=0)
@@ -231,10 +220,7 @@ class EnsembleFMeasureExperiment(Experiment):
         self.row_labels = data_sets + ["Mean"]
         self.col_labels = []
         for i in order:
-            if i >= offset:
-                self.col_labels.append(self.ensemble_methods[i - offset].__name__)
-            else:
-                self.col_labels.append(self.feature_selectors[i].__name__)
+            self.col_labels.append(self.feature_selectors[i].__name__)
 
         return self.results
 

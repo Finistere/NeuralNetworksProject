@@ -39,7 +39,7 @@ class GoodnessMeasure(Measure, metaclass=ABCMeta):
         else:
             self.n_significant_features = np.sum([feature_probe_labels == 1])
 
-    def measure(self, features_ranks):
+    def measures(self, features_ranks):
         if not self.n_significant_features:
             return 0
 
@@ -48,7 +48,7 @@ class GoodnessMeasure(Measure, metaclass=ABCMeta):
             goodness.append(self.goodness(
                 RankData(features_ranks[:, i].T, self.n_significant_features)
             ))
-        return np.mean(goodness)
+        return goodness
 
     @abstractmethod
     def goodness(self, data: RankData):

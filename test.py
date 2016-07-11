@@ -52,22 +52,24 @@ DataSets.save_artificial(
     )
 )
 
-# e = []
+e_methods = [
+    ensemble_methods.Mean(em_feature_selectors)
+]
 # for i in range(1, 10):
 #     for j in range(1, 10):
 #         for k in range(1, 10):
-#             e.append(ensemble_methods.SMean(feature_selectors, min_mean_max=[i, j, k]))
+#             e_methods.append(ensemble_methods.SMean(feature_selectors, min_mean_max=[i, j, k]))
 
 
-e_methods = [
-    ensemble_methods.Mean(em_feature_selectors),
-    ensemble_methods.SMean(em_feature_selectors, min_mean_max=[9, 3, 1]),
-    ensemble_methods.SMeanWithClassifier(
-        em_feature_selectors,
-        classifiers,
-        min_mean_max=[9, 3, 1]
-    ),
-]
+# e_methods = [
+#     ensemble_methods.Mean(em_feature_selectors),
+#     ensemble_methods.SMean(em_feature_selectors, min_mean_max=[9, 3, 1]),
+#     ensemble_methods.SMeanWithClassifier(
+#         em_feature_selectors,
+#         classifiers,
+#         min_mean_max=[9, 3, 1]
+#     ),
+# ]
 
 # exp = EnsembleFMeasureExperiment(
 #     classifiers,
@@ -82,31 +84,28 @@ e_methods = [
 
 robustnessf_exp = EnsembleFMeasureExperiment(
     classifiers,
-    e_methods,
-    feature_selectors=feature_selectors
+    feature_selectors + e_methods,
 )
 
 
-accuracy_exp = EnsembleMethodExperiment(
-    e_methods,
+accuracy_exp = DataSetExperiment(
     AccuracyBenchmark(classifiers, percentage_of_features=.01),
-    feature_selectors
+    feature_selectors + e_methods
 )
 
 
 def do_complete_analysis(data_set, append_results=False):
-    print(data_set)
+    print(data_set.upper())
     measures = [
         robustness_measure.Spearman(),
         robustness_measure.JaccardIndex(percentage=0.01),
         robustness_measure.JaccardIndex(percentage=0.05),
-        goodness_measure.Precision(data_set),
-        goodness_measure.XPrecision(data_set)
+        # goodness_measure.Precision(data_set),
+        # goodness_measure.XPrecision(data_set)
     ]
-    robustness_exp = EnsembleMethodExperiment(
-        e_methods,
+    robustness_exp = DataSetExperiment(
         MeasureBenchmark(measures),
-        feature_selectors
+        feature_selectors + e_methods
     )
 
     robustness_exp.run(data_set)
@@ -120,11 +119,26 @@ def do_complete_analysis(data_set, append_results=False):
     robustnessf_exp.save_results(data_set + ".csv", append_results)
     return
 
-do_complete_analysis("artificial", True)
+exp = RawDataSetExperiment(
+    MeasureBenchmark([
+        robustness_measure.Spearman(),
+        robustness_measure.JaccardIndex(percentage=0.01),
+        robustness_measure.JaccardIndex(percentage=0.05),
+    ]),
+    feature_selectors + e_methods
+)
+results = exp.run(["colon"])
+print(results.shape)
+
+# do_complete_analysis("artificial", True)
 # do_complete_analysis("colon")
 # do_complete_analysis("arcene")
 # do_complete_analysis("dexter")
 # do_complete_analysis("gisette")
+# do_complete_analysis("dorothea")
+
+# robustnessf_exp.run(["colon", "arcene", "dexter", "gisette", "dorothea"])
+# robustnessf_exp.print_results()
 
 # jc = robustness_measure.JaccardIndex(0.01)
 #

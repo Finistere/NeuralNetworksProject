@@ -11,31 +11,10 @@ class TestFeatureSelector:
         assert expected_result.tolist() == FeatureSelector.normalize(a).tolist()
 
     def test_rank_weights(self):
-        weights = np.arange(5) / 4
-        expected_results = np.arange(5) + 1
+        weights = np.array([0.5, 0.1, 0.5, 0.6])
+        ranked_weights = FeatureSelector.rank_weights(weights).tolist()
 
-        assert expected_results.tolist() == FeatureSelector.rank_weights(weights).tolist()
-
-    def test_rank_weights(self):
-        weights = np.arange(5) / 4
-        expected_results = np.arange(5) + 1
-
-        assert expected_results.tolist() == FeatureSelector.rank_weights(weights).tolist()
-
-    def test_rank_weights(self):
-        weights = np.array([0.5,0.1,0.5,0.6])
-        assert np.any([3., 1., 2., 4.] == FeatureSelector.rank_weights(weights).tolist(),
-                      [2., 1., 3., 4.] == FeatureSelector.rank_weights(weights).tolist())
-
-
-class TestDummy:
-    features_weight = [0.5, 1.0, 0.5, 0.7, 0.7]
-
-    def test_rank_weights(self):
-        dummy = Dummy()
-        features_rank = dummy.rank_weights(self.features_weight)
-        print(features_rank)
-        assert np.allclose([1, 5, 2, 3, 4], dummy.rank_weights(self.features_weight))
+        assert [3., 1., 2., 4.] == ranked_weights or [2., 1., 3., 4.] == ranked_weights
 
 
 class TestSymmetricalUncertainty:

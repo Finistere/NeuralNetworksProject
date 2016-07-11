@@ -12,15 +12,50 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.feature_selection import RFE
 # Lasso
 from sklearn.linear_model import LassoCV
+from data_sets import DataSets, PreComputedData
+import multiprocessing
+import os
+import errno
 
 
-class FeatureSelector(metaclass=ABCMeta):
+class DataSetFeatureSelector(metaclass=ABCMeta):
+    @staticmethod
+    def check_data_set_and_cv(data_set, cv_generator):
+        if not callable(cv_generator):
+            raise ValueError("cv_generator should be callable")
+        if data_set not in DataSets.data_sets:
+            raise ValueError("No data set found with the name {}".format(data_set))
+
+    @abstractmethod
+    def rank_data_set(self, data_set, cv_generator):
+        self.check_data_set_and_cv(data_set, cv_generator)
+
+    @abstractmethod
+    def weight_data_set(self, data_set, cv_generator):
+        self.check_data_set_and_cv(data_set, cv_generator)
+
+    @staticmethod
+    def normalize(vector):
+        return preprocessing.MinMaxScaler().fit_transform(vector)
+
+    @staticmethod
+    def rank_weights(features_weight):
+        features_rank = scipy.stats.rankdata(features_weight, method='ordinal')
+
+        # shuffle same features
+        for unique_value in np.unique(features_weight):
+            unique_value_args = np.argwhere(features_weight == unique_value).reshape(-1)
+            unique_value_args_shuffled = np.random.permutation(unique_value_args)
+            features_rank[unique_value_args] = features_rank[unique_value_args_shuffled]
+
+        return features_rank
+
+
+class FeatureSelector(DataSetFeatureSelector, metaclass=ABCMeta):
+    max_parallelism = multiprocessing.cpu_count()
+
     def __init__(self):
         self.__name__ = type(self).__name__
-
-    def run_and_set_in_results(self, data, labels, results, result_index, method):
-        np.random.seed()
-        results[result_index] = getattr(self, method)(data, labels)
 
     # Each column is an observation, each row a feature
     def rank(self, data, labels):
@@ -31,20 +66,87 @@ class FeatureSelector(metaclass=ABCMeta):
     def weight(self, data, labels):
         pass
 
-    @staticmethod
-    def normalize(vector):
-        return preprocessing.MinMaxScaler().fit_transform(vector)
+    def generate(self, data, labels, cv, method):
+        features_selection = multiprocessing.Manager().dict()
 
-    @staticmethod
-    def rank_weights(features_weight):
-        features_rank = scipy.stats.rankdata(features_weight, method='ordinal')
-        # shuffle same features
-        unique_values = np.unique(features_weight)
-        for unique_value in unique_values:
-            unique_value_args = np.argwhere(features_weight == unique_value).reshape(-1)
-            unique_value_args_shuffled = np.random.permutation(unique_value_args)
-            features_rank[unique_value_args] = features_rank[unique_value_args_shuffled]
-        return features_rank
+        with multiprocessing.Pool(processes=self.max_parallelism) as pool:
+            for i, (train_index, test_index) in enumerate(cv):
+                pool.apply_async(
+                    self.run_and_set_in_results,
+                    kwds={
+                        'data': data[:, train_index],
+                        'labels': labels[train_index],
+                        'results': features_selection,
+                        'result_index': i,
+                        'method': method
+                    }
+                )
+            pool.close()
+            pool.join()
+
+        return np.array([ranking for i, ranking in features_selection.items()])
+
+    def run_and_set_in_results(self, data, labels, results, result_index, method):
+        np.random.seed()
+        results[result_index] = getattr(self, method)(data, labels)
+
+    def rank_data_set(self, data_set, cv_generator):
+        super().rank_data_set(data_set, cv_generator)
+
+        data, labels = DataSets.load(data_set)
+        cv = cv_generator(labels.shape[0])
+
+        try:
+            return PreComputedData.load(data_set, cv, "rank", self)
+        except FileNotFoundError:
+            weights = self.weight_data_set(data_set, cv_generator)
+
+            ranks = np.array([self.rank_weights(w) for w in weights])
+            self.__save(data_set, cv, "rank", ranks)
+
+            return ranks
+
+    def weight_data_set(self, data_set, cv_generator):
+        super().weight_data_set(data_set, cv_generator)
+
+        data, labels = DataSets.load(data_set)
+        cv = cv_generator(labels.shape[0])
+
+        try:
+            return PreComputedData.load(data_set, cv, "weight", self)
+        except FileNotFoundError:
+
+            print("=> Generating feature {method}s of {data_set} ({cv}) with {feature_selector}".format(
+                method="weight",
+                data_set=data_set,
+                feature_selector=self.__name__,
+                cv=type(cv).__name__
+            ))
+
+            try:
+                cv_indices = PreComputedData.load_cv(data_set, cv)
+            except FileNotFoundError:
+                try:
+                    os.makedirs(PreComputedData.cv_dir(data_set, cv))
+                except OSError as exception:
+                    if exception.errno != errno.EEXIST:
+                        raise
+
+                cv_indices = list(cv)
+                np.save(PreComputedData.cv_file_name(data_set, cv), cv_indices)
+
+            weights = self.generate(data, labels, cv_indices, "weight")
+            self.__save(data_set, cv, "weight", weights)
+
+            return weights
+
+    def __save(self, data_set, cv, method, feature_selection):
+        try:
+            os.makedirs(PreComputedData.dir_name(data_set, cv, method))
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise
+        np.save(PreComputedData.file_name(data_set, cv, method, self), feature_selection)
 
 
 class Dummy(FeatureSelector):
