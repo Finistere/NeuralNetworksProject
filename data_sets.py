@@ -46,19 +46,23 @@ class DataSets:
                 "feat_labels": "/DOROTHEA/DOROTHEA/dorothea_feat.labels",
                 "path": "/DOROTHEA/DOROTHEA/dorothea.data",
                 "method": "sparse_binary_matrix",
-                "args": [100001]
+                "args": [100001],
+                "apply_transform": lambda x: x[:, :150]
             },
             {
                 "path": "/DOROTHEA/DOROTHEA/dorothea.labels",
+                "apply_transform": lambda x: x[:150]
             }
         ),
         "gisette": (
             {
+                "feat_labels": "/GISETTE/GISETTE/gisette_feat.labels",
                 "path": "/GISETTE/GISETTE/gisette_valid.data",
-                "apply_transform": np.transpose,
+                "apply_transform": lambda x: np.transpose(x)[:, :400],
             },
             {
                 "path": "/GISETTE/GISETTE/gisette_valid.labels",
+                "apply_transform": lambda x: x[:400]
             }
         ),
         "artificial": (
