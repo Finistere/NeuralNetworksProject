@@ -1,0 +1,79 @@
+\documentclass[twoside,11pt]{article}
+
+% Any additional packages needed should be included after jmlr2e.
+% Note that jmlr2e.sty includes epsfig, amssymb, natbib and graphicx,
+% and defines many common macros, such as 'proof' and 'example'.
+%
+% It also sets the bibliographystyle to plainnat; for more information on
+% natbib citation styles, see the natbib documentation, a copy of which
+% is archived at http://www.jmlr.org/format/natbib.pdf
+
+\usepackage{jmlr2e}
+
+% Definitions of handy macros can go here
+
+\newcommand{\dataset}{{\cal D}}
+\newcommand{\fracpartial}[2]{\frac{\partial #1}{\partial  #2}}
+
+% Heading arguments are {volume}{year}{pages}{submitted}{published}{author-full-names}
+
+%\jmlrheading{1}{2000}{1-48}{4/00}{10/00}{Marina Meil\u{a} and Michael I. Jordan}
+
+% Short headings should be running head and authors last names
+
+%\ShortHeadings{Ensemble Methods for Robust Feature Selection}{Meil\u{a} and Jordan}
+\firstpageno{1}
+
+\begin{document}
+
+\title{Ensemble Methods for Robust Feature Selection}
+
+\author{\name Marina Meil\u{a} \email mmp@stat.washington.edu \\
+       \addr Department of Statistics\\
+       University of Washington\\
+       Seattle, WA 98195-4322, USA
+       \AND
+       \name Michael I.\ Jordan \email jordan@cs.berkeley.edu \\
+       \addr Division of Computer Science and Department of Statistics\\
+       University of California\\
+       Berkeley, CA 94720-1776, USA}
+
+\editor{Leslie Pack Kaelbling}
+
+\maketitle
+
+\begin{abstract}%   <- trailing '%' for backward compatibility of .sty file
+  Abstract
+\end{abstract}
+
+\begin{keywords}
+  Ensemble Methods, Robust, 
+\end{keywords}
+
+\section{Motivation}
+
+Features selection methods is a key method to work with high dimensional data.
+It is widely used in areas working with high dimensional data like bioinformatics.
+In the past different feature selection methods have been presented.
+Additionally, ensemble methods have been presented by \cite{saeys2008}
+
+% Acknowledgements should go at the end, before appendices and references
+
+%\acks{I want to thank my mum}
+
+% Manual newpage inserted to improve layout of sample file - not
+% needed in general before appendices/bibliography.
+
+\newpage
+
+\appendix
+%\section*{Appendix A.}
+%\label{app:some appendix}
+
+% Note: in this sample, the section number is hard-coded in. Following
+% proper LaTeX conventions, it should properly be coded as a reference:
+
+\vskip 0.2in
+\bibliography{references}
+
+\end{document}
