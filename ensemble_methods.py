@@ -1,34 +1,38 @@
 from benchmarks import Benchmark
-from feature_selector import FeatureSelector
+from feature_selector import DataSetFeatureSelector
 import numpy as np
 import scipy.stats
 from abc import ABCMeta, abstractmethod
 from data_sets import DataSets, PreComputedData
-from feature_selection import FeatureSelection
 from sklearn.cross_validation import KFold
 import multiprocessing
+from sklearn.metrics import f1_score
 
 
-class EnsembleMethod(metaclass=ABCMeta):
+class EnsembleMethod(DataSetFeatureSelector, metaclass=ABCMeta):
     max_parallelism = multiprocessing.cpu_count()
 
-    def __init__(self, feature_selectors, features_type="weight"):
+    def __init__(self, data_set_feature_selectors):
         self.__name__ = type(self).__name__
-        self.features_type = features_type
 
-        if not isinstance(feature_selectors, list):
-            feature_selectors = [feature_selectors]
+        if not isinstance(data_set_feature_selectors, list):
+            data_set_feature_selectors = [data_set_feature_selectors]
 
-        self.feature_selectors = [FeatureSelection(f) for f in feature_selectors]
+        for data_set_feature_selector in data_set_feature_selectors:
+            if not isinstance(data_set_feature_selector, DataSetFeatureSelector):
+                raise ValueError("Only DataSetFeatureSelector can be used")
 
-    def rank(self, data_set, benchmark: Benchmark):
+        self.feature_selectors = data_set_feature_selectors
+
+    def rank_data_set(self, data_set, cv_generator):
+        super().rank_data_set(data_set, cv_generator)
         bench_features_selection = []
 
         _, labels = DataSets.load(data_set)
-        cv = benchmark.cv(labels.shape[0])
+        cv = cv_generator(labels.shape[0])
 
         for f in self.feature_selectors:
-            bench_features_selection.append(f.load(data_set, cv, self.features_type))
+            bench_features_selection.append(f.weight_data_set(data_set, cv_generator))
         bench_features_selection = np.array(bench_features_selection)
 
         data, labels = DataSets.load(data_set)
@@ -53,9 +57,12 @@ class EnsembleMethod(metaclass=ABCMeta):
 
         return np.array([ranking for i, ranking in feature_selection.items()])
 
+    def weight_data_set(self, data_set, cv_generator):
+        return self.normalize(self.rank_data_set(data_set, cv_generator))
+
     def run_and_set_in_results(self, results, result_index, feature_selection, data, labels):
         np.random.seed()
-        results[result_index] = FeatureSelector.rank_weights(self.combine(feature_selection, data, labels))
+        results[result_index] = self.rank_weights(self.combine(feature_selection, data, labels))
 
     @abstractmethod
     def combine(self, feature_selection, data, labels):
@@ -101,7 +108,10 @@ class SMeanWithClassifier(EnsembleMethod):
             for train_index, test_index in cv:
                 for c in self.classifiers:
                     c.fit(data[np.ix_(best_features_indices, train_index)].T, labels[train_index])
-                    accuracy[i] += c.score(data[np.ix_(best_features_indices, test_index)].T, labels[test_index])
+                    accuracy[i] += f1_score(
+                        labels[test_index],
+                        c.predict(data[np.ix_(best_features_indices, test_index)].T)
+                    )
 
         features_selection = (features_selection.T * np.exp(accuracy)).T
 
@@ -110,33 +120,3 @@ class SMeanWithClassifier(EnsembleMethod):
         f_min = np.min(features_selection, axis=0)
         return (np.vstack((f_min, f_mean, f_max)) * self.weights[:, np.newaxis]).mean(axis=0)
 
-
-class Stacking(FeatureSelector):
-    def __init__(self, feature_selectors, combination="mean", p=1):
-        super().__init__()
-        self.feature_selectors = feature_selectors
-        self.combination = combination
-        self.p = p
-        self.__name__ = "Stacking - {} {}".format(self.combination, self.p)
-
-    def rank(self, data, labels):
-        features_rankings = []
-        for feature_selector in self.feature_selectors:
-            features_rankings.append(feature_selector.rank(data, labels))
-        features_rankings = np.array(features_rankings)
-        return self.rank_weights(self.combine(features_rankings))
-
-    def weight(self, data, labels):
-        features_weights = []
-        for feature_selector in self.feature_selectors:
-            features_weights.append(feature_selector.weight(data, labels))
-        features_weights = np.array(features_weights)
-        return self.combine(features_weights)
-
-    def combine(self, features_rankings):
-        if self.combination == "mean":
-            return np.power(features_rankings, self.p).mean(axis=0)
-        if self.combination == "hmean":
-            regularization_parameter = 1e-15
-            return scipy.stats.hmean(np.power(features_rankings + regularization_parameter, self.p), axis=0)
-        raise Exception("Unknown combination")

@@ -20,14 +20,16 @@ class TestRankData:
 class TestGoodnessMeasure:
     goodness_measure = Dummy(2)
 
-    def test_measure(self):
+    def test_measures(self):
         features_ranks = np.array([
             [0, 1, 2, 3, 4],
             [4, 3, 2, 1, 0],
             [3, 4, 1, 2, 0]
         ]).T
-        expected_result = (3 + 4 + 0) / 3
-        assert expected_result == self.goodness_measure.measure(features_ranks)
+
+        expected_result = [3, 4, 0]
+
+        assert expected_result == self.goodness_measure.measures(features_ranks)
 
 
 class TestAccuracy:

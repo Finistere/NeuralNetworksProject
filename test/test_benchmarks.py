@@ -4,10 +4,11 @@ import robustness_measure
 import feature_selector
 from sklearn.dummy import DummyClassifier
 from sklearn.cross_validation import KFold
+from sklearn.metrics import f1_score
 
 
 class TestFeatureRanksGenerator:
-    featureRankGenerator = FeatureSelectionGenerator(feature_selector.Dummy())
+    feature_selector = feature_selector.Dummy()
 
     def test_generate(self):
         data, labels = np.ones((10, 10)), np.arange(10)
@@ -15,7 +16,7 @@ class TestFeatureRanksGenerator:
             np.arange(10),
             np.arange(10),
         ]).tolist()
-        assert expected_results == self.featureRankGenerator.generate(data, labels, KFold(10, n_folds=2), "rank").tolist()
+        assert expected_results == self.feature_selector.generate(data, labels, KFold(10, n_folds=2), "rank").tolist()
 
 
 class TestRobustnessBenchmark:
@@ -33,7 +34,7 @@ class TestClassifierWrapper:
 
     def test_run(self):
         data = np.random.randn(200, 10)
-        labels = np.array([1, 1, 1, 0, 0, 2, 0, 2, 0, 1])
+        labels = np.array([1, 1, 1, -1, -1, -1, -1, -1, -1, 1])
 
         train_index = [range(7)]
         test_index = [7, 8, 9]
@@ -42,7 +43,7 @@ class TestClassifierWrapper:
         result_index = (0, 1)
 
         expected_result = [
-            [0, 1/3],
+            [0, f1_score(labels[test_index], np.ones(3))],
             [0, 0]
         ]
 
@@ -55,7 +56,7 @@ class TestClassifierWrapper:
             result_index
         )
 
-        assert expected_result == results.tolist()
+        assert np.allclose(expected_result, results.tolist())
 
 
 class TestAccuracyBenchmark:
@@ -63,21 +64,13 @@ class TestAccuracyBenchmark:
         feature_selector=feature_selector.Dummy(),
         classifiers=[
             DummyClassifier(strategy='constant', constant=1),
-            DummyClassifier(strategy='constant', constant=2),
+            DummyClassifier(strategy='constant', constant=-1),
         ]
     )
 
     def test_best_percent(self):
         l = np.arange(200)
         assert [199, 198] == AccuracyBenchmark.highest_percent(l, 0.01).tolist()
-
-    def test_classification_accuracy(self):
-        data = np.random.randn(200, 10)
-        labels = np.array([1, 1, 1, 0, 0, 2, 0, 2, 0, 1])
-
-        expected_accuracy = [4 / 10, 2 / 10]
-
-        assert expected_accuracy == self.benchmark.run(data, labels).tolist()
 
 
 
