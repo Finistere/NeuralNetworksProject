@@ -50,13 +50,36 @@
   Ensemble Methods, Robust, 
 \end{keywords}
 
-\section{Motivation}
+\section{Introduction}
 
-Features selection methods is a key method to work with high dimensional data.
-It is widely used in areas working with high dimensional data like bioinformatics.
-In the past different feature selection methods have been presented.
-Additionally, ensemble methods have been presented by \cite{saeys2008}
+Feature selection is a preprocessing step used in machine learning application to find
+a small subset of features in order to build a more accurate, simpler and faster model.
+Moreover it allows domain experts to gain a better understanding of the data, by focusing
+ on the selected subset.However in domains such as biomedical applications, 
+where subsequent analysis are costly, not only the model performance but also the robustness
+ of the feature selection method is important. Domain experts would prefer a more stable
+ algorithm to have more confidence in the selected features. One approach for more robust
+ results are ensemble methods.
 
+In ensemble learning multiple algorithms are combined to obtain better performance or stability.
+We build on the work of \cite{saeys2008} who applied ensemble learning by using
+the same feature selector on different subsets. In this work we investigate the effect of ensemble methods
+further by using multiple feature selection methods. In order to find a good trade-off between robustness
+and model performance, multiple feature selection methods were combined in different ways.
+
+\section{Method}
+A entropy based measurement. It measures the influence of the class on a feature entropy-wise and normalizes it
+
+We first calculate the weights if avaible by the features selector otherwise the ranks.
+For feature selector, which do not omit normalized weights between a0 and 1, we normalize
+the weights to the range $[0,1]$. We also normalize the ranks of the features selectors returning
+ranks to the range $[0,1]$. Now that we combine the weights after one of the following rules: \ldots
+
+\section{Weaknesses}
+- Do SVM\_RFE with exponential rising
+- SU achieved high values in the paper, in our results SU weighted a lot of features the 
+same; therefore for robustness same weights have to be shuffled to not accidental increase
+robustness by order of features
 % Acknowledgements should go at the end, before appendices and references
 
 %\acks{I want to thank my mum}
