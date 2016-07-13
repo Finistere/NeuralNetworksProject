@@ -9,6 +9,7 @@
 % is archived at http://www.jmlr.org/format/natbib.pdf
 
 \usepackage{jmlr2e}
+\usepackage{amsmath}
 
 % Definitions of handy macros can go here
 
@@ -55,31 +56,81 @@
 Feature selection is a preprocessing step used in machine learning application to find
 a small subset of features in order to build a more accurate, simpler and faster model.
 Moreover it allows domain experts to gain a better understanding of the data, by focusing
- on the selected subset.However in domains such as biomedical applications, 
+on the selected subset.However in domains such as biomedical applications, 
 where subsequent analysis are costly, not only the model performance but also the robustness
- of the feature selection method is important. Domain experts would prefer a more stable
- algorithm to have more confidence in the selected features. One approach for more robust
- results are ensemble methods.
+of the feature selection method is important. Domain experts would prefer a more stable
+algorithm to have more confidence in the selected features. One approach for more robust
+results are ensemble methods.
 
 In ensemble learning multiple algorithms are combined to obtain better performance or stability.
 We build on the work of \cite{saeys2008} who applied ensemble learning by using
 the same feature selector on different subsets. In this work we investigate the effect of ensemble methods
-further by using multiple feature selection methods. In order to find a good trade-off between robustness
-and model performance, multiple feature selection methods were combined in different ways.
+further by using multiple feature selection methods. 
+In order to find a good trade-off between robustness and model performance, multiple feature selection methods were
+combined in multiple ways.
 
-\section{Method}
-A entropy based measurement. It measures the influence of the class on a feature entropy-wise and normalizes it
+\section{Feature selection methods}
 
+Symmetrical Uncertainty \citep{press1996numerical} is entropy based measurement. It is the normalized mutual information between the feature
+and the class. The mutual information measures the influence of the knowledge of the class on the feature value
+in terms of entropy and normalizes it. More details about mutual information can be found in \cite{paninski2003estimation}.
+\begin{equation}
+  \label{eq:su}
+  SU(F,C) = 2 \frac{H(F) - H(F|C)}{H(F) + H(C)} \textrm{, where } H(\cdot) \textrm{ is the entropy.}
+\end{equation}
+
+The second feature selection method we used is RELIEF \citep{kira1992feature}. In the beginning the weights are initialize
+with a $0$ weight.
+It then iteratively takes a random sample $x_i$ and compares it to their nearest neighboring sample belonging to their class
+$\textrm{Near-hit}_i$ and the opposite one $\textrm{Near-miss}_i$ in terms of a similarity measurement.
+The weights are set by how well these two similarity measurements distinguish as it can be seen in equation \ref{eq:relief}.
+In the standard case of RELIEF for comparisment the euclidean distance is used for numerical values. This inherits the
+assumption that features which are nearer to each other are also more similar, which should not be correct in each application
+area.
+\begin{equation}
+  \label{eq:relief}
+  W_i = W_i - \|x_i - \textrm{Near-hit}_i\|_2^2 + \|x_i - \textrm{Near-miss}_i\|_2^2
+\end{equation}
+
+The third feature selection method we used was a recursive feature elmination in combination with SVM \citep{guyon2002gene}.
+Recursive feature elimination fits a SVM and ranks the feature according to their importance in the model,
+based on the weight vector of the hyperplane.
+More precisely after obtaining the solution for the primal problem of the SVM in equation \ref{eq:svm_primal},
+the ranking coefficients $c_i$ for the features are then calculated by squaring the weights $c_i = w_i^2$.
+\begin{alignat}{-1}
+     \min_{w,b}  & \quad \frac12\|w\|^2 + C\sum_{i=1}^m \xi_i & & & \label{eq:svm_primal} \\ 
+   \text{s.\,t.} & \quad y^{(i)} (w^Tx^{i} + b) & \quad \geq & \quad 1 -\xi_i &&
+                   \quad \forall \, i = 1, \ldots, m \nonumber \\
+                 & \quad \xi_i                  & \quad \geq & \quad 0 &&
+                   \quad \forall \, i = 1, \ldots, m \nonumber 
+\end{alignat}
+
+The worst ranked features are then discarded and the procedure is repeated until only a subset of features is left.
+In our case we discarded each step $10\%$ of the size of all features of the features being left. This means that
+in each step we discarded the same amount of features. This procedure was repeated until a subset of the size
+of $1\%$ of all features was left.
+
+\section{Ensemble methods}
+%Weighting
 We first calculate the weights if avaible by the features selector otherwise the ranks.
 For feature selector, which do not omit normalized weights between a0 and 1, we normalize
 the weights to the range $[0,1]$. We also normalize the ranks of the features selectors returning
 ranks to the range $[0,1]$. Now that we combine the weights after one of the following rules: \ldots
 
-\section{Weaknesses}
+Ensemble method: The weights of different feature selection methods are first computed and then linearly aggregated to obtain the new weights. Three methods were used:
+The mean is used as the new weight.
+The minimum, maximum and the mean are linearly aggregated.
+The accuracy is estimated for each of the feature selector for multiple classifiers. Then the different feature weights are accordingly weighted to favor the feature selector with the best performance and the previous method is applied.
+
+
+\section{Results}
 - Do SVM\_RFE with exponential rising
 - SU achieved high values in the paper, in our results SU weighted a lot of features the 
 same; therefore for robustness same weights have to be shuffled to not accidental increase
 robustness by order of features
+- The noise features of the NIPS 2003 challenge data sets are highly correlated with the
+real feature; therefore no improvement has been made with feature selection in terms of 
+accuracy
 % Acknowledgements should go at the end, before appendices and references
 
 %\acks{I want to thank my mum}

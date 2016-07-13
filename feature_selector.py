@@ -205,7 +205,8 @@ class SVM_RFE(ClassifierFeatureSelector):
                 C=self.find_best_hyper_parameter_SVC(data, labels)
             ),
             n_features_to_select=round(len(data) * 0.01),
-            step=self.step
+            step=self.step,
+            stepwise_selection=True
         )
         rfe.fit(data.T, labels)
         ordered_ranks = self.reverse_order(rfe.ranking_)
