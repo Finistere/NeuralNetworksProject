@@ -19,6 +19,9 @@ import errno
 
 
 class DataSetFeatureSelector(metaclass=ABCMeta):
+    def __init__(self):
+        self.__name__ = type(self).__name__
+
     @staticmethod
     def check_data_set_and_cv(data_set, cv_generator):
         if not callable(cv_generator):
@@ -53,9 +56,6 @@ class DataSetFeatureSelector(metaclass=ABCMeta):
 
 class FeatureSelector(DataSetFeatureSelector, metaclass=ABCMeta):
     max_parallelism = multiprocessing.cpu_count()
-
-    def __init__(self):
-        self.__name__ = type(self).__name__
 
     # Each column is an observation, each row a feature
     def rank(self, data, labels):

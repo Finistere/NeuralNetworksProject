@@ -58,11 +58,11 @@ class DataSets:
             {
                 "feat_labels": "/GISETTE/GISETTE/gisette_feat.labels",
                 "path": "/GISETTE/GISETTE/gisette_valid.data",
-                "apply_transform": lambda x: np.transpose(x)[:, :400],
+                "apply_transform": lambda x: np.transpose(x)[:, :200],
             },
             {
                 "path": "/GISETTE/GISETTE/gisette_valid.labels",
-                "apply_transform": lambda x: x[:400]
+                "apply_transform": lambda x: x[:200]
             }
         ),
         "artificial": (

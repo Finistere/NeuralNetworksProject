@@ -13,7 +13,7 @@ class EnsembleMethod(DataSetFeatureSelector, metaclass=ABCMeta):
     max_parallelism = multiprocessing.cpu_count()
 
     def __init__(self, data_set_feature_selectors):
-        self.__name__ = type(self).__name__
+        super().__init__()
 
         if not isinstance(data_set_feature_selectors, list):
             data_set_feature_selectors = [data_set_feature_selectors]

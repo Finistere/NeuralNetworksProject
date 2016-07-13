@@ -5,6 +5,7 @@ import numpy as np
 import csv
 from data_sets import DataSets
 import os
+import sys
 import errno
 
 
@@ -154,21 +155,50 @@ class RawDataSetExperiment:
                 raise ValueError("Only DataSetFeatureSelector can be used")
 
         self.feature_selectors = data_set_feature_selectors
+        self.results = None
+        self.data_sets = None
 
     def run(self, data_sets):
-        results = []
+        self.results = []
+        self.data_sets = data_sets
 
         for i, data_set in enumerate(data_sets):
+            print(data_set)
             data, labels = DataSets.load(data_set)
-            results.append([])
+            self.results.append([])
             for feature_selector in self.feature_selectors:
-                results[i].append(self.benchmark.run_raw_result(
+                print(feature_selector.__name__)
+                self.results[i].append(self.benchmark.run_raw_result(
                     data,
                     labels,
                     feature_selector.rank_data_set(data_set, self.benchmark.cv)
                 ))
+        self.results = np.array(self.results)
+        return self.results
 
-        return np.array(results)
+    def save_results(self, filename=None):
+        if filename is None:
+            filename = type(self.benchmark).__name__
+
+        root_dir = DataSets.root_dir + "/results/RAW"
+
+        try:
+            os.makedirs(root_dir)
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise
+
+        def write(dim, data):
+            with open("{}/{}_{}.txt".format(root_dir, filename, dim), "w") as f:
+                for d in data:
+                    f.write(d + "\n")
+
+        np.save("{}/{}.npy".format(root_dir, filename), self.results)
+
+        write(0, self.data_sets)
+        write(1, [f.__name__ for f in self.feature_selectors])
+        write(2, [m.__name__ for m in self.benchmark.get_measures()])
+
 
 
 class EnsembleFMeasureExperiment(Experiment):
@@ -195,10 +225,14 @@ class EnsembleFMeasureExperiment(Experiment):
             beta=self.beta,
         )
 
+        len_fs = len(self.feature_selectors)
+        size = len(data_sets) * len_fs
+
         for i, data_set in enumerate(data_sets):
             data, labels = DataSets.load(data_set)
 
             for j, feature_selector in enumerate(self.feature_selectors):
+                sys.stdout.write("\rProgress: {:.2%}".format((i * len_fs + j)/size))
                 self.results[i, j] = benchmark.run(
                     data,
                     labels,
