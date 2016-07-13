@@ -69,9 +69,22 @@ class EnsembleMethod(DataSetFeatureSelector, metaclass=ABCMeta):
         pass
 
 
+class Influence(EnsembleMethod):
+    def combine(self, feature_selection, data, labels):
+        feature_selection = np.exp(feature_selection)
+        return (feature_selection.T / feature_selection.sum(axis=1)).T.mean(axis=0)
+
+
+class InfluenceStd(EnsembleMethod):
+    def combine(self, feature_selection, data, labels):
+        feature_selection = np.exp(feature_selection)
+        influence = (feature_selection.T / feature_selection.sum(axis=1)).T
+        return influence.mean(axis=0) / (1 + influence.std(axis=0))
+
+
 class Mean(EnsembleMethod):
-    def __init__(self, feature_selectors, power=1, **kwargs):
-        super().__init__(feature_selectors, **kwargs)
+    def __init__(self, feature_selectors, power=1):
+        super().__init__(feature_selectors)
         self.__name__ = "Mean - {}".format(power)
         self.power = power
 
@@ -79,9 +92,20 @@ class Mean(EnsembleMethod):
         return np.power(features_selection, self.power).mean(axis=0)
 
 
+class MeanStd(EnsembleMethod):
+    def __init__(self, feature_selectors, power=1):
+        super().__init__(feature_selectors)
+        self.__name__ = "Mean std - {}".format(power)
+        self.power = power
+
+    def combine(self, features_selection, data, labels):
+        influence = (features_selection.T / features_selection.sum(axis=1)).T
+        return np.power(features_selection, self.power).mean(axis=0) / features_selection.std(axis=0)
+
+
 class SMean(EnsembleMethod):
-    def __init__(self, feature_selectors, min_mean_max=[1, 1, 1], **kwargs):
-        super().__init__(feature_selectors, **kwargs)
+    def __init__(self, feature_selectors, min_mean_max=[1, 1, 1]):
+        super().__init__(feature_selectors)
         self.weights = np.array(min_mean_max)
         self.__name__ = "SMean - {} {} {}".format(*min_mean_max)
 
