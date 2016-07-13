@@ -1,7 +1,9 @@
 from abc import ABCMeta, abstractmethod
-from sklearn import preprocessing
+
 import numpy as np
 import scipy.stats
+
+from sklearn import preprocessing
 # SU
 import skfeature.utility.mutual_information
 # Relief
@@ -9,7 +11,7 @@ import skfeature.function.similarity_based.reliefF
 # SVM_RFE
 from sklearn.svm import SVC
 from sklearn.grid_search import GridSearchCV
-from sklearn.feature_selection import RFE
+from sklearn_rfe import RFE
 # Lasso
 from sklearn.linear_model import LassoCV
 from data_sets import DataSets, PreComputedData

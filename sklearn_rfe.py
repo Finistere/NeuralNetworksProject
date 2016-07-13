@@ -8,16 +8,16 @@
 
 import warnings
 import numpy as np
-from ..utils import check_X_y, safe_sqr
-from ..utils.metaestimators import if_delegate_has_method
-from ..base import BaseEstimator
-from ..base import MetaEstimatorMixin
-from ..base import clone
-from ..base import is_classifier
-from ..cross_validation import check_cv
-from ..cross_validation import _safe_split, _score
-from ..metrics.scorer import check_scoring
-from .base import SelectorMixin
+from sklearn.utils import check_X_y, safe_sqr
+from sklearn.utils.metaestimators import if_delegate_has_method
+from sklearn.base import BaseEstimator
+from sklearn.base import MetaEstimatorMixin
+from sklearn.base import clone
+from sklearn.base import is_classifier
+from sklearn.cross_validation import check_cv
+from sklearn.cross_validation import _safe_split, _score
+from sklearn.metrics.scorer import check_scoring
+from sklearn.feature_selection.base import SelectorMixin
 
 
 class RFE(BaseEstimator, MetaEstimatorMixin, SelectorMixin):
