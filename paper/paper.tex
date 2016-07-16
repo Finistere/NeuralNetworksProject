@@ -99,7 +99,7 @@ More precisely after obtaining the solution for the primal problem of the SVM in
 the ranking coefficients $c_i$ for the features are then calculated by squaring the weights $c_i = w_i^2$.
 \begin{alignat}{-1}
      \min_{w,b}  & \quad \frac12\|w\|^2 + C\sum_{i=1}^m \xi_i & & & \label{eq:svm_primal} \\ 
-   \text{s.\,t.} & \quad y^{(i)} (w^Tx^{i} + b) & \quad \geq & \quad 1 -\xi_i &&
+   \text{s.\,t.} & \quad y^{(i)} (w^Tx^{(i)} + b) & \quad \geq & \quad 1 -\xi_i &&
                    \quad \forall \, i = 1, \ldots, m \nonumber \\
                  & \quad \xi_i                  & \quad \geq & \quad 0 &&
                    \quad \forall \, i = 1, \ldots, m \nonumber 
@@ -109,6 +109,13 @@ The worst ranked features are then discarded and the procedure is repeated until
 In our case we discarded each step $10\%$ of the size of all features of the features being left. This means that
 in each step we discarded the same amount of features. This procedure was repeated until a subset of the size
 of $1\%$ of all features was left.
+
+Lasso
+
+\begin{equation}
+  \min_w \quad \frac1{2 \, \textrm{\#features}} \, \|y - Xw\|^2_2 + \alpha \, \|w\|_1
+\end{equation}
+
 
 \section{Ensemble methods}
 %Weighting
@@ -141,8 +148,9 @@ accuracy
 \newpage
 
 \appendix
-%\section*{Appendix A.}
-%\label{app:some appendix}
+\section*{Appendix A.}
+For the feature selection methods SU and RELIEF e used the scikit-feature library from \cite{Li-etal16}.
+\label{app:some appendix}
 
 % Note: in this sample, the section number is hard-coded in. Following
 % proper LaTeX conventions, it should properly be coded as a reference:
