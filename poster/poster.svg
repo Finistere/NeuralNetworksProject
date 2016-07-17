@@ -34,8 +34,8 @@
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="0.20030865"
-     inkscape:cx="1858.5607"
-     inkscape:cy="1163.0846"
+     inkscape:cx="3516.8719"
+     inkscape:cy="2495.5607"
      inkscape:document-units="px"
      inkscape:current-layer="layer2"
      showgrid="false"
@@ -63423,6 +63423,13 @@
      style="display:inline"
      transform="translate(0,-0.00499016)">
     <rect
+       style="fill:none;stroke:#396895;stroke-width:9.80074978;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline"
+       id="rect2494-4-3"
+       width="297.24683"
+       height="229.99266"
+       x="3883.8811"
+       y="48.79451" />
+    <rect
        style="fill:#d3e8f4;fill-opacity:1;stroke:none;display:inline"
        id="rect2496-2-3"
        width="1353.8087"
@@ -94397,7 +94404,7 @@
          id="flowPara172284">The ensemble method using the mean is always one of the best, if not the best, in terms of performance. However, while the stability of the selected features was higher than the Lasso and the SVM RFE, it was often considerably lower with RELIEF and SU. On some data sets (e. g. GISETTE) SU was the best trade-off between stability and performance. Moreover weighting the feature selectors according to their performance did not change considerably the result. It was at best as good as the mean, and sometimes even worse.</flowPara></flowRoot>    <rect
        style="fill:#396995;fill-opacity:1;stroke:none;display:inline"
        id="rect2494-4"
-       width="4150.1392"
+       width="3840.6169"
        height="239.85236"
        x="36.532001"
        y="43.833656" />
