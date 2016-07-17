@@ -33,9 +33,9 @@
      objecttolerance="10"
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.28327921"
-     inkscape:cx="2499.2353"
-     inkscape:cy="1672.1528"
+     inkscape:zoom="0.20030865"
+     inkscape:cx="1858.5607"
+     inkscape:cy="1163.0846"
      inkscape:document-units="px"
      inkscape:current-layer="layer2"
      showgrid="false"
@@ -92315,7 +92315,7 @@
        style="font-size:38.68368149px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
        id="flowRoot11060"
        xml:space="preserve"
-       transform="matrix(0.83889308,0,0,0.86431625,2765.4081,1470.3121)"><flowRegion
+       transform="matrix(0.83889308,0,0,0.86431625,2765.4081,1446.3121)"><flowRegion
          id="flowRegion11062"><rect
            style="font-size:38.68368149px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
            y="534.20685"
@@ -92344,7 +92344,7 @@
            style="font-size:72px" /></flowRegion><flowPara
          style="font-size:93.1417923px"
          id="flowPara30315-5-0-9">Weight distributions</flowPara></flowRoot>    <flowRoot
-       transform="matrix(0.67694338,0,0,0.69745856,2802.6897,1501.0748)"
+       transform="matrix(0.67694338,0,0,0.69745856,2802.6897,1477.0748)"
        xml:space="preserve"
        id="flowRoot30303-7-76-8"
        style="font-size:46.57089615px;font-style:normal;font-weight:normal;text-align:start;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Bitstream Vera Sans"><flowRegion
@@ -92604,7 +92604,7 @@
        sodipodi:cy="364.50504"
        sodipodi:rx="10.714286"
        sodipodi:ry="10.714286"
-       d="m -212.85714,364.50504 a 10.714286,10.714286 0 1 1 -21.42857,0 10.714286,10.714286 0 1 1 21.42857,0 z"
+       d="m -212.85714,364.50504 c 0,5.91733 -4.79695,10.71428 -10.71429,10.71428 -5.91733,0 -10.71428,-4.79695 -10.71428,-10.71428 0,-5.91734 4.79695,-10.71429 10.71428,-10.71429 5.91734,0 10.71429,4.79695 10.71429,10.71429 z"
        transform="matrix(0.54352804,0,0,0.55999999,1573.2639,2331.8918)" />
     <flowRoot
        transform="translate(1023.4437,2635.1176)"
@@ -92638,7 +92638,7 @@
        sodipodi:cy="364.50504"
        sodipodi:rx="10.714286"
        sodipodi:ry="10.714286"
-       d="m -212.85714,364.50504 a 10.714286,10.714286 0 1 1 -21.42857,0 10.714286,10.714286 0 1 1 21.42857,0 z"
+       d="m -212.85714,364.50504 c 0,5.91733 -4.79695,10.71428 -10.71429,10.71428 -5.91733,0 -10.71428,-4.79695 -10.71428,-10.71428 0,-5.91734 4.79695,-10.71429 10.71428,-10.71429 5.91734,0 10.71429,4.79695 10.71429,10.71429 z"
        transform="matrix(0.54352804,0,0,0.55999999,1573.2635,2441.6248)" />
     <path
        sodipodi:type="arc"
@@ -92648,7 +92648,7 @@
        sodipodi:cy="364.50504"
        sodipodi:rx="10.714286"
        sodipodi:ry="10.714286"
-       d="m -212.85714,364.50504 a 10.714286,10.714286 0 1 1 -21.42857,0 10.714286,10.714286 0 1 1 21.42857,0 z"
+       d="m -212.85714,364.50504 c 0,5.91733 -4.79695,10.71428 -10.71429,10.71428 -5.91733,0 -10.71428,-4.79695 -10.71428,-10.71428 0,-5.91734 4.79695,-10.71429 10.71428,-10.71429 5.91734,0 10.71429,4.79695 10.71429,10.71429 z"
        transform="matrix(0.54352804,0,0,0.55999999,1573.2635,2607.3507)" />
     <g
        style="display:inline"
