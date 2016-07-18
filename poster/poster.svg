@@ -33,19 +33,19 @@
      objecttolerance="10"
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
-     inkscape:zoom="1"
-     inkscape:cx="2177.1292"
-     inkscape:cy="327.69745"
+     inkscape:zoom="0.31816273"
+     inkscape:cx="2158.451"
+     inkscape:cy="1487.1484"
      inkscape:document-units="px"
      inkscape:current-layer="layer2"
      showgrid="false"
-     inkscape:window-width="654"
-     inkscape:window-height="716"
-     inkscape:window-x="60"
-     inkscape:window-y="24"
+     inkscape:window-width="1882"
+     inkscape:window-height="1062"
+     inkscape:window-x="38"
+     inkscape:window-y="18"
      showguides="false"
      inkscape:guide-bbox="true"
-     inkscape:window-maximized="0"
+     inkscape:window-maximized="1"
      units="in">
     <sodipodi:guide
        id="guide19716"
@@ -66404,7 +66404,7 @@
        id="rect75958"
        style="fill:none;stroke:none" />
     <flowRoot
-       transform="matrix(0.67694338,0,0,0.69745856,-7.5468407,-13.455545)"
+       transform="matrix(0.67694338,0,0,0.69745856,-11.546841,-13.455545)"
        xml:space="preserve"
        id="flowRoot30303"
        style="font-size:72px;font-style:normal;font-weight:normal;text-align:start;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Bitstream Vera Sans"><flowRegion
@@ -66417,7 +66417,7 @@
            style="font-size:72px" /></flowRegion><flowPara
          style="font-size:93.1417923px"
          id="flowPara30315">Motivation</flowPara></flowRoot>    <flowRoot
-       transform="matrix(0.67694338,0,0,0.69745856,1383.4413,-26.048381)"
+       transform="matrix(0.67694338,0,0,0.69745856,1363.4413,-26.048381)"
        xml:space="preserve"
        id="flowRoot30303-7"
        style="font-size:72px;font-style:normal;font-weight:normal;text-align:start;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Bitstream Vera Sans"><flowRegion
@@ -66521,24 +66521,20 @@
            x="461.78738"
            y="-15.456392"
            style="text-align:justify;text-anchor:start" /></flowRegion><flowPara
-         id="flowPara32898-3"
-         style="font-size:43px;text-align:justify;text-anchor:start" /><flowPara
          style="font-size:43px;text-align:justify;text-anchor:start"
-         id="flowPara32910-5" /><flowPara
+         id="flowPara21718"></flowPara><flowPara
          style="font-size:43px;text-align:justify;text-anchor:start"
-         id="flowPara32908-6">Feature selection is a preprocessing step used in machine learning application to find a small subset of features in order to build a more accurate, simpler and faster model</flowPara><flowPara
+         id="flowPara21747"></flowPara><flowPara
          style="font-size:43px;text-align:justify;text-anchor:start"
-         id="flowPara32914-2" /><flowPara
+         id="flowPara21749">Feature selection is a method used in machine learning to find a small subset of features in order to build a more accurate, simpler and faster model. It is often used with high dimensional data.</flowPara><flowPara
          style="font-size:43px;text-align:justify;text-anchor:start"
-         id="flowPara32916-9">However domain experts would prefer a more stable algorithm to have more confidence in the selected features</flowPara><flowPara
+         id="flowPara21751">Interpretation of those features can be costly in some domain (e.g. biomedical application), hence domain experts would prefer more robust feature selection methods to have more confidence in the selected features.</flowPara><flowPara
          style="font-size:43px;text-align:justify;text-anchor:start"
-         id="flowPara32906-1" /><flowPara
-         style="font-size:43px;text-align:justify;text-anchor:start"
-         id="flowPara32902-2">One approach for more robust results are ensemble methods</flowPara></flowRoot>    <flowRoot
+         id="flowPara21753">One approach for more robust results are ensemble methods</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot32892-6-0"
-       style="font-size:8px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Sans;text-anchor:start;text-align:justify"
-       transform="translate(1018.5775,493.44607)"><flowRegion
+       style="font-size:8px;font-style:normal;font-weight:normal;text-align:justify;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Sans"
+       transform="translate(1005.7192,496.58912)"><flowRegion
          id="flowRegion32894-7-2"><rect
            id="rect32896-5-4"
            width="758.1015"
@@ -66546,7 +66542,7 @@
            x="461.78738"
            y="-15.456392"
            style="text-align:justify;text-anchor:start" /></flowRegion><flowPara
-         style="font-size:43px;text-anchor:start;text-align:justify"
+         style="font-size:43px;text-align:justify;text-anchor:start"
          id="flowPara69748">In ensemble learning multiple algorithms are combined to obtain better performance or stability. </flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot69750"
@@ -66572,8 +66568,8 @@
          style="font-size:43px;text-align:justify;text-anchor:start"
          id="flowPara69748-8"><flowSpan
    id="flowSpan64190"
-   style="font-weight:bold;text-align:justify;text-anchor:start;-inkscape-font-specification:Sans Bold">Symmetrical Uncertainty</flowSpan> Measures the normalized mutual information between single features and their class</flowPara></flowRoot>    <flowRoot
-       transform="matrix(0.67694338,0,0,0.69745856,-7.5471087,752.83083)"
+   style="font-weight:bold;text-align:justify;text-anchor:start;-inkscape-font-specification:Sans Bold">Symmetrical Uncertainty</flowSpan> Measures the normalized mutual information between single features (F) and their class (C).</flowPara></flowRoot>    <flowRoot
+       transform="matrix(0.67694338,0,0,0.69745856,-15.547109,752.83083)"
        xml:space="preserve"
        id="flowRoot30303-7-7"
        style="font-size:72px;font-style:normal;font-weight:normal;text-align:start;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Bitstream Vera Sans"><flowRegion
@@ -66820,7 +66816,7 @@
          style="font-size:43px;text-align:justify;text-anchor:start"
          id="flowPara69748-8-4"><flowSpan
    id="flowSpan64188"
-   style="font-weight:bold;text-align:justify;text-anchor:start;-inkscape-font-specification:Sans Bold">RELIEF</flowSpan> Samples are taken randomly and compared in terms of similarity to their nearest neighboring sample</flowPara></flowRoot>    <flowRoot
+   style="font-weight:bold;text-align:justify;text-anchor:start;-inkscape-font-specification:Sans Bold">RELIEF</flowSpan> Samples are taken randomly and compared in terms of similarity to their nearest neighboring sample.</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot32892-6-0-3-0-1"
        style="font-size:8px;font-style:normal;font-weight:normal;text-align:justify;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Sans"
@@ -66835,10 +66831,10 @@
          style="font-size:43px;text-align:justify;text-anchor:start"
          id="flowPara69748-8-4-5"><flowSpan
    id="flowSpan64186"
-   style="font-weight:bold;text-align:justify;text-anchor:start;-inkscape-font-specification:Sans Bold">SVM RFE</flowSpan> Recursive feature elimination fits a SVM and ranks the feature according to their according to their importance in the model</flowPara></flowRoot>    <flowRoot
+   style="font-weight:bold;text-align:justify;text-anchor:start;-inkscape-font-specification:Sans Bold">SVM RFE</flowSpan> Recursive feature elimination fits a support vector machine (SVM) and ranks the feature actcording to their according to their importance in the model.</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot32892-6-0-3-0-1-9"
-       style="font-size:8px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Sans;text-anchor:start;text-align:justify"
+       style="font-size:8px;font-style:normal;font-weight:normal;text-align:justify;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Sans"
        transform="translate(1005.6524,915.3926)"><flowRegion
          id="flowRegion32894-7-2-8-8-1-3"><rect
            id="rect32896-5-4-5-0-3-4"
@@ -66847,14 +66843,14 @@
            x="461.78738"
            y="-15.456392"
            style="text-align:justify;text-anchor:start" /></flowRegion><flowPara
-         style="font-size:43px;text-anchor:start;text-align:justify"
+         style="font-size:43px;text-align:justify;text-anchor:start"
          id="flowPara69748-8-4-5-1"><flowSpan
-   style="font-weight:bold;-inkscape-font-specification:Sans Bold;text-anchor:start;text-align:justify"
-   id="flowSpan99603">Ensemble methods</flowSpan> The weights of different feature selection methods are first computed and then linearly aggregated to obtain the new weights</flowPara><flowPara
+   style="font-weight:bold;text-align:justify;text-anchor:start;-inkscape-font-specification:Sans Bold"
+   id="flowSpan99603">Ensemble methods</flowSpan> The weights of different feature selection methods are first computed and then linearly aggregated to obtain the new weights.</flowPara><flowPara
          id="flowPara106786"
-         style="font-size:43px;text-anchor:start;text-align:justify" /><flowPara
+         style="font-size:43px;text-align:justify;text-anchor:start" /><flowPara
          id="flowPara106788"
-         style="font-size:43px;text-anchor:start;text-align:justify" /></flowRoot>    <flowRoot
+         style="font-size:43px;text-align:justify;text-anchor:start" /></flowRoot>    <flowRoot
        style="fill:black;stroke:none;stroke-opacity:1;stroke-width:1px;stroke-linejoin:miter;stroke-linecap:butt;fill-opacity:1;font-family:Sans;font-style:normal;font-weight:normal;font-size:8px;line-height:125%;letter-spacing:0px;word-spacing:0px"
        id="flowRoot106846"
        xml:space="preserve"><flowRegion
@@ -72690,7 +72686,7 @@
          style="font-size:43px;text-align:justify;text-anchor:start"
          id="flowPara69748-8-4-4"><flowSpan
    id="flowSpan78812"
-   style="font-weight:bold;text-align:justify;text-anchor:start;-inkscape-font-specification:Sans Bold">Lasso RFE</flowSpan> Recursive feature elimination fits a Lasso model and ranks the feature according to their according to their importance in the model</flowPara></flowRoot>    <g
+   style="font-weight:bold;text-align:justify;text-anchor:start;-inkscape-font-specification:Sans Bold">Lasso RFE</flowSpan> Recursive feature elimination fits a Lasso model and ranks the feature according to their according to their importance in the model.</flowPara></flowRoot>    <g
        ns0:preamble=""
        ns0:text="$\\min_w \\quad \\frac1{2 \\, \\textrm{\\#features}} \\, \\|y - Xw\\|^2_2 + \\alpha \\, \\|w\\|_1$"
        word-spacing="normal"
@@ -72859,10 +72855,10 @@
            y="-15.456392"
            style="text-align:justify;text-anchor:start" /></flowRegion><flowPara
          style="font-size:43px;text-align:justify;text-anchor:start"
-         id="flowPara69748-8-4-2">An advantage of a Lasso model is that the weight vector is extremely sparse due to the L1 Norm</flowPara></flowRoot>    <flowRoot
+         id="flowPara69748-8-4-2">An advantage of a Lasso model is that the weight vector is extremely sparse due to the L1 Norm.</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot32892-6-0-5"
-       style="font-size:8px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Sans;text-anchor:start;text-align:justify"
+       style="font-size:8px;font-style:normal;font-weight:normal;text-align:justify;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Sans"
        transform="translate(1006.4037,695.67556)"><flowRegion
          id="flowRegion32894-7-2-87"><rect
            id="rect32896-5-4-9"
@@ -72870,9 +72866,9 @@
            height="179.7226"
            x="461.78738"
            y="-15.456392"
-           style="text-anchor:start;text-align:justify" /></flowRegion><flowPara
-         style="font-size:43px;text-anchor:start;text-align:justify"
-         id="flowPara69748-4">We build on the work of Saeys et al. (2008) by combining multiple feature selection methods with different ensemble methods</flowPara></flowRoot>    <flowRoot
+           style="text-align:justify;text-anchor:start" /></flowRegion><flowPara
+         style="font-size:43px;text-align:justify;text-anchor:start"
+         id="flowPara69748-4">We build on the work of Saeys et al. (2008) by combining multiple feature selection methods with different ensemble methods.</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot97309"
        style="fill:black;stroke:none;stroke-opacity:1;stroke-width:1px;stroke-linejoin:miter;stroke-linecap:butt;fill-opacity:1;font-family:Sans;font-style:normal;font-weight:normal;font-size:8px;line-height:125%;letter-spacing:0px;word-spacing:0px"><flowRegion
@@ -72889,14 +72885,14 @@
        transform="translate(1544.3904,1231.8055)"><flowRegion
          id="flowRegion32894-7-2-8-8-1-3-0-6"><rect
            id="rect32896-5-4-5-0-3-4-8-5"
-           width="741.73022"
-           height="160.3703"
+           width="766.87451"
+           height="157.22725"
            x="461.78738"
            y="-15.456392" /></flowRegion><flowPara
          id="flowPara106786-5-0"
          style="font-size:43px"><flowSpan
    style="font-weight:bold;-inkscape-font-specification:Sans Bold"
-   id="flowSpan109360">Averaging </flowSpan>The mean is used as the new weight</flowPara><flowPara
+   id="flowSpan109360">Averaging </flowSpan>The mean of the weights is used as the new weight.</flowPara><flowPara
          id="flowPara106788-6-8"
          style="font-size:43px" /></flowRoot>    <path
        id="path126-1"
@@ -76032,7 +76028,7 @@
        xml:space="preserve"
        id="flowRoot32892-6-0-3-0-1-9-5-6"
        style="font-size:8px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Sans"
-       transform="translate(1499.5131,1128.318)"><flowRegion
+       transform="translate(1543.5157,1131.461)"><flowRegion
          id="flowRegion32894-7-2-8-8-1-3-0-3"><rect
            id="rect32896-5-4-5-0-3-4-8-7"
            width="770.01447"
@@ -76040,7 +76036,7 @@
            x="461.78738"
            y="-15.456392" /></flowRegion><flowPara
          id="flowPara106788-6-5"
-         style="font-size:43px">We used two methods for this work</flowPara></flowRoot>    <g
+         style="font-size:43px">We used two different methods:</flowPara></flowRoot>    <g
        transform="matrix(1.7193103,0,0,1.7193103,2432.4032,1987.2517)"
        id="axes_1-2">
       <g
@@ -94878,7 +94874,7 @@
       </g>
     </g>
     <flowRoot
-       transform="matrix(0.67694338,0,0,0.69745856,2799.9824,785.01128)"
+       transform="matrix(0.67694338,0,0,0.69745856,2785.9824,785.01128)"
        xml:space="preserve"
        id="flowRoot30303-7-76"
        style="font-size:72px;font-style:normal;font-weight:normal;text-align:start;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Bitstream Vera Sans"><flowRegion
@@ -94910,7 +94906,7 @@
          id="flowPara225535">Heidelberg, 2008.</flowPara><flowPara
          style="font-size:28.18523026px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
          id="flowPara225537">Graphics: Yang, Pengyi, et al. &quot;A review of ensemble methods in bioinformatics.&quot; Current Bioinformatics 5.4 (2010): 296-308.</flowPara></flowRoot>    <flowRoot
-       transform="matrix(0.67694338,0,0,0.69745856,2804.0774,-26.048381)"
+       transform="matrix(0.67694338,0,0,0.69745856,2784.0774,-26.048381)"
        xml:space="preserve"
        id="flowRoot30303-7-76-9"
        style="font-size:72px;font-style:normal;font-weight:normal;text-align:start;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Bitstream Vera Sans"><flowRegion
@@ -95165,7 +95161,7 @@
          d="m 310.91,703.35 0,0 -0.01,0 0,0 -0.01,0 0,0 -0.01,0 -0.01,0 0,0 -0.01,0 0,0 -0.01,0 0,0 -0.01,0 0,0 -0.01,-0.01 0,0 -0.01,0 0,0 -0.01,0 0,-0.01 -0.01,0 0,0 0,-0.01 -0.01,0 0,0 0,0 0,-0.01 0,0 0,0 -0.01,0 0,-0.01 0,0 0,0 0,-0.01 0,0 0,0 0,-0.01 0,0 0,0 0,-0.01 0,0 c 0,-0.04 0.02,-0.06 0.06,-0.1 0.6,-0.55 1.27,-1.49 1.27,-3.29 0,-1.45 -0.45,-2.55 -1.21,-3.23 -0.11,-0.12 -0.12,-0.12 -0.12,-0.16 0,-0.03 0.02,-0.08 0.09,-0.08 0.08,0 0.74,0.45 1.2,1.32 0.31,0.58 0.51,1.33 0.51,2.15 0,0.98 -0.29,2.5 -1.67,3.47 z"
          id="path331305" /></g>    <flowRoot
        transform="translate(1041.1709,2525.3907)"
-       style="font-size:8px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Sans;text-anchor:start;text-align:justify"
+       style="font-size:8px;font-style:normal;font-weight:normal;text-align:justify;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Sans"
        id="flowRoot32892-6-0-3-5-2-4"
        xml:space="preserve"><flowRegion
          id="flowRegion32894-7-2-8-0-25-1"><rect
@@ -95174,9 +95170,9 @@
            height="169.43158"
            width="669.14148"
            id="rect32896-5-4-5-6-6-6"
-           style="text-anchor:start;text-align:justify" /></flowRegion><flowPara
+           style="text-align:justify;text-anchor:start" /></flowRegion><flowPara
          id="flowPara69748-8-5-8-3"
-         style="font-size:43px;text-anchor:start;text-align:justify">Took 10 subsets of the data</flowPara></flowRoot>    <path
+         style="font-size:43px;text-align:justify;text-anchor:start">10 random subsets of data were taken.</flowPara></flowRoot>    <path
        sodipodi:type="arc"
        style="color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
        id="path29154-8-7-09"
@@ -95187,7 +95183,7 @@
        d="m -212.85714,364.50504 c 0,5.91733 -4.79695,10.71428 -10.71429,10.71428 -5.91733,0 -10.71428,-4.79695 -10.71428,-10.71428 0,-5.91734 4.79695,-10.71429 10.71428,-10.71429 5.91734,0 10.71429,4.79695 10.71429,10.71429 z"
        transform="matrix(0.54352804,0,0,0.55999999,1591.2639,2331.8918)" />
     <flowRoot
-       transform="translate(1041.4437,2635.1176)"
+       transform="translate(1041.4437,2657.1176)"
        style="font-size:8px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Sans"
        id="flowRoot32892-6-0-3-5-2-4-5"
        xml:space="preserve"><flowRegion
@@ -95198,20 +95194,20 @@
            width="711.65906"
            id="rect32896-5-4-5-6-6-6-1" /></flowRegion><flowPara
          id="flowPara69748-8-5-8-3-2"
-         style="font-size:43px">Weighted each subset with the feature selection method</flowPara></flowRoot>    <flowRoot
+         style="font-size:43px">Each subset was weighted with the feature selection methods.</flowPara></flowRoot>    <flowRoot
        transform="translate(1044.8241,2800.1329)"
-       style="font-size:8px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Sans;text-anchor:start;text-align:justify"
+       style="font-size:8px;font-style:normal;font-weight:normal;text-align:justify;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Sans"
        id="flowRoot32892-6-0-3-5-2-4-5-6"
        xml:space="preserve"><flowRegion
          id="flowRegion32894-7-2-8-0-25-1-5-4"><rect
            y="-15.456392"
            x="461.78738"
-           height="350.1394"
-           width="1228.3497"
+           height="346.99637"
+           width="1250.3511"
            id="rect32896-5-4-5-6-6-6-1-1"
-           style="text-anchor:start;text-align:justify" /></flowRegion><flowPara
+           style="text-align:justify;text-anchor:start" /></flowRegion><flowPara
          id="flowPara69748-8-5-8-3-2-5"
-         style="font-size:43px;text-anchor:start;text-align:justify">Calculated the similarity between the subsets with Jaccard index for the 1% best features and normalized it</flowPara></flowRoot>    <path
+         style="font-size:43px;text-align:justify;text-anchor:start">The similarity between the subsets was calculated with Jaccard index for the 1% best features.</flowPara></flowRoot>    <path
        sodipodi:type="arc"
        style="color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
        id="path29154-8-7-09-2"
@@ -95219,8 +95215,8 @@
        sodipodi:cy="364.50504"
        sodipodi:rx="10.714286"
        sodipodi:ry="10.714286"
-       d="m -212.85714,364.50504 c 0,5.91733 -4.79695,10.71428 -10.71429,10.71428 -5.91733,0 -10.71428,-4.79695 -10.71428,-10.71428 0,-5.91734 4.79695,-10.71429 10.71428,-10.71429 5.91734,0 10.71429,4.79695 10.71429,10.71429 z"
-       transform="matrix(0.54352804,0,0,0.55999999,1591.2635,2441.6248)" />
+       d="m -212.85714,364.50504 a 10.714286,10.714286 0 1 1 -21.42857,0 10.714286,10.714286 0 1 1 21.42857,0 z"
+       transform="matrix(0.54352804,0,0,0.55999999,1591.2635,2463.6248)" />
     <path
        sodipodi:type="arc"
        style="color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
@@ -96543,8 +96539,8 @@
            height="653.6485"
            x="461.78738"
            y="-15.456392" /></flowRegion><flowPara
-         style="font-size:43px;text-anchor:start;text-align:justify"
-         id="flowPara172284">The ensemble method using the mean is always one of the best, if not the best, in terms of performance. However, while the stability of the selected features was higher than the Lasso and the SVM RFE, it was often considerably lower with RELIEF and SU. On some data sets (e. g. GISETTE) SU was the best trade-off between stability and performance. Moreover weighting the feature selectors according to their performance did not change considerably the result. It was at best as good as the mean, and sometimes even worse.</flowPara></flowRoot>    <rect
+         style="font-size:43px;text-align:justify;text-anchor:start"
+         id="flowPara21755">The averaging ensemble method is always one of the best, if not the best, in terms of performance. However, while the stability of the selected features was higher than the Lasso and the SVM RFE, it was often considerably lower with RELIEF and SU. On some data sets (e. g. GISETTE) SU was the best trade-off between stability and performance. Moreover weighting the feature selectors according to their performance did not change the result considerably. It was at best as good as the mean, and sometimes even worse.</flowPara></flowRoot>    <rect
        style="fill:#396995;fill-opacity:1;stroke:none;display:inline"
        id="rect2494-4"
        width="3840.6169"
@@ -97480,7 +97476,7 @@
          style="font-size:43px;text-align:justify;text-anchor:start"
          id="flowPara44862">acc<flowSpan
    style="text-align:justify;text-anchor:start"
-   id="flowSpan20812-6">uracy is estimated for each of the feature selectors for multiple classifiers. The feature selectors are then weighted according to their performance</flowSpan></flowPara></flowRoot>    <flowRoot
+   id="flowSpan20812-6">uracy is estimated for each of the feature selectors for multiple classifiers. The feature selectors are then weighted according to their performance.</flowSpan></flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot32892-6-0-3-0-1-9-5-5-6"
        style="font-size:8px;font-style:normal;font-weight:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Sans"
@@ -97993,6 +97989,18 @@
          y="350.72891"
          id="use261-5-6-5-9-5" />
     </g>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="1876.9639"
+       y="2536.5376"
+       id="text22627"
+       sodipodi:linespacing="125%"
+       transform="translate(0,0.00499016)"><tspan
+         sodipodi:role="line"
+         id="tspan22629"
+         x="1876.9639"
+         y="2536.5376">t</tspan></text>
   </g>
   <g
      style="display:inline"
