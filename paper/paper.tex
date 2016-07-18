@@ -29,17 +29,18 @@
 
 \title{Ensemble Methods for Robust Feature Selection}
 
-\author{\name Marina Meil\u{a} \email mmp@stat.washington.edu \\
-       \addr Department of Statistics\\
-       University of Washington\\
-       Seattle, WA 98195-4322, USA
-       \AND
-       \name Michael I.\ Jordan \email jordan@cs.berkeley.edu \\
-       \addr Division of Computer Science and Department of Statistics\\
-       University of California\\
-       Berkeley, CA 94720-1776, USA}
+\author{\name Benjamin Rapier \u{a} \email benjamin.rabier@campus.tu-berlin.de \\
+       \addr Neural Information Processing Group\\
+       Technical University Berlin\\
+       10623 Berlin, Germany}
 
-\editor{Leslie Pack Kaelbling}
+       \AND
+       \name Alexander Goscinski \email a.goscinski@mail.tu-berlin.de \\
+       \addr Neural Information Processing Group\\
+       Technical University Berlin\\
+       10623 Berlin, Germany}
+
+\editor{No Editor}
 
 \maketitle
 
@@ -110,7 +111,7 @@ In our case we discarded each step $10\%$ of the size of all features of the fea
 in each step we discarded the same amount of features. This procedure was repeated until a subset of the size
 of $1\%$ of all features was left.
 
-Lasso
+A form of Lasso
 
 \begin{equation}
   \min_w \quad \frac1{2 \, \textrm{\#features}} \, \|y - Xw\|^2_2 + \alpha \, \|w\|_1
