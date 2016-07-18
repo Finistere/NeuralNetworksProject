@@ -33,9 +33,9 @@
      objecttolerance="10"
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.15908137"
-     inkscape:cx="2303.6757"
-     inkscape:cy="1332.7034"
+     inkscape:zoom="0.22497503"
+     inkscape:cx="1881.9531"
+     inkscape:cy="1318.569"
      inkscape:document-units="px"
      inkscape:current-layer="layer2"
      showgrid="false"
@@ -43,7 +43,7 @@
      inkscape:window-height="744"
      inkscape:window-x="57"
      inkscape:window-y="24"
-     showguides="false"
+     showguides="true"
      inkscape:guide-bbox="true"
      inkscape:window-maximized="1"
      units="in">
@@ -73364,6 +73364,13 @@
      style="display:inline"
      transform="translate(0,-0.00499016)">
     <rect
+       style="fill:#becad6;fill-opacity:0.26666667;stroke:none;display:inline"
+       id="rect2389-0"
+       width="1389.7096"
+       height="218.83899"
+       x="1417.177"
+       y="1905.5231" />
+    <rect
        style="fill:none;stroke:#396895;stroke-width:9.80100000000000016;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline;stroke-linejoin:miter"
        id="rect2494-4-3"
        width="297.24683"
@@ -73586,7 +73593,7 @@
        id="rect2389"
        width="1389.7096"
        height="1488.8778"
-       x="1417.1771"
+       x="1419.1771"
        y="320.93845" />
     <rect
        y="1894.8136"
@@ -79658,7 +79665,7 @@
          style="font-size:43px;text-align:justify;text-anchor:start"
          id="flowPara69748-8-4-4"><flowSpan
    id="flowSpan78812"
-   style="font-weight:bold;text-align:justify;text-anchor:start;-inkscape-font-specification:Sans Bold">Lasso RFE</flowSpan> Recursive feature elimination fits a Lasso model and ranks the feature according to their according to their importance in the model.</flowPara></flowRoot>    <flowRoot
+   style="font-weight:bold;text-align:justify;text-anchor:start;-inkscape-font-specification:Sans Bold">Lasso</flowSpan> A penalized version of logistic regression was used. The weight vector is used for weighting the features.</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot32892-6-0-3-0-6"
        style="font-size:8px;font-style:normal;font-weight:normal;text-align:justify;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Sans"
@@ -87597,7 +87604,7 @@
                  width="444.83536"
                  id="rect32896-5-4-5-6-6-6-1-1-38" /></flowRegion><flowPara
                id="flowPara69748-8-5-8-3-2-5-6"
-               style="font-size:32px">Lasso RFE</flowPara></flowRoot>        </g>
+               style="font-size:32px">Lasso</flowPara></flowRoot>        </g>
       </g>
       <g
          id="LineCollection_71">
@@ -88022,14 +88029,7 @@
            y="534.20685"
            style="font-size:72px" /></flowRegion><flowPara
          style="font-size:93.1417923px"
-         id="flowPara30315-5-9">Stability</flowPara></flowRoot>    <rect
-       style="fill:#becad6;fill-opacity:0.26666667;stroke:none;display:inline"
-       id="rect2389-0"
-       width="1389.7096"
-       height="218.83899"
-       x="1417.177"
-       y="1905.5231" />
-    <flowRoot
+         id="flowPara30315-5-9">Stability</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot32892-6-0-1"
        style="font-size:8px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Sans"
@@ -90052,7 +90052,7 @@
        ry="0" />
     <g
        style="stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:100000;display:inline"
-       transform="matrix(0.71290222,0,0,0.71290248,2821.5213,519.35396)"
+       transform="matrix(0.71290222,0,0,0.71290248,3461.3892,519.35407)"
        id="figure_1-79">
       <g
          id="axes_1-6-0-3"
@@ -92130,7 +92130,7 @@
     </g>
     <g
        style="stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:100000;display:inline"
-       transform="matrix(0.69905979,0,0,0.69906017,3489.8955,535.57398)"
+       transform="matrix(0.69905979,0,0,0.69906017,2844.0273,535.57452)"
        id="figure_1-8-7">
       <g
          id="axes_1-5-2"
@@ -94149,7 +94149,7 @@
     </g>
     <g
        style="stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:100000;display:inline"
-       transform="matrix(0.69905544,0,0,0.6990557,3489.7187,685.4073)"
+       transform="matrix(0.69905544,0,0,0.6990557,2843.8505,685.40784)"
        id="figure_1-9-3-3">
       <g
          id="axes_1-1-5-7"
@@ -96234,7 +96234,7 @@
          style="font-size:48px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
          id="flowPara108409-0-7-4">Arcene data set</flowPara></flowRoot>    <g
        style="stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:100000;display:inline"
-       transform="matrix(0.69905348,0,0,0.69905374,3382.3261,817.2769)"
+       transform="matrix(0.69905348,0,0,0.69905374,2736.4579,817.27744)"
        id="figure_1-7-3">
       <g
          id="axes_1-8-3"
@@ -98214,7 +98214,7 @@
     </g>
     <g
        style="stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:100000;display:inline"
-       transform="matrix(0.71920498,0,0,0.71920524,3474.9714,986.7723)"
+       transform="matrix(0.71920498,0,0,0.71920524,2819.1032,986.77283)"
        id="figure_1-2-0-8">
       <g
          id="axes_1-69-9"
@@ -100340,7 +100340,7 @@
     </g>
     <g
        style="stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:100000;display:inline"
-       transform="matrix(0.69905544,0,0,0.6990557,2846.8049,685.4071)"
+       transform="matrix(0.69905544,0,0,0.6990557,3486.6728,685.40721)"
        id="figure_1-1-0-1">
       <g
          id="axes_1-56-9"
@@ -102515,7 +102515,7 @@
     </g>
     <g
        style="stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:100000;display:inline"
-       transform="matrix(0.69905348,0,0,0.69905374,2405.8868,1048.8419)"
+       transform="matrix(0.69905348,0,0,0.69905374,3045.7547,1048.842)"
        id="figure_1-4-0">
       <g
          id="axes_1-2-7-2"
@@ -104495,7 +104495,7 @@
     </g>
     <g
        style="stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:100000;display:inline"
-       transform="matrix(0.6990541,0,0,0.69905436,2856.0278,989.7355)"
+       transform="matrix(0.6990541,0,0,0.69905436,3485.8957,989.73561)"
        id="figure_1-48-1">
       <g
          id="axes_1-0-4"
@@ -106552,7 +106552,7 @@
            id="rect32896-5-4-5-6-6-6-1-1-1-7-9" /></flowRegion><flowPara
          id="flowPara69748-8-5-8-3-2-5-7-1"
          style="font-size:48px">Weight value</flowPara></flowRoot>    <g
-       transform="matrix(0.71920498,0,0,0.71920524,3160.9782,973.3987)"
+       transform="matrix(0.71920498,0,0,0.71920524,3188.9782,973.3987)"
        style="stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:100000;display:inline"
        id="text_13-5-9">
       <!-- Lasso RFE -->
@@ -106650,30 +106650,6 @@
            x="282.37305"
            xlink:href="#BitstreamVeraSans-Roman-20-86-0"
            id="use146179-5"
-           style="stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:100000" />
-        <use
-           height="1052.3622"
-           width="744.09448"
-           y="0"
-           x="314.16016"
-           xlink:href="#BitstreamVeraSans-Roman-52-48-7"
-           id="use146181-4"
-           style="stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:100000" />
-        <use
-           height="1052.3622"
-           width="744.09448"
-           y="0"
-           x="383.64258"
-           xlink:href="#BitstreamVeraSans-Roman-46-2-6"
-           id="use146183-6"
-           style="stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:100000" />
-        <use
-           height="1052.3622"
-           width="744.09448"
-           y="0"
-           x="441.16211"
-           xlink:href="#BitstreamVeraSans-Roman-45-3-7"
-           id="use146185-2"
            style="stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:100000" />
       </g>
     </g>
@@ -107132,7 +107108,18 @@
            style="stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:100000" />
       </g>
     </g>
-  </g>
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot23123"
+       style="fill:black;stroke:none;stroke-opacity:1;stroke-width:1px;stroke-linejoin:miter;stroke-linecap:butt;fill-opacity:1;font-family:Sans;font-style:normal;font-weight:normal;font-size:8px;line-height:125%;letter-spacing:0px;word-spacing:0px"><flowRegion
+         id="flowRegion23125"><rect
+           id="rect23127"
+           width="552.28351"
+           height="98.899864"
+           x="258.91763"
+           y="2549.8735"
+           style="stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:100000" /></flowRegion><flowPara
+         id="flowPara23129"></flowPara></flowRoot>  </g>
   <g
      style="display:inline"
      inkscape:groupmode="layer"
