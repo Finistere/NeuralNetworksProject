@@ -4,7 +4,6 @@ from tabulate import tabulate
 import numpy as np
 import csv
 from data_sets import DataSets
-import sys
 from io_utils import mkdir
 
 
@@ -169,7 +168,7 @@ class RawDataSetExperiment:
             result = []
 
             for feature_selector in self.feature_selectors:
-                sys.stdout.write("\rRAW {} progress: {} [{}]".format(
+                print("RAW {} progress: {} [{}]".format(
                     bc_name,
                     data_set,
                     feature_selector.__name__
@@ -185,11 +184,11 @@ class RawDataSetExperiment:
             self.results.append(result)
             table = Experiment.results_table(self.row_labels, self.col_labels, result.mean(axis=-1).T)
 
-            sys.stdout.write("\rRAW {} : {}\n".format(bc_name, data_set))
+            print("RAW {} : {}".format(bc_name, data_set))
             print(tabulate(table[1:len(table)], table[0], tablefmt='pipe'))
             print()
 
-        sys.stdout.write("\rRAW {} done\n".format(bc_name))
+        print("RAW {} done".format(bc_name))
 
         self.results = np.array(self.results)
 
@@ -244,7 +243,7 @@ class EnsembleFMeasureExperiment(Experiment):
             data, labels = DataSets.load(data_set)
 
             for j, feature_selector in enumerate(self.feature_selectors):
-                sys.stdout.write("\rProgress: {:.2%}".format((i * len_fs + j)/size))
+                print("Progress: {:.2%}".format((i * len_fs + j)/size))
                 self.results[i, j] = benchmark.run(
                     data,
                     labels,
