@@ -5,7 +5,7 @@ import numpy as np
 import csv
 from data_sets import DataSets
 import sys
-from io_util import mkdir
+from io_utils import mkdir
 
 
 class Experiment:
@@ -162,14 +162,18 @@ class RawDataSetExperiment:
         for i, data_set in enumerate(data_sets):
             print(data_set)
             data, labels = DataSets.load(data_set)
-            self.results.append([])
+            result = []
+
             for feature_selector in self.feature_selectors:
                 print(feature_selector.__name__)
-                self.results[i].append(self.benchmark.run_raw_result(
+                result.append(self.benchmark.run_raw_result(
                     data,
                     labels,
                     feature_selector.rank_data_set(data_set, self.benchmark.cv)
                 ))
+
+            self.results.append(result)
+
         self.results = np.array(self.results)
         return self.results
 

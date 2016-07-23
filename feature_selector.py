@@ -10,11 +10,12 @@ import skfeature.utility.mutual_information
 import skfeature.function.similarity_based.reliefF
 # SVM_RFE
 from sklearn_utilities import RFE, SVC_Grid
+import sklearn.feature_selection
 # Lasso
 from sklearn.linear_model import LassoCV
 from data_sets import DataSets, PreComputedData
 import multiprocessing
-from io_util import mkdir
+from io_utils import mkdir
 
 
 class DataSetFeatureSelector(metaclass=ABCMeta):
@@ -174,23 +175,22 @@ class SVM_RFE(FeatureSelector):
         self.step = step
 
     def weight(self, data, labels):
-        rfe = RFE(
+        rfe = sklearn.feature_selection.RFE(
             estimator=SVC_Grid(
                 kernel='linear',
             ),
             n_features_to_select=round(len(data) * 0.01),
-            step=self.step,
-            stepwise_selection=True
+            step=self.step
         )
         rfe.fit(data.T, labels)
+
         ordered_ranks = self.reverse_order(rfe.ranking_)
 
         return self.normalize(ordered_ranks)
 
     @staticmethod
     def reverse_order(ranks):
-        ordered_ranks = -ranks + np.max(ranks) + 1
-        return ordered_ranks
+        return -ranks + np.max(ranks) + 1
 
 
 class LassoFeatureSelector(FeatureSelector):

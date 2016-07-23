@@ -1,4 +1,4 @@
-import io_util
+import io_utils
 import numpy as np
 import pandas as pd
 import shutil
@@ -81,7 +81,7 @@ class DataSets:
 
         artificial_data_dir = DataSets.root_dir + "/ARTIFICIAL/ARTIFICIAL"
 
-        io_util.mkdir(artificial_data_dir)
+        io_utils.mkdir(artificial_data_dir)
 
         data_file_name = artificial_data_dir + "/artificial.data"
         label_file_name = artificial_data_dir + "/artificial.labels"
@@ -107,7 +107,7 @@ class DataSets:
 
     @staticmethod
     def __load_data_set_file(info):
-        data = getattr(io_util, info.get('method', 'regular_matrix'))(
+        data = getattr(io_utils, info.get('method', 'regular_matrix'))(
             DataSets.root_dir + info['path'],
             *info.get('args', []),
             **info.get('kwargs', {})

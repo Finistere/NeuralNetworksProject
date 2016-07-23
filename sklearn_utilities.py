@@ -7,16 +7,11 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.svm import SVC
 
 
-class SVC_Grid:
+class SVC_Grid(SVC):
     """
         SVC from scikit-learn with integrated Grid Search
     """
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-        self.classifier = None
-
-    def fit(self, data, labels):
+    def fit(self, data, labels, sample_weight=None):
         grid_search = GridSearchCV(
             SVC(),
             {
@@ -26,17 +21,9 @@ class SVC_Grid:
             scoring='precision'
         )
         grid_search.fit(data, labels)
-        self.kwargs["C"] = grid_search.best_params_["C"]
+        self.C = grid_search.best_params_["C"]
 
-        self.classifier = SVC(*self.args, **self.kwargs)
-
-        self.classifier.fit(data, labels)
-
-    def predict(self, data):
-        return self.classifier.predict(data)
-
-    def score(self, data, labels):
-        return self.classifier.score(data, labels)
+        super(SVC, self).fit(data, labels, sample_weight)
 
 
 class RFE(sklearn.feature_selection.RFE):
