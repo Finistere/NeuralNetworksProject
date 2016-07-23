@@ -11,6 +11,7 @@ from sklearn.cross_validation import KFold
 from sklearn.metrics import f1_score
 from data_sets import DataSets
 import sys
+from accuracy_measure import ber
 
 default_classifiers = [
     KNeighborsClassifier(3),
@@ -108,7 +109,7 @@ def without_feature_selectors(data_sets, classifiers):
                     data[:, train_index].T,
                     labels[train_index]
                 )
-                results[i, j, k] = f1_score(
+                results[i, j, k] = ber(
                     labels[test_index],
                     classifier.predict(data[:, test_index].T)
                 )
