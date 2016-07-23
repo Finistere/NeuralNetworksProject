@@ -2,3 +2,4 @@
 _test.py
 /__pycache__/
 /.cache/
+/results.txt

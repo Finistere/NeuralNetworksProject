@@ -141,8 +141,10 @@ class RFE(BaseEstimator, MetaEstimatorMixin, SelectorMixin):
             n_features_to_select = self.n_features_to_select
 
         if 0.0 < self.step < 1.0:
-            step = (int(max(1, self.step * n_features)) if not self.stepwise_selection
-                                                        else self.step)
+            if not self.stepwise_selection:
+                step = int(max(1, self.step * n_features))
+            else:
+                step = self.step    
         else:
             if self.stepwise_selection:
                 warnings.warn("The parameter 'stepwise_selection' is true but "

@@ -200,7 +200,6 @@ class RawDataSetExperiment:
         write(2, [m.__name__ for m in self.benchmark.get_measures()])
 
 
-
 class EnsembleFMeasureExperiment(Experiment):
     def __init__(self, classifiers, data_set_feature_selectors, jaccard_percentage=0.01, beta=1):
         if not isinstance(data_set_feature_selectors, list):
