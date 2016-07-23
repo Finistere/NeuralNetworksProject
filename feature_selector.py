@@ -167,16 +167,17 @@ class Relief(FeatureSelector):
 
 
 class SVM_RFE(FeatureSelector):
-    def __init__(self, step=0.1):
+    def __init__(self, step=0.1, percentage_features_to_select=0.01):
         super().__init__()
         self.step = step
+        self.percentage_features_to_select = percentage_features_to_select
 
     def weight(self, data, labels):
         rfe = RFE(
             estimator=SVC_Grid(
                 kernel='linear',
             ),
-            n_features_to_select=round(len(data) * 0.01),
+            n_features_to_select=round(data.shape[0] * self.percentage_features_to_select),
             step=self.step
         )
         rfe.fit(data.T, labels)
