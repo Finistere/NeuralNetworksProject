@@ -11,7 +11,7 @@ import skfeature.function.similarity_based.reliefF
 # SVM_RFE
 from sklearn_utilities import RFE, SVC_Grid
 # Lasso
-from sklearn.linear_model import LassoCV
+from sklearn.linear_model import LogisticRegressionCV
 from data_sets import DataSets, PreComputedData
 import multiprocessing
 from io_utils import mkdir
@@ -192,17 +192,10 @@ class SVM_RFE(FeatureSelector):
 
 
 class LassoFeatureSelector(FeatureSelector):
-    def rank(self, data, labels):
-        lasso = LassoCV(cv=2, normalize=True)
-        lasso.fit(data.T, labels)
-        features_rank = self.rank_weights(np.abs(lasso.coef_))
-        return features_rank
-
     def weight(self, data, labels):
-        lasso = LassoCV(cv=2, normalize=True)
+        lasso = LogisticRegressionCV(penalty='l1', solver='liblinear')
         lasso.fit(data.T, labels)
-        normalized = self.normalize(np.abs(lasso.coef_))
-        return normalized
+        return self.normalize(np.abs(lasso.coef_[0]))
 
 
 class Random(FeatureSelector):

@@ -3,6 +3,7 @@ from benchmarks import MeasureBenchmark, AccuracyBenchmark
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn_utilities import SVC_Grid
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegressionCV
 import robustness_measure
 import goodness_measure
 import numpy as np
@@ -14,7 +15,8 @@ import sys
 default_classifiers = [
     KNeighborsClassifier(3),
     SVC_Grid(kernel="linear"),
-    RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1)
+    RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1),
+    LogisticRegressionCV(penalty='l1', solver='liblinear')
 ]
 
 
@@ -77,11 +79,12 @@ def raw(data_sets, feature_selectors, jaccard_percentage=0.01, classifiers=None)
         feature_selectors
     )
 
+    jcp = int(jaccard_percentage * 1e3)
     robustness_exp.run(data_sets)
-    robustness_exp.save_results("jc{}_robustness".format(jaccard_percentage * 1e3))
+    robustness_exp.save_results("jc{}_robustness".format(jcp))
 
     accuracy_exp.run(data_sets)
-    accuracy_exp.save_results("jc{}_accuracy".format(jaccard_percentage * 1e3))
+    accuracy_exp.save_results("jc{}_accuracy".format(jcp))
 
 
 def without_feature_selectors(data_sets, classifiers):

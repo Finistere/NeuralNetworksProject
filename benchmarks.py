@@ -5,8 +5,9 @@ import multiprocessing
 import ctypes
 from feature_selector import FeatureSelector
 from robustness_measure import Measure, JaccardIndex
-from sklearn.metrics import f1_score
+from sklearn.base import clone as clone_classifier
 from collections import Iterable
+from accuracy_measure import ber
 
 
 class Benchmark(metaclass=ABCMeta):
@@ -88,19 +89,23 @@ class MeasureBenchmark(Benchmark):
 
 
 class ClassifierWrapper:
-    def __init__(self, classifier):
+    def __init__(self, classifier, accuracy_measure):
         self.classifier = classifier
         self.__name__ = type(classifier).__name__
+        self.accuracy_measure = accuracy_measure
 
     def run_and_set_in_results(self, data, labels, train_index, test_index, results, result_index):
         np.random.seed()
-        self.classifier.fit(
+        classifier = clone_classifier(self.classifier)
+
+        classifier.fit(
             data[:, train_index].T,
             labels[train_index]
         )
-        results[result_index] = f1_score(
+
+        results[result_index] = self.accuracy_measure(
             labels[test_index],
-            self.classifier.predict(data[:, test_index].T)
+            classifier.predict(data[:, test_index].T)
         )
 
 
@@ -108,7 +113,9 @@ class AccuracyBenchmark(Benchmark):
     percentage_of_features = 0.01
     n_fold = 10
 
-    def __init__(self, classifiers, feature_selector: FeatureSelector = None, percentage_of_features=None):
+    def __init__(self, classifiers, feature_selector: FeatureSelector = None, percentage_of_features=None,
+                 accuracy_measure=ber
+                 ):
         self.feature_selector = feature_selector
 
         if percentage_of_features is not None:
@@ -117,7 +124,7 @@ class AccuracyBenchmark(Benchmark):
         if not isinstance(classifiers, list):
             classifiers = [classifiers]
 
-        self.classifiers = [ClassifierWrapper(c) for c in classifiers]
+        self.classifiers = [ClassifierWrapper(c, accuracy_measure) for c in classifiers]
 
     def run_raw_result(self, data, labels, features_selection=None):
         if features_selection is None:

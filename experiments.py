@@ -13,31 +13,32 @@ class Experiment:
     row_labels = []
     col_labels = []
 
-    @property
-    def results_table(self):
+    @staticmethod
+    def results_table(rows_label, cols_label, results):
         rows = [
-            ["Measure"] + self.col_labels
+            ["Measure"] + cols_label
         ]
-        for i in range(self.results.shape[0]):
-            row = [self.row_labels[i]]
-            row += map(lambda i: "{:.2%}".format(i), self.results[i, :].tolist())
+        for i in range(results.shape[0]):
+            row = [rows_label[i]]
+            row += map(lambda i: "{:.2%}".format(i), results[i, :].tolist())
             rows.append(row)
 
         return rows
 
     def print_results(self):
-        rows = self.results_table
-        print(tabulate(rows[1:len(rows)], rows[0], tablefmt='pipe'))
+        table = self.results_table(self.row_labels, self.col_labels, self.results)
+        print(tabulate(table[1:len(table)], table[0], tablefmt='pipe'))
         print()
 
     def save_results(self, file_name="output.csv", append=False):
         root_dir = DataSets.root_dir + "/results/" + type(self).__name__
+        table = self.results_table(self.row_labels, self.col_labels, self.results)
 
         mkdir(root_dir)
 
         with open(root_dir + "/" + file_name, 'a' if append else 'w') as f:
             writer = csv.writer(f)
-            writer.writerows(self.results_table)
+            writer.writerows(table)
 
 
 class MeasureExperiment(Experiment):
@@ -155,26 +156,43 @@ class RawDataSetExperiment:
         self.results = None
         self.data_sets = None
 
+        self.row_labels = [m.__name__ for m in self.benchmark.get_measures()]
+        self.col_labels = [f.__name__ for f in self.feature_selectors]
+
     def run(self, data_sets):
         self.results = []
         self.data_sets = data_sets
+        bc_name = type(self.benchmark).__name__
 
         for i, data_set in enumerate(data_sets):
-            print(data_set)
             data, labels = DataSets.load(data_set)
             result = []
 
             for feature_selector in self.feature_selectors:
-                print(feature_selector.__name__)
+                sys.stdout.write("\rRAW {} progress: {} [{}]".format(
+                    bc_name,
+                    data_set,
+                    feature_selector.__name__
+                ))
+
                 result.append(self.benchmark.run_raw_result(
                     data,
                     labels,
                     feature_selector.rank_data_set(data_set, self.benchmark.cv)
                 ))
 
+            result = np.array(result)
             self.results.append(result)
+            table = Experiment.results_table(self.row_labels, self.col_labels, result.mean(axis=-1).T)
+
+            sys.stdout.write("\rRAW {} : {}\n".format(bc_name, data_set))
+            print(tabulate(table[1:len(table)], table[0], tablefmt='pipe'))
+            print()
+
+        sys.stdout.write("\rRAW {} done\n".format(bc_name))
 
         self.results = np.array(self.results)
+
         return self.results
 
     def save_results(self, filename=None):
