@@ -25,7 +25,7 @@ warnings.filterwarnings('ignore')
 #             shares=[0.5, 0.5]
 #         ),
 #         noise_distribution=artificial_data.normal(0, 0.05),
-#         labeling=artificial_data.linear_labels(weights=np.ones(n_significant_features))
+#         labeling=artificial_data.linear_labeling(weights=np.ones(n_significant_features))
 #     )
 # )
 

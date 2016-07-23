@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def linear_labels(weights=None):
+def linear_labeling(weights=None):
     def labeling(samples, weights=weights):
         if weights is None:
             weights = np.random.uniform(-1, 1, samples.shape[0])
@@ -11,11 +11,11 @@ def linear_labels(weights=None):
     return labeling
 
 
-def linear_power_labels():
+def linear_power_labeling():
     def labeling(samples):
         powers = np.full(samples.shape[0], 2)
         samples_power = np.power(samples.T, powers).T
-        return linear_labels()(samples_power)
+        return linear_labeling()(samples_power)
 
     return labeling
 
@@ -23,7 +23,7 @@ def linear_power_labels():
 def generate(n_samples, n_features, n_significant_features, feature_distribution,
              noise_distribution=None,
              insignificant_feature_distribution=None,
-             labeling=linear_labels()
+             labeling=linear_labeling()
              ):
     if n_significant_features <= 0 or n_significant_features > n_samples:
         raise ValueError("significant needs to be positive and inferior to the number of samples")
