@@ -4,9 +4,8 @@ from tabulate import tabulate
 import numpy as np
 import csv
 from data_sets import DataSets
-import os
 import sys
-import errno
+from io_util import mkdir
 
 
 class Experiment:
@@ -34,11 +33,7 @@ class Experiment:
     def save_results(self, file_name="output.csv", append=False):
         root_dir = DataSets.root_dir + "/results/" + type(self).__name__
 
-        try:
-            os.makedirs(root_dir)
-        except OSError as exception:
-            if exception.errno != errno.EEXIST:
-                raise
+        mkdir(root_dir)
 
         with open(root_dir + "/" + file_name, 'a' if append else 'w') as f:
             writer = csv.writer(f)
@@ -144,6 +139,8 @@ class DataSetExperiment(Experiment):
 
 
 class RawDataSetExperiment:
+    root_dir = DataSets.root_dir + "/results/RAW"
+
     def __init__(self, benchmark: Benchmark, data_set_feature_selectors):
         self.benchmark = benchmark
 
@@ -180,24 +177,18 @@ class RawDataSetExperiment:
         if filename is None:
             filename = type(self.benchmark).__name__
 
-        root_dir = DataSets.root_dir + "/results/RAW"
+        mkdir(self.root_dir)
 
-        try:
-            os.makedirs(root_dir)
-        except OSError as exception:
-            if exception.errno != errno.EEXIST:
-                raise
+        np.save("{}/{}.npy".format(self.root_dir, filename), self.results)
 
-        def write(dim, data):
-            with open("{}/{}_{}.txt".format(root_dir, filename, dim), "w") as f:
-                for d in data:
-                    f.write(d + "\n")
+        self.__write_dim_info(filename, 0, self.data_sets)
+        self.__write_dim_info(filename, 1, [f.__name__ for f in self.feature_selectors])
+        self.__write_dim_info(filename, 2, [m.__name__ for m in self.benchmark.get_measures()])
 
-        np.save("{}/{}.npy".format(root_dir, filename), self.results)
-
-        write(0, self.data_sets)
-        write(1, [f.__name__ for f in self.feature_selectors])
-        write(2, [m.__name__ for m in self.benchmark.get_measures()])
+    def __write_dim_info(self, filename, dim, data):
+        with open("{}/{}_{}.txt".format(self.root_dir, filename, dim), "w") as f:
+            for d in data:
+                f.write(d + "\n")
 
 
 class EnsembleFMeasureExperiment(Experiment):

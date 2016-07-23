@@ -1,9 +1,6 @@
-import matrix_io
-from sklearn import preprocessing
+import io_util
 import numpy as np
 import pandas as pd
-import os
-import errno
 import shutil
 
 
@@ -84,11 +81,7 @@ class DataSets:
 
         artificial_data_dir = DataSets.root_dir + "/ARTIFICIAL/ARTIFICIAL"
 
-        try:
-            os.makedirs(artificial_data_dir)
-        except OSError as exception:
-            if exception.errno != errno.EEXIST:
-                raise
+        io_util.mkdir(artificial_data_dir)
 
         data_file_name = artificial_data_dir + "/artificial.data"
         label_file_name = artificial_data_dir + "/artificial.labels"
@@ -114,7 +107,7 @@ class DataSets:
 
     @staticmethod
     def __load_data_set_file(info):
-        data = getattr(matrix_io, info.get('method', 'regular_matrix'))(
+        data = getattr(io_util, info.get('method', 'regular_matrix'))(
             DataSets.root_dir + info['path'],
             *info.get('args', []),
             **info.get('kwargs', {})

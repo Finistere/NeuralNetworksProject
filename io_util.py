@@ -2,6 +2,8 @@ import numpy as np
 import csv
 from scipy.sparse import csr_matrix
 from scipy.io import loadmat
+import os
+import errno
 
 
 def matlab_matrix(path, **kwargs):
@@ -57,3 +59,11 @@ def sparse_binary_matrix(path, column_count, delimiter=' '):
                     indptr[-1] -= 1
 
     return csr_matrix((np.ones(len(indices)), indices, indptr), shape).T.toarray()
+
+
+def mkdir(path):
+    try:
+        os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise

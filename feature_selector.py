@@ -9,15 +9,12 @@ import skfeature.utility.mutual_information
 # Relief
 import skfeature.function.similarity_based.reliefF
 # SVM_RFE
-from sklearn.svm import SVC
-from sklearn.grid_search import GridSearchCV
-from sklearn_rfe import RFE
+from sklearn_utilities import RFE, SVC_Grid
 # Lasso
 from sklearn.linear_model import LassoCV
 from data_sets import DataSets, PreComputedData
 import multiprocessing
-import os
-import errno
+from io_util import mkdir
 
 
 class DataSetFeatureSelector(metaclass=ABCMeta):
@@ -128,11 +125,7 @@ class FeatureSelector(DataSetFeatureSelector, metaclass=ABCMeta):
             try:
                 cv_indices = PreComputedData.load_cv(data_set, cv)
             except FileNotFoundError:
-                try:
-                    os.makedirs(PreComputedData.cv_dir(data_set, cv))
-                except OSError as exception:
-                    if exception.errno != errno.EEXIST:
-                        raise
+                mkdir(PreComputedData.cv_dir(data_set, cv))
 
                 cv_indices = list(cv)
                 np.save(PreComputedData.cv_file_name(data_set, cv), cv_indices)
@@ -143,11 +136,7 @@ class FeatureSelector(DataSetFeatureSelector, metaclass=ABCMeta):
             return weights
 
     def __save(self, data_set, cv, method, feature_selection):
-        try:
-            os.makedirs(PreComputedData.dir_name(data_set, cv, method))
-        except OSError as exception:
-            if exception.errno != errno.EEXIST:
-                raise
+        mkdir(PreComputedData.dir_name(data_set, cv, method))
         np.save(PreComputedData.file_name(data_set, cv, method, self), feature_selection)
 
 
@@ -179,32 +168,15 @@ class Relief(FeatureSelector):
         return self.normalize(features_weight)
 
 
-class ClassifierFeatureSelector(FeatureSelector, metaclass=ABCMeta):
-    # TODO implement iterative grid search using scipy.stats.expon(scale=100) http://scikit-learn.org/stable/modules/grid_search.html
-    @staticmethod
-    def find_best_hyper_parameter(data, classes, classifier, parameter):
-        grid_search = GridSearchCV(
-            classifier,
-            {
-                parameter: [1, 10, 100, 1000]
-            },
-            cv=5,
-            scoring='precision'
-        )
-        grid_search.fit(data.T, classes)
-        return grid_search.best_params_[parameter]
-
-
-class SVM_RFE(ClassifierFeatureSelector):
+class SVM_RFE(FeatureSelector):
     def __init__(self, step=0.1):
         super().__init__()
         self.step = step
 
     def weight(self, data, labels):
         rfe = RFE(
-            estimator=SVC(
+            estimator=SVC_Grid(
                 kernel='linear',
-                C=self.find_best_hyper_parameter_SVC(data, labels)
             ),
             n_features_to_select=round(len(data) * 0.01),
             step=self.step,
@@ -215,16 +187,13 @@ class SVM_RFE(ClassifierFeatureSelector):
 
         return self.normalize(ordered_ranks)
 
-    def find_best_hyper_parameter_SVC(self, data, classes):
-        return self.find_best_hyper_parameter(data, classes, SVC(), "C")
-
     @staticmethod
     def reverse_order(ranks):
         ordered_ranks = -ranks + np.max(ranks) + 1
         return ordered_ranks
 
 
-class LassoFeatureSelector(ClassifierFeatureSelector):
+class LassoFeatureSelector(FeatureSelector):
     def rank(self, data, labels):
         lasso = LassoCV(cv=2, normalize=True)
         lasso.fit(data.T, labels)
@@ -238,7 +207,7 @@ class LassoFeatureSelector(ClassifierFeatureSelector):
         return normalized
 
 
-class Random(ClassifierFeatureSelector):
+class Random(FeatureSelector):
     # def rank(self, data, labels):
     #     features_rank = np.arange(1, len(data) + 1)
     #     np.random.shuffle(features_rank)
