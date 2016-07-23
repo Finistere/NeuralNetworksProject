@@ -10,7 +10,6 @@ import skfeature.utility.mutual_information
 import skfeature.function.similarity_based.reliefF
 # SVM_RFE
 from sklearn_utilities import RFE, SVC_Grid
-import sklearn.feature_selection
 # Lasso
 from sklearn.linear_model import LassoCV
 from data_sets import DataSets, PreComputedData
@@ -142,8 +141,6 @@ class FeatureSelector(DataSetFeatureSelector, metaclass=ABCMeta):
 
 
 class Dummy(FeatureSelector):
-    __name__ = "Dummy"
-
     def rank(self, data, labels):
         return np.arange(data.shape[0])
 
@@ -175,7 +172,7 @@ class SVM_RFE(FeatureSelector):
         self.step = step
 
     def weight(self, data, labels):
-        rfe = sklearn.feature_selection.RFE(
+        rfe = RFE(
             estimator=SVC_Grid(
                 kernel='linear',
             ),
@@ -208,11 +205,6 @@ class LassoFeatureSelector(FeatureSelector):
 
 
 class Random(FeatureSelector):
-    # def rank(self, data, labels):
-    #     features_rank = np.arange(1, len(data) + 1)
-    #     np.random.shuffle(features_rank)
-    #     return features_rank
-
     def weight(self, data, labels):
         weights = np.random.uniform(0, 1, len(data))
         return weights
