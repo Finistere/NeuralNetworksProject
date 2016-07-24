@@ -10,6 +10,7 @@
 
 \usepackage{jmlr2e}
 \usepackage{amsmath}
+\usepackage{enumitem}
 
 % Definitions of handy macros can go here
 
@@ -53,21 +54,9 @@
 
 \section{Introduction}
 
-Feature selection is a preprocessing step used in machine learning application to find
-a small subset of features in order to build a more accurate, simpler and faster model.
-Moreover it allows domain experts to gain a better understanding of the data, by focusing
-on the selected subset.However in domains such as biomedical applications, 
-where subsequent analysis are costly, not only the model performance but also the robustness
-of the feature selection method is important. Domain experts would prefer a more stable
-algorithm to have more confidence in the selected features. One approach for more robust
-results are ensemble methods.
+Feature selection is a preprocessing step used in machine learning application to find a small subset of features in order to build a more accurate, simpler and faster model. Moreover it allows domain experts to gain a better understanding of the data, by focusing on the selected subset. However, in domains such as biomedical applications subsequent analysis are costly. Therefore not only the model performance but also the robustness of the feature selection method is important. Domain experts would prefer a more stable algorithm to have more confidence in the selected features. One approach for more robust results are ensemble methods.
 
-In ensemble learning multiple algorithms are combined to obtain better performance or stability.
-We build on the work of \cite{saeys2008} who applied ensemble learning by using
-the same feature selector on different subsets. In this work we investigate the effect of ensemble methods
-further by using multiple feature selection methods. 
-In order to find a good trade-off between robustness and model performance, multiple feature selection methods were
-combined in multiple ways.
+Used in Machine Learning and Statistics, ensemble methods combine multiple algorithms in order to obtain better performance. We build on the work of \cite{saeys2008} who applied ensemble learning by using the same feature selector on different subsets. In this work we investigate the effect of ensemble methods further by combining different feature selection methods. 
 
 \section{Feature selection methods}
 
@@ -118,19 +107,61 @@ A form of Lasso
 
 
 \section{Ensemble methods}
-%Weighting
-We first calculate the weights if avaible by the features selector otherwise the ranks.
-For feature selector, which do not omit normalized weights between a0 and 1, we normalize
-the weights to the range $[0,1]$. We also normalize the ranks of the features selectors returning
-ranks to the range $[0,1]$. Now that we combine the weights after one of the following rules: \ldots
 
-Ensemble method: The weights of different feature selection methods are first computed and then linearly aggregated to obtain the new weights. Three methods were used:
-The mean is used as the new weight.
-The minimum, maximum and the mean are linearly aggregated.
-The accuracy is estimated for each of the feature selector for multiple classifiers. Then the different feature weights are accordingly weighted to favor the feature selector with the best performance and the previous method is applied.
+Different feature selection methods are combined by aggregating the weight they give for each feature regarding importance. Since different methods do not always have the same weight range, they are normalized to the range $[0,1]$. Moreover for the methods which can only rank data, such as methods based on RFE, their ranking are considered as weights, and so subsequently normalized the same way. 
+
+Those normalized weights are combined using different techniques. The methods used in this paper can be grouped in three distinct categories: 
+
+\begin{description}[align=left]
+\item [Linear aggregation :] The average of the weights was taken as the new weight.
+\item [Non-linear aggregation :] Two methods were used, first averaging powers of the weights and secondly aggregating linearly the minimum, maximum and the average of the weights.
+\item [Performance related aggregation :] For each feature selector the best 1\% of the features were selected and used to measure the classification performance for multiple classifiers. The feature selection methods result were weighted accordingly to their accuracy.
+\end{description}
+
+\section{Evaluation}
+
+While the purpose of this paper is to find a robust feature selection method, it is also necessary to evaluate the classification performance as domain export have no interest in badly performing model. Hence those two aspects are always considered in combination
+
+\subsection{Data Sets}
+Datasets are taken from the NIPS 2003 challenge \cite{NIPS}. However, due to computation power constraints not the whole dataset is always used. Additionally the colon data set \cite{alon1999broad} is used. Finally artificial data is also generated, since it is possible to control which features are meaningful. 
+
+\begin{center}
+    \begin{tabular}{| r | c | c | c | c | c |}
+    \hline
+    Name & \# Samples & \# Features & \# Class 1 & \# Class 2 & Ref\\ \hline
+    Arcene & 200 & 10 000 & 112 & 88 & \cite{NIPS} \\
+    Dexter & 600 & 20 000 & 300 & 300 & \cite{NIPS} \\
+    Gisette & 200 & 5000 & 92 & 108 & \cite{NIPS} \\
+    Colon & 62 & 2000 & 40 & 22 &  \cite{alon1999broad} \\
+    Artificial & 300 & 10 000 & 150 & 150 & \\
+    \hline
+    \end{tabular}
+\end{center}
+
+The features of the artificial dataset are generated with two distributions, depending on whether they are used in the labeling process or not.
+
+\begin{align}
+\text{significant} \quad & f \sim N(0, \Sigma) \quad \text{with} \quad \Sigma_{ij} \sim U(-1,1) \\
+\text{unsignificant} \quad & f \sim 0.5 * \left[ N(0, 1) + U(-1,1) \right]
+\end{align}
+
+To generate balanced binary labels, the significant features are first summed, then the median of the sums is subtracted, finally the sign is taken. 
 
 
-\section{Results}
+
+
+
+\subsection{Experiments}
+
+The robustness is evaluated with a ShuffleSplit of 10 folds with 90\% of the data, as the number of samples is already limited. After weighting the features the best ones are taken (from 0.1\% to 1\%) and those subsets are compared with the Jaccard Index. For two subsets of features $F_i$ and $F_j$ it is defined as:
+
+\begin{equation}
+J(F_i, F_j) = \frac{| F_i \cap F_j |}{| F_i \cup F_j |}
+\end{equation}
+
+The classification performance is estimated with a cross validation of 10 folds with multiple classifiers, trained and tested on the subset of features. 4 different classifiers are used: Lasso, linear SVM, k-nearest neighbor, Random Forest.
+
+\subsection{Results}
 - Do SVM\_RFE with exponential rising
 - SU achieved high values in the paper, in our results SU weighted a lot of features the 
 same; therefore for robustness same weights have to be shuffled to not accidental increase
