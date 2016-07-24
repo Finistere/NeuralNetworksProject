@@ -162,6 +162,7 @@ class SVM_RFE(FeatureSelector):
         super().__init__()
         self.step = step
         self.percentage_features_to_select = percentage_features_to_select
+        self.__name__ = "SVM_RFE_by_{:.1}_until_{:.1}".format(step, percentage_features_to_select)
 
     def weight(self, data, labels):
         rfe = RFE(
