@@ -24,6 +24,19 @@ class Experiment:
 
         return rows
 
+    @staticmethod
+    def raw_results_table(rows_label, cols_label, mean, std):
+        rows = [
+            ["Measure"] + cols_label
+        ]
+        std /= 2
+        for i in range(mean.shape[0]):
+            row = [rows_label[i]]
+            row += map(lambda m, s: "{:.2%} ± {:.2%}".format(m, s), mean[i, :].tolist(), std[i, :].tolist())
+            rows.append(row)
+
+        return rows
+
     def print_results(self):
         table = self.results_table(self.row_labels, self.col_labels, self.results)
         print(tabulate(table[1:len(table)], table[0], tablefmt='pipe'))
@@ -182,7 +195,12 @@ class RawDataSetExperiment:
 
             result = np.array(result)
             self.results.append(result)
-            table = Experiment.results_table(self.row_labels, self.col_labels, result.mean(axis=-1).T)
+            table = Experiment.raw_results_table(
+                self.row_labels,
+                self.col_labels,
+                result.mean(axis=-1).T,
+                result.std(axis=-1).T
+            )
 
             print("\n{}".format(data_set.upper()))
             print(tabulate(table[1:len(table)], table[0], tablefmt='pipe'))
