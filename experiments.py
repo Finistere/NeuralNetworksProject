@@ -168,7 +168,7 @@ class RawDataSetExperiment:
             result = []
 
             for feature_selector in self.feature_selectors:
-                print("RAW {} progress: {} [{}]".format(
+                print("RAW {}: {} [{}]".format(
                     bc_name,
                     data_set,
                     feature_selector.__name__
@@ -184,7 +184,7 @@ class RawDataSetExperiment:
             self.results.append(result)
             table = Experiment.results_table(self.row_labels, self.col_labels, result.mean(axis=-1).T)
 
-            print("RAW {} : {}".format(bc_name, data_set))
+            print("\n{}".format(data_set.upper()))
             print(tabulate(table[1:len(table)], table[0], tablefmt='pipe'))
             print()
 

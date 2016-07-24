@@ -37,7 +37,7 @@ class DataSetFeatureSelector(metaclass=ABCMeta):
         self.check_data_set_and_cv(data_set, cv_generator)
 
     @staticmethod
-    def normalize(vector):
+    def normalize(vector: np.ndarray):
         return preprocessing.MinMaxScaler().fit_transform(vector)
 
     @staticmethod
@@ -92,18 +92,9 @@ class FeatureSelector(DataSetFeatureSelector, metaclass=ABCMeta):
     def rank_data_set(self, data_set, cv_generator):
         super().rank_data_set(data_set, cv_generator)
 
-        data, labels = DataSets.load(data_set)
-        cv = cv_generator(labels.shape[0])
+        weights = self.weight_data_set(data_set, cv_generator)
 
-        try:
-            return PreComputedData.load(data_set, cv, "rank", self)
-        except FileNotFoundError:
-            weights = self.weight_data_set(data_set, cv_generator)
-
-            ranks = np.array([self.rank_weights(w) for w in weights])
-            self.__save(data_set, cv, "rank", ranks)
-
-            return ranks
+        return np.array([self.rank_weights(w) for w in weights])
 
     def weight_data_set(self, data_set, cv_generator):
         super().weight_data_set(data_set, cv_generator)
@@ -156,7 +147,7 @@ class SymmetricalUncertainty(FeatureSelector):
             features_weight.append(
                 skfeature.utility.mutual_information.su_calculation(data[i], labels)
             )
-        return np.array(features_weight)
+        return self.normalize(np.array(features_weight))
 
 
 class Relief(FeatureSelector):

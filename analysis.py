@@ -8,7 +8,6 @@ import robustness_measure
 import goodness_measure
 import numpy as np
 from sklearn.cross_validation import KFold
-from sklearn.metrics import f1_score
 from data_sets import DataSets
 import sys
 from accuracy_measure import ber
