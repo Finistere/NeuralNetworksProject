@@ -131,7 +131,7 @@ class FeatureSelector(DataSetFeatureSelector, metaclass=ABCMeta):
         np.save(PreComputedData.file_name(data_set, cv, method, self), feature_selection)
 
 
-class Dummy(FeatureSelector):
+class DummyFeatureSelector(FeatureSelector):
     def rank(self, data, labels):
         return np.arange(data.shape[0])
 

@@ -8,7 +8,7 @@ from sklearn.metrics import f1_score
 
 
 class TestFeatureRanksGenerator:
-    feature_selector = feature_selector.Dummy()
+    feature_selector = feature_selector.DummyFeatureSelector()
 
     def test_generate(self):
         data, labels = np.ones((10, 10)), np.arange(10)
@@ -21,7 +21,7 @@ class TestFeatureRanksGenerator:
 
 class TestRobustnessBenchmark:
     benchmark = MeasureBenchmark(
-        feature_selector=feature_selector.Dummy(),
+        feature_selector=feature_selector.DummyFeatureSelector(),
         measure=robustness_measure.Dummy()
     )
 
@@ -61,7 +61,7 @@ class TestClassifierWrapper:
 
 class TestAccuracyBenchmark:
     benchmark = AccuracyBenchmark(
-        feature_selector=feature_selector.Dummy(),
+        feature_selector=feature_selector.DummyFeatureSelector(),
         classifiers=[
             DummyClassifier(strategy='constant', constant=1),
             DummyClassifier(strategy='constant', constant=-1),

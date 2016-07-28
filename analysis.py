@@ -6,11 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegressionCV
 import robustness_measure
 import goodness_measure
-import numpy as np
-from sklearn.cross_validation import KFold
-from data_sets import DataSets
-import sys
-from accuracy_measure import ber
+from feature_selector import DummyFeatureSelector
 
 default_classifiers = [
     KNeighborsClassifier(3),
@@ -87,38 +83,17 @@ def raw(data_sets, feature_selectors, jaccard_percentage=0.01, classifiers=None)
     accuracy_exp.save_results("jc{}_accuracy".format(jcp))
 
 
-def without_feature_selectors(data_sets, classifiers):
+def without_feature_selectors(data_sets, classifiers=None):
     if classifiers is None:
         classifiers = default_classifiers
 
     if isinstance(data_sets, str):
         data_sets = [data_sets]
 
-    results = np.zeros((len(data_sets), len(classifiers), 10))
+    accuracy_exp = RawDataSetExperiment(
+        AccuracyBenchmark(classifiers, percentage_of_features=100),
+        DummyFeatureSelector()
+    )
 
-    nc = len(classifiers)
-    n = nc * len(data_sets) * 10
-
-    for i, data_set in enumerate(data_sets):
-        data, labels = DataSets.load(data_set)
-        for j, classifier in enumerate(classifiers):
-            for k, (train_index, test_index) in enumerate(KFold(labels.shape[0], n_folds=10)):
-                sys.stdout.write("\rProgress: {:.2%}".format((i * nc * 10 + j * 10 + k + 1)/n))
-                classifier.fit(
-                    data[:, train_index].T,
-                    labels[train_index]
-                )
-                results[i, j, k] = ber(
-                    labels[test_index],
-                    classifier.predict(data[:, test_index].T)
-                )
-
-    np.save("../results/RAW/all_features", results)
-
-    def write(name, data):
-        with open("../results/RAW/{}.txt".format(name), "w") as f:
-            for d in data:
-                f.write(d + "\n")
-
-    write("all_features_0", data_sets)
-    write("all_features_1", [type(m).__name__ for m in classifiers])
+    accuracy_exp.run(data_sets)
+    accuracy_exp.save_results("all_features")
