@@ -20,10 +20,8 @@ def linear_power_labeling():
     return labeling
 
 
-def generate(n_samples, n_features, n_significant_features, feature_distribution,
-             noise_distribution=None,
-             insignificant_feature_distribution=None,
-             labeling=linear_labeling()
+def generate(n_samples, n_features, n_significant_features, feature_distribution, insignificant_feature_distribution,
+             noise_distribution=None, labeling=linear_labeling()
              ):
     if n_significant_features <= 0 or n_significant_features > n_samples:
         raise ValueError("significant needs to be positive and inferior to the number of samples")
@@ -31,13 +29,10 @@ def generate(n_samples, n_features, n_significant_features, feature_distribution
     if n_significant_features < 1:
         n_significant_features = np.ceil(n_significant_features * n_features)
 
-    if insignificant_feature_distribution is None:
-        samples = feature_distribution((n_features, n_samples))
-    else:
-        samples = np.vstack((
-            feature_distribution((n_significant_features, n_samples)),
-            insignificant_feature_distribution((n_features - n_significant_features, n_samples))
-        ))
+    samples = np.vstack((
+        feature_distribution((n_significant_features, n_samples)),
+        insignificant_feature_distribution((n_features - n_significant_features, n_samples))
+    ))
 
     if noise_distribution:
         samples += noise_distribution((n_features, n_samples))
@@ -64,23 +59,20 @@ def normal(mean, variance):
     return lambda s: np.random.normal(mean, variance, s)
 
 
-def multivariate_normal(mean, cov):
+def multivariate_normal(mean, cov, k=100):
     def distribution(s, mean=mean, cov=cov):
-        if callable(mean):
-            mean = mean(s[0])
+        m_cov = cov((s[0], s[0]))
+        # positive semi-definite matrix
+        m_cov = k * m_cov.T.dot(m_cov) / s[0]
 
-        if callable(cov):
-            cov = cov((s[0], s[0]))
-            # positive semi-definite matrix
-            cov = cov.T.dot(cov)
-
-        return np.random.multivariate_normal(mean, cov, s[1]).T
+        return np.random.multivariate_normal(mean(s[0]), m_cov, s[1]).T
 
     return distribution
 
 
 def multiple_distribution(distributions, shares):
-    def distribution(s, distributions=distributions, shares=np.array(shares)):
+    def distribution(s, distributions=distributions, shares=shares):
+        shares = np.array(list(shares))
         shares /= shares.sum()
         shares = np.array([int(share * s[0]) for share in shares])
         shares[0] += s[0] - shares.sum()
