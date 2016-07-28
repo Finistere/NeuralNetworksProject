@@ -1,4 +1,4 @@
-from experiments import DataSetExperiment, RawDataSetExperiment
+from experiments import DataSetExperiment
 from benchmarks import MeasureBenchmark, AccuracyBenchmark
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn_utilities import SVC_Grid
@@ -16,81 +16,88 @@ default_classifiers = [
 ]
 
 
-def full(data_sets, feature_selectors, jaccard_percentage=0.01, classifiers=None, precision_measures=False):
-    if classifiers is None:
-        classifiers = default_classifiers
-
+def run(data_sets, feature_selectors, jaccard_percentage=0.01, classifiers=None,
+        measures=None, save=True, prefix=""):
     if isinstance(data_sets, str):
         data_sets = [data_sets]
 
-    measures = [
-        robustness_measure.Spearman(),
-        robustness_measure.JaccardIndex(percentage=jaccard_percentage),
-    ]
+    if classifiers is None:
+        classifiers = default_classifiers
+
+    if measures is None:
+        measures = [
+            robustness_measure.JaccardIndex(percentage=jaccard_percentage)
+        ]
+
+    if len(prefix) > 0:
+        prefix += "_"
+
+    robustness_exp = DataSetExperiment(
+        MeasureBenchmark(measures),
+        feature_selectors
+    )
 
     accuracy_exp = DataSetExperiment(
         AccuracyBenchmark(classifiers, percentage_of_features=jaccard_percentage),
         feature_selectors
     )
 
-    for data_set in data_sets:
-        print("Data Set: {}".format(data_set))
+    jcp = int(jaccard_percentage * 1e3)
+    robustness_exp.run(data_sets)
+    if save:
+        robustness_exp.save_results(prefix + "jc{}_robustness".format(jcp))
 
-        if precision_measures:
-            measures += [
-                goodness_measure.Precision(data_set),
-                goodness_measure.XPrecision(data_set)
-            ]
-
-        robustness_exp = DataSetExperiment(
-            MeasureBenchmark(measures),
-            feature_selectors
-        )
-
-        robustness_exp.run(data_set)
-        robustness_exp.print_results()
-        robustness_exp.save_results(data_set + "_rob.csv")
-
-        accuracy_exp.run(data_set)
-        accuracy_exp.print_results()
-        accuracy_exp.save_results(data_set + "_acc.csv")
+    accuracy_exp.run(data_sets)
+    if save:
+        accuracy_exp.save_results(prefix + "jc{}_accuracy".format(jcp))
 
 
-def raw(data_sets, feature_selectors, jaccard_percentage=0.01, classifiers=None):
+def artificial(feature_selectors, jaccard_percentage=0.01, save=True, classifiers=None):
     if classifiers is None:
         classifiers = default_classifiers
 
-    if isinstance(data_sets, str):
-        data_sets = [data_sets]
-
-    robustness_exp = RawDataSetExperiment(
+    robustness_exp = DataSetExperiment(
         MeasureBenchmark([
-            robustness_measure.JaccardIndex(percentage=jaccard_percentage),
+            robustness_measure.JaccardIndex(percentage=jaccard_percentage)
         ]),
         feature_selectors
     )
 
-    accuracy_exp = RawDataSetExperiment(
+    precision_exp = DataSetExperiment(
+        MeasureBenchmark([
+            goodness_measure.Precision("artificial"),
+            goodness_measure.XPrecision("artificial")
+        ]),
+        feature_selectors
+    )
+
+    accuracy_exp = DataSetExperiment(
         AccuracyBenchmark(classifiers, percentage_of_features=jaccard_percentage),
         feature_selectors
     )
 
     jcp = int(jaccard_percentage * 1e3)
-    robustness_exp.run(data_sets)
-    robustness_exp.save_results("jc{}_robustness".format(jcp))
+    robustness_exp.run("artificial")
+    if save:
+        robustness_exp.save_results("artificial_jc{}_robustness".format(jcp))
 
-    accuracy_exp.run(data_sets)
-    accuracy_exp.save_results("jc{}_accuracy".format(jcp))
+    precision_exp.run("artificial")
+    if save:
+        precision_exp.save_results("artificial_jc{}_precision".format(jcp))
+
+    accuracy_exp.run("artificial")
+    if save:
+        accuracy_exp.save_results("artificial_jc{}_accuracy".format(jcp))
 
 
-def without_feature_selectors(data_sets, classifiers=None):
+def accuracy_with_all_features(data_sets, classifiers=None):
     if classifiers is None:
         classifiers = default_classifiers
 
     if isinstance(data_sets, str):
         data_sets = [data_sets]
 
-    accuracy_exp = RawDataSetExperiment(
+    accuracy_exp = DataSetExperiment(
         AccuracyBenchmark(classifiers, percentage_of_features=100),
         DummyFeatureSelector()
     )

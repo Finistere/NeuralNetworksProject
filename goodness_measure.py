@@ -48,7 +48,7 @@ class GoodnessMeasure(Measure, metaclass=ABCMeta):
             goodness.append(self.goodness(
                 RankData(features_ranks[:, i].T, self.n_significant_features)
             ))
-        return goodness
+        return np.array(goodness)
 
     @abstractmethod
     def goodness(self, data: RankData):

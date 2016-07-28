@@ -116,42 +116,7 @@ class AccuracyExperiment(Experiment):
         super().print_results()
 
 
-class DataSetExperiment(Experiment):
-    def __init__(self, benchmark: Benchmark, data_set_feature_selectors):
-        self.benchmark = benchmark
-
-        if not isinstance(data_set_feature_selectors, list):
-            data_set_feature_selectors = [data_set_feature_selectors]
-
-        for data_set_feature_selector in data_set_feature_selectors:
-            if not isinstance(data_set_feature_selector, DataSetFeatureSelector):
-                raise ValueError("Only DataSetFeatureSelector can be used")
-
-        self.feature_selectors = data_set_feature_selectors
-
-        self.results = np.zeros((len(benchmark.get_measures()), len(self.feature_selectors)))
-
-        self.row_labels = [m.__name__ for m in self.benchmark.get_measures()]
-        self.col_labels = [f.__name__ for f in self.feature_selectors]
-
-    def run(self, data_set):
-        data, labels = DataSets.load(data_set)
-
-        for i, feature_selector in enumerate(self.feature_selectors):
-            self.results[:, i] = self.benchmark.run(
-                data,
-                labels,
-                feature_selector.rank_data_set(data_set, self.benchmark.cv)
-            )
-
-        return self.results
-
-    def print_results(self):
-        print("DataSet Experiment: {}".format(type(self.benchmark).__name__))
-        super().print_results()
-
-
-class RawDataSetExperiment:
+class DataSetExperiment:
     root_dir = DataSets.root_dir + "/results/RAW"
 
     def __init__(self, benchmark: Benchmark, data_set_feature_selectors):
@@ -173,15 +138,15 @@ class RawDataSetExperiment:
 
     def run(self, data_sets):
         self.results = []
-        self.data_sets = data_sets
+        self.data_sets = [data_sets] if isinstance(data_sets, str) else data_sets
         bc_name = type(self.benchmark).__name__
 
-        for i, data_set in enumerate(data_sets):
+        for i, data_set in enumerate(self.data_sets):
             data, labels = DataSets.load(data_set)
             result = []
 
             for feature_selector in self.feature_selectors:
-                print("RAW {}: {} [{}]".format(
+                print("{}: {} [{}]".format(
                     bc_name,
                     data_set,
                     feature_selector.__name__
@@ -195,22 +160,25 @@ class RawDataSetExperiment:
 
             result = np.array(result)
             self.results.append(result)
-            table = Experiment.raw_results_table(
-                self.row_labels,
-                self.col_labels,
-                result.mean(axis=-1).T,
-                result.std(axis=-1).T
-            )
 
             print("\n{}".format(data_set.upper()))
-            print(tabulate(table[1:len(table)], table[0], tablefmt='pipe'))
-            print()
+            self._print_result(result)
 
-        print("RAW {} done".format(bc_name))
+        print("{} done".format(bc_name))
 
         self.results = np.array(self.results)
 
         return self.results
+
+    def _print_result(self, result):
+        table = Experiment.raw_results_table(
+            self.row_labels,
+            self.col_labels,
+            result.mean(axis=-1).T,
+            result.std(axis=-1).T
+        )
+        print(tabulate(table[1:len(table)], table[0], tablefmt='pipe'))
+        print()
 
     def save_results(self, filename=None):
         if filename is None:
