@@ -56,36 +56,29 @@
 
 Feature selection is a preprocessing step used in machine learning application to find a small subset of features in order to build a more accurate, simpler and faster model. Moreover it allows domain experts to gain a better understanding of the data, by focusing on the selected subset. However, in domains such as biomedical applications subsequent analysis are costly. Therefore not only the model performance but also the robustness of the feature selection method is important. Domain experts would prefer a more stable algorithm to have more confidence in the selected features. One approach for more robust results are ensemble methods.
 
-Used in Machine Learning and Statistics, ensemble methods combine multiple algorithms in order to obtain better performance. We build on the work of \cite{saeys2008} who applied ensemble learning by using the same feature selector on different subsets. In this work we investigate the effect of ensemble methods further by combining different feature selection methods. 
+Used in Machine Learning and Statistics, ensemble methods combine multiple algorithms in order to obtain better performance. The bagging method, which consists of using the same algorithm on multiple subsets, has already been studied \cite{saeys2008}. The method improved considerably the robustness of the feature selection algorithm and the model performance was not significantly degraded in most cases. The purpose of this paper is to investigate the effect of ensemble methods further by combining different feature selection methods.
 
 \section{Feature selection methods}
 
-Symmetrical Uncertainty \citep{press1996numerical} is entropy based measurement. It is the normalized mutual information between the feature
-and the class. The mutual information measures the influence of the knowledge of the class on the feature value
-in terms of entropy and normalizes it. More details about mutual information can be found in \cite{paninski2003estimation}.
+Symmetrical Uncertainty \citep{press1996numerical} is entropy based measurement. It is the normalized mutual information between the feature and the class. The mutual information measures the influence of the knowledge of the class on the feature value in terms of entropy and normalizes it. More details about mutual information can be found in \cite{paninski2003estimation}.
 \begin{equation}
   \label{eq:su}
   SU(F,C) = 2 \frac{H(F) - H(F|C)}{H(F) + H(C)} \textrm{, where } H(\cdot) \textrm{ is the entropy.}
 \end{equation}
 
-The second feature selection method we used is RELIEF \citep{kira1992feature}. In the beginning the weights are initialize
-with a $0$ weight.
-It then iteratively takes a random sample $x_i$ and compares it to their nearest neighboring sample belonging to their class
-$\textrm{Near-hit}_i$ and the opposite one $\textrm{Near-miss}_i$ in terms of a similarity measurement.
-The weights are set by how well these two similarity measurements distinguish as it can be seen in equation \ref{eq:relief}.
+The second feature selection is RELIEFF \citep{kononenko1997overcoming}. For each sample $x_i$ the k nearest neighboring samples, using the $L_1$ norm, belonging the same class $\{\textrm{Near-hit}_{i, j}\}_{j=1..k}$ and the ones of the opposite class $\{\textrm{Near-miss}_{i, j}\}_{j=1..k}$ are selected. Then the difference is taken to update the weight vector representing how well each feature distinguishes samples of the two classes, as can be seen in equation \ref{eq:relief}. In all the experiments k was set to 5, which, empirically, gives satisfactory results. 
+\\
+?? \\
 In the standard case of RELIEF for comparisment the euclidean distance is used for numerical values. This inherits the
 assumption that features which are nearer to each other are also more similar, which should not be correct in each application
-area.
+area.\\
+??
 \begin{equation}
   \label{eq:relief}
-  W_i = W_i - \|x_i - \textrm{Near-hit}_i\|_2^2 + \|x_i - \textrm{Near-miss}_i\|_2^2
+  W_i = W_i - \sum_{j=1}^{k}|x_i - \textrm{Near-hit}_{i,j}| + \sum_{j=1}^{k} |x_i - \textrm{Near-miss}_{i,j}|
 \end{equation}
 
-The third feature selection method we used was a recursive feature elmination in combination with SVM \citep{guyon2002gene}.
-Recursive feature elimination fits a SVM and ranks the feature according to their importance in the model,
-based on the weight vector of the hyperplane.
-More precisely after obtaining the solution for the primal problem of the SVM in equation \ref{eq:svm_primal},
-the ranking coefficients $c_i$ for the features are then calculated by squaring the weights $c_i = w_i^2$.
+The third feature selection method used is a recursive feature elimination (RFE) with SVM \citep{guyon2002gene}. Recursive feature elimination fits a classifier and ranks the feature according to their importance in the model. In the case of the SVM, it is based on the weight vector of the hyperplane. More precisely after obtaining the solution for the primal problem of the SVM in equation \ref{eq:svm_primal}, the ranking coefficients $c_i$ for the features are then calculated by squaring the weights $c_i = w_i^2$.
 \begin{alignat}{-1}
      \min_{w,b}  & \quad \frac12\|w\|^2 + C\sum_{i=1}^m \xi_i & & & \label{eq:svm_primal} \\ 
    \text{s.\,t.} & \quad y^{(i)} (w^Tx^{(i)} + b) & \quad \geq & \quad 1 -\xi_i &&
@@ -94,12 +87,9 @@ the ranking coefficients $c_i$ for the features are then calculated by squaring 
                    \quad \forall \, i = 1, \ldots, m \nonumber 
 \end{alignat}
 
-The worst ranked features are then discarded and the procedure is repeated until only a subset of features is left.
-In our case we discarded each step $10\%$ of the size of all features of the features being left. This means that
-in each step we discarded the same amount of features. This procedure was repeated until a subset of the size
-of $1\%$ of all features was left.
+The worst ranked features are then discarded and the procedure is repeated until only a subset of features is left. In the experiments, $10\%$ of the size of all the remaining features were discarded at each step. This means that. The procedure was repeated until a subset of the size of $1\%$ of all features was left.
 
-A form of Lasso
+The last feature feature selection method used is a RFE with Lasso.
 
 \begin{equation}
   \min_w \quad \frac1{2 \, \textrm{\#features}} \, \|y - Xw\|^2_2 + \alpha \, \|w\|_1
@@ -108,7 +98,7 @@ A form of Lasso
 
 \section{Ensemble methods}
 
-Different feature selection methods are combined by aggregating the weight they give for each feature regarding importance. Since different methods do not always have the same weight range, they are normalized to the range $[0,1]$. Moreover for the methods which can only rank data, such as methods based on RFE, their ranking are considered as weights, and so subsequently normalized the same way. 
+The different feature selection methods give as output a weight vector representing how well each feature distinguishes samples of the two classes. The ensemble method used aggregates the different weights vectors. Since different methods do not always have the same weight range, they are normalized to the range $[0,1]$. Moreover for the methods which can only rank data, such as methods based on RFE, their ranking are considered as weights, and so subsequently normalized the same way. 
 
 Those normalized weights are combined using different techniques. The methods used in this paper can be grouped in three distinct categories: 
 
@@ -141,9 +131,9 @@ Datasets are taken from the NIPS 2003 challenge \cite{NIPS}. However, due to com
 The features of the artificial dataset are generated with two distributions, depending on whether they are used in the labeling process or not.
 
 \begin{align}
-\text{significant} \quad & f \sim N(0, \Sigma) \quad \text{with} \quad \Sigma_{ij} \sim U(-1,1) \\
-\text{unsignificant} \quad & f \sim 0.5 * \left[ N(0, 1) + U(-1,1) \right]
+f \sim0.5 * \left[ N(0, 1) + N(0, \Sigma) \right]  \quad \text{with} \quad \Sigma_{ij} \sim U(0,1)
 \end{align}
+% \text{unsignificant} \quad & f \sim 0.5 * \left[ N(0, 1) + U(-1,1) \right]
 
 To generate balanced binary labels, the significant features are first summed, then the median of the sums is subtracted, finally the sign is taken. 
 
