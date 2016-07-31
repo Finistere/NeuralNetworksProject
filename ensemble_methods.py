@@ -24,6 +24,11 @@ class EnsembleMethod(DataSetFeatureSelector, metaclass=ABCMeta):
 
         self.feature_selectors = data_set_feature_selectors
 
+        self.__name__ += " ({})".format(self.fs_short_names())
+
+    def fs_short_names(self):
+        return "|".join(str(f) for f in self.feature_selectors)
+
     def rank_data_set(self, data_set, cv_generator):
         super().rank_data_set(data_set, cv_generator)
         bench_features_selection = []
@@ -83,13 +88,8 @@ class InfluenceStd(EnsembleMethod):
 
 
 class Mean(EnsembleMethod):
-    def __init__(self, feature_selectors, power=1):
-        super().__init__(feature_selectors)
-        self.__name__ = "Mean - {}".format(power)
-        self.power = power
-
     def combine(self, features_selection, data, labels):
-        return np.power(features_selection, self.power).mean(axis=0)
+        return features_selection.mean(axis=0)
 
 
 class MeanStd(EnsembleMethod):
@@ -99,7 +99,6 @@ class MeanStd(EnsembleMethod):
         self.power = power
 
     def combine(self, features_selection, data, labels):
-        influence = (features_selection.T / features_selection.sum(axis=1)).T
         return np.power(features_selection, self.power).mean(axis=0) / features_selection.std(axis=0)
 
 
@@ -107,7 +106,7 @@ class SMean(EnsembleMethod):
     def __init__(self, feature_selectors, min_mean_max=[1, 1, 1]):
         super().__init__(feature_selectors)
         self.weights = np.array(min_mean_max)
-        self.__name__ = "SMean - {} {} {}".format(*min_mean_max)
+        self.__name__ = "SMean - {} {} {} ({})".format(*min_mean_max, self.fs_short_names())
 
     def combine(self, features_selection, data, labels):
         f_mean = np.mean(features_selection, axis=0)
@@ -116,11 +115,9 @@ class SMean(EnsembleMethod):
         return (np.vstack((f_min, f_mean, f_max)) * self.weights[:, np.newaxis]).mean(axis=0)
 
 
-class SMeanWithClassifier(EnsembleMethod):
-    def __init__(self, feature_selectors, classifiers, min_mean_max=[1, 1, 1], **kwargs):
-        super().__init__(feature_selectors, **kwargs)
-        self.weights = np.array(min_mean_max)
-        self.__name__ = "SMeanWithClassifier - {} {} {}".format(*min_mean_max)
+class MeanWithClassifier(EnsembleMethod):
+    def __init__(self, feature_selectors, classifiers):
+        super().__init__(feature_selectors)
         self.classifiers = classifiers
 
     def combine(self, features_selection, data, labels):
@@ -139,8 +136,5 @@ class SMeanWithClassifier(EnsembleMethod):
 
         features_selection = (features_selection.T * np.exp(accuracy)).T
 
-        f_mean = np.mean(features_selection, axis=0)
-        f_max = np.max(features_selection, axis=0)
-        f_min = np.min(features_selection, axis=0)
-        return (np.vstack((f_min, f_mean, f_max)) * self.weights[:, np.newaxis]).mean(axis=0)
+        return features_selection.mean(axis=0)
 

@@ -130,6 +130,9 @@ class FeatureSelector(DataSetFeatureSelector, metaclass=ABCMeta):
         mkdir(PreComputedData.dir_name(data_set, cv, method))
         np.save(PreComputedData.file_name(data_set, cv, method, self), feature_selection)
 
+    def __str__(self):
+        return "FS"
+
 
 class DummyFeatureSelector(FeatureSelector):
     def rank(self, data, labels):
@@ -149,12 +152,18 @@ class SymmetricalUncertainty(FeatureSelector):
             )
         return self.normalize(np.array(features_weight))
 
+    def __str__(self):
+        return "SU"
+
 
 class Relief(FeatureSelector):
     def weight(self, data, labels):
         features_weight = skfeature.function.similarity_based.reliefF.reliefF(data.T, labels)
 
         return self.normalize(features_weight)
+
+    def __str__(self):
+        return "RLF"
 
 
 class SVM_RFE(FeatureSelector):
@@ -182,12 +191,18 @@ class SVM_RFE(FeatureSelector):
     def reverse_order(ranks):
         return -ranks + np.max(ranks) + 1
 
+    def __str__(self):
+        return "SVM"
+
 
 class LassoFeatureSelector(FeatureSelector):
     def weight(self, data, labels):
         lasso = LogisticRegressionCV(penalty='l1', solver='liblinear')
         lasso.fit(data.T, labels)
         return self.normalize(np.abs(lasso.coef_[0]))
+
+    def __str__(self):
+        return "LSO"
 
 
 class Random(FeatureSelector):

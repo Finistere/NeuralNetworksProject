@@ -75,7 +75,7 @@ area.\\
 ??
 \begin{equation}
   \label{eq:relief}
-  W_i = W_i - \sum_{j=1}^{k}|x_i - \textrm{Near-hit}_{i,j}| + \sum_{j=1}^{k} |x_i - \textrm{Near-miss}_{i,j}|
+  W_i = W_i - \frac{1}{k}\sum_{j=1}^{k}|x_i - \textrm{Near-hit}_{i,j}| + \frac{1}{k}\sum_{j=1}^{k} |x_i - \textrm{Near-miss}_{i,j}|
 \end{equation}
 
 The third feature selection method used is a recursive feature elimination (RFE) with SVM \citep{guyon2002gene}. Recursive feature elimination fits a classifier and ranks the feature according to their importance in the model. In the case of the SVM, it is based on the weight vector of the hyperplane. More precisely after obtaining the solution for the primal problem of the SVM in equation \ref{eq:svm_primal}, the ranking coefficients $c_i$ for the features are then calculated by squaring the weights $c_i = w_i^2$.
