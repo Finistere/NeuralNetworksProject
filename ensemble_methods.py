@@ -75,8 +75,13 @@ class EnsembleMethod(DataSetFeatureSelector, metaclass=ABCMeta):
 
 
 class Influence(EnsembleMethod):
+    def __init__(self, fs, k=1):
+        super().__init__(fs)
+        self.k = k
+        self.__name__ += " - {}".format(k)
+
     def combine(self, feature_selection, data, labels):
-        feature_selection = np.exp(feature_selection)
+        feature_selection = np.exp(np.arctanh(self.k * (feature_selection - 1)))
         return (feature_selection.T / feature_selection.sum(axis=1)).T.mean(axis=0)
 
 
