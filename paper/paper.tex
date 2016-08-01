@@ -98,7 +98,9 @@ The last feature feature selection method used is a RFE with Lasso.
 
 \section{Ensemble methods}
 
-The different feature selection methods give as output a weight vector representing how well each feature distinguishes samples of the two classes. The ensemble method used aggregates the different weights vectors. Since different methods do not always have the same weight range, they are normalized to the range $[0,1]$. Moreover for the methods which can only rank data, such as methods based on RFE, their ranking are considered as weights, and so subsequently normalized the same way. 
+Ensemble
+
+The different feature selection methods give as output a weight vector representing how well each feature distinguishes samples of the two classes. Those are then be combined by the ensemble method. Since different methods do not always have the same weight range, they are normalized to the range $[0,1]$. Moreover for the methods which can only rank data, such as methods based on RFE, their ranking are considered as weights, and so subsequently normalized the same way. 
 
 Those normalized weights are combined using different techniques. The methods used in this paper can be grouped in three distinct categories: 
 
@@ -108,12 +110,14 @@ Those normalized weights are combined using different techniques. The methods us
 \item [Performance related aggregation :] For each feature selector the best 1\% of the features were selected and used to measure the classification performance for multiple classifiers. The feature selection methods result were weighted accordingly to their accuracy.
 \end{description}
 
+Furthermore, different combinations of feature selectors were used in order to find combinations which work better than others.
+
 \section{Evaluation}
 
-While the purpose of this paper is to find a robust feature selection method, it is also necessary to evaluate the classification performance as domain export have no interest in badly performing model. Hence those two aspects are always considered in combination
+While the purpose of this paper is to find a robust feature selection method, it is also necessary to evaluate the classification performance as domain expert have no interest in badly performing model. Hence those two aspects are always considered in combination.
 
 \subsection{Data Sets}
-Datasets are taken from the NIPS 2003 challenge \cite{NIPS}. However, due to computation power constraints not the whole dataset is always used. Additionally the colon data set \cite{alon1999broad} is used. Finally artificial data is also generated, since it is possible to control which features are meaningful. 
+Datasets are taken from the NIPS 2003 challenge \cite{NIPS}. However, due to computation power constraints, not the whole dataset is always used. Additionally the colon data set \cite{alon1999broad} is used. Finally artificial data is also generated, since it is possible to control which features are meaningful. 
 
 \begin{center}
     \begin{tabular}{| r | c | c | c | c | c |}
@@ -143,13 +147,15 @@ To generate balanced binary labels, the significant features are first summed, t
 
 \subsection{Experiments}
 
-The robustness is evaluated with a ShuffleSplit of 10 folds with 90\% of the data, as the number of samples is already limited. After weighting the features the best ones are taken (from 0.1\% to 1\%) and those subsets are compared with the Jaccard Index. For two subsets of features $F_i$ and $F_j$ it is defined as:
+Feature selectors needs to be robust but also accurate, therefore both model performance and robustness were measured.
+
+The model performance is estimated by measuring the balanced error rate of a set of classifiers: Lasso, linear SVM, k-nearest neighbor, Random Forest. For each classifier the performance was assessed using a 10-fold cross validation setting and trained on the best 1\% of the data.
+
+To measure the robustness, different equally sized subsamples are drawn from the dataset. The feature selector runs on all of them, and the best ones are taken based. The subsets are then compared with a similarity measure. Given that the model performance is measured on the best 1\% of the features, the order of the feature should not be of importance but only if one is or not part of the best subset. Hence the Jaccard Index was used because only how many features are common to both sets is important for this measure. For two subsets of features $F_i$ and $F_j$ it is defined as:
 
 \begin{equation}
 J(F_i, F_j) = \frac{| F_i \cap F_j |}{| F_i \cup F_j |}
 \end{equation}
-
-The classification performance is estimated with a cross validation of 10 folds with multiple classifiers, trained and tested on the subset of features. 4 different classifiers are used: Lasso, linear SVM, k-nearest neighbor, Random Forest.
 
 \subsection{Results}
 - Do SVM\_RFE with exponential rising
