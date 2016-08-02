@@ -81,7 +81,7 @@ The third feature selection method used is a recursive feature elimination (RFE)
                    \quad \forall \, i = 1, \ldots, m \nonumber 
 \end{alignat}
 
-The worst ranked features are then discarded and the procedure is repeated until only a subset of features is left. In the experiments, $10\%$ of the size of all features were discarded at each step. The procedure was repeated until a subset of the size of $1\%$ of all features was left. Since each step $10\%$ of the features are discarded, the overall process takes $10$ steps. Therefore a SVM is $10$ times needed to be evaluated. Another method would be to discard only $10\%$ of the remaining features. A more gradually ascend of feature weights can be achievedthis way. However this was not computable with our ressources. For the hpyerparameter $C$ a grid search on the set $/{1, 10, 100, 1000\}$ was done. The parameters were evaluated with stratisfied 5-fold cross-validation.
+The worst ranked features are then discarded and the procedure is repeated until only a subset of features is left. In the experiments, $10\%$ of the size of all features were discarded at each step. The procedure was repeated until a subset of the size of $1\%$ of all features was left. Since each step $10\%$ of the features are discarded, the overall process takes $10$ steps. Therefore a SVM is $10$ times needed to be evaluated. Another method would be to discard only $10\%$ of the remaining features. A more gradually ascend of feature weights can be achievedthis way. However this was not computable with our ressources. For the hpyerparameter $C$ a grid search on the set $\{1, 10, 100, 1000\}$ was done. The parameters were evaluated with stratisfied 5-fold cross-validation.
 
 The last feature selection method used is Lasso logistc regression \citep{wheeler2010lasso}. It is a logistic regression with a $L_1$ norm as penalty for the weight vector. For the hyperparameter $C$ a grid search with $10$ different parameters in logarithmic scale between $10^{-5}$ and $10^3$ was done. The parameters were evaluated with a stratisfied 3-fold cross-validation.
 
@@ -151,19 +151,16 @@ To measure the robustness, different equally sized subsamples are drawn from the
 J(F_i, F_j) = \frac{| F_i \cap F_j |}{| F_i \cup F_j |}
 \end{equation}
 
-<<<<<<< HEAD
 The classification performance is estimated with a cross validation of 10 folds with multiple classifiers, trained and tested on the subset of features. 4 different classifiers are used: Lasso logistic regression, linear SVM, k-nearest neighbor, Random Forest.
 
-=======
->>>>>>> 54e2bc3c74f52b0ab5d5df9647b9b550d3f12e8c
+
 \subsection{Results}
-- Do SVM\_RFE with exponential rising
 - SU achieved high values in the paper, in our results SU weighted a lot of features the 
 same; therefore for robustness same weights have to be shuffled to not accidental increase
 robustness by order of features
-- The noise features of the NIPS 2003 challenge data sets are highly correlated with the
-real feature; therefore no improvement has been made with feature selection in terms of 
-accuracy
+
+
+
 % Acknowledgements should go at the end, before appendices and references
 
 %\acks{I want to thank my mum}
