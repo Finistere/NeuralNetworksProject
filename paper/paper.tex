@@ -11,6 +11,7 @@
 \usepackage{jmlr2e}
 \usepackage{amsmath}
 \usepackage{enumitem}
+\usepackage{subcaption}
 
 % Definitions of handy macros can go here
 
@@ -159,9 +160,40 @@ The classification performance is estimated with a cross validation of 10 folds 
 same; therefore for robustness same weights have to be shuffled to not accidental increase
 robustness by order of features
 
+\subsubsection{Properties of FS}
+\begin{figure}[h!]
+  \centering
+    \includegraphics[width=\textwidth]{feature_weights_hist_arcene_artificial.png}
+  \caption{The histograms of the feature weights for all used feature selectors on the arcene and artificial data set.}
+  \label{fig:feature_weights_hist_arcene_artificial}
+\end{figure}
+In figure \ref{fig:feature_weights_hist_arcene_artificial} the histograms of the features weight can be seen for the arcene and the artificial data set. It is observable that the distribution of the feature weights have similiar shapes on each data set for RELIEFF, SVM RFE, Lasso logistic regression. In addition the distributions are centered around the same area. RELIEFF and Lasso seem to always have a strong peak. Lasso even stronger than RELIEFF, which is an effect of the sparsity of Lasso. On the other hand SU varies a lot on different data sets and does not seem to have a consistent shape. For some data sets like the artifical data set SU mainly outputs one value for all features. On others like arcene it is greatly distributed. The histograms for all data sets can be seen in the appendix in figure \ref{fig:feature_weights_hist}.
 
+\subsubsection{Results to artificial data set}
+\begin{figure}
+  \centering 
+  \begin{subfigure}[b]{0.48\textwidth}
+      \includegraphics[width=\textwidth]{feature_weights_plot_artificial_only_features.png}
+      \caption{Features weights for the real features.}
+      \label{fig:feature_weights_plot_artificial_only_features}
+  \end{subfigure}
+  ~
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{feature_weights_plot_artificial_all.png}
+      \caption{Features weights for all features.}
+      \label{fig:feature_weights_plot_artificial_all}
+  \end{subfigure}
 
-% Acknowledgements should go at the end, before appendices and references
+  \caption{The features weights for once for only the real features and once for all. In figure \ref{fig:feature_weights_plot_artificial_only_features} in the green area are the real multivariate features and in the cyan area are the real univariate features. In figure \ref{fig:feature_weights_plot_artificial_all} in the green are all real features, in the red area are the fake multivariate features and in the orange area are the fake univariate features. }
+  \label{fig:feature_weights_plot_artificial}
+\end{figure}
+\begin{figure}[h!]
+  \centering
+  \caption{The histograms of the feature weights for all used feature selectors on the arcene and artificial data set.}
+\end{figure}
+The weights of the features can be seen in figure \ref{fig:feature_weights_plot_artificial}.
+All feature selectors achieved similar results for the artificial data set except of SU. SU does not rank iall features with a zero weight which makes SU fully random on this data set. On the contrary the other feature selectors recognize parts of the inherent structure of the data. The univariate features are in general ranked lower than the multivariate features. There seems to be no diffierence in weighting between the real und fake univariate features. However the real multivariate features are ranked significantly higher than the fake multivariate features. As a consequence only multivariate features are selected. The reason why the feature selectors weight the real univariate features this low is that the univariate features do not contribute significantly to the classification. If we use only the real multivariate features with the same classification function with which the labels were created, we achieve an accuracy of $0.98$. On the other hand using the real univariate features we only achieve an accuracy of $0.52$. Therefore a feature which correlates with other significant features has significantly more impact on the classification of a data point than a uniform feature.
+Furthermore the feature seletors were evaluated after how many real features they capture in the $100$ the highest weighted features. RELIEFF achieved the highest precision of $0.5$, SVM RFE achieved $0.48$, then Lasso with $0.24$ and SU with $0$.
 
 %\acks{I want to thank my mum}
 
@@ -174,8 +206,16 @@ robustness by order of features
 \section*{Appendix A.}
 For the feature selection methods SU and RELIEFF we used the scikit-feature library from \cite{Li-etal16}.
 For SVM, RFE, Lasso logistic regression we used the scikit-sklearn library from \cite{scikit-learn}
-\label{app:some appendix}
+\label{app:appendixa}
+\section*{Appendix B.}
+\label{app:appendixb}
 
+\begin{figure}[h!]
+  \centering
+    \includegraphics[width=\textwidth]{feature_weights_hist.png}
+  \caption{The histogram of the feature weights for all feature selectors used for all data sets used.}
+  \label{fig:feature_weights_hist}
+\end{figure}
 % Note: in this sample, the section number is hard-coded in. Following
 % proper LaTeX conventions, it should properly be coded as a reference:
 
