@@ -133,7 +133,7 @@ class DataSetExperiment:
         self.results = None
         self.data_sets = None
 
-        self.row_labels = [m.__name__ for m in self.benchmark.get_measures()]
+        self.row_labels = [m.__name__ for m in self.benchmark.get_measures()] + ["Mean"]
         self.col_labels = [f.__name__ for f in self.feature_selectors]
 
     def run(self, data_sets):
@@ -174,8 +174,8 @@ class DataSetExperiment:
         table = Experiment.raw_results_table(
             self.row_labels,
             self.col_labels,
-            result.mean(axis=-1).T,
-            result.std(axis=-1).T
+            np.vstack((result.mean(axis=-1).T, result.mean(axis=(-1, -2)))),
+            np.vstack((result.std(axis=-1).T, result.std(axis=(-1, -2)))),
         )
         print(tabulate(table[1:len(table)], table[0], tablefmt='pipe'))
         print()
