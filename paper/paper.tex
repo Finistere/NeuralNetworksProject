@@ -176,8 +176,9 @@ accuracy
 \subsubsection{Different combinations of feature selectors}
 The presented ensemble methods were used with all possible combinations of feature selectors. For each combination, the average of the results was taken, and the error plot corresponds to the mean of the standard deviation of each ensemble method and each dataset. While the accuracy does not change considerably with the different combinations, see figure \ref{fig:combination_accuracy}, the robustness is heavily affected by the presence or not of the feature selector Lasso as presented in the figure \ref{fig:combination_robustness}. This is due to the low robustness of the feature selector Lasso itself. On the opposite SU and RELIEFF being quite robust, their combination, with or without SVM, are the most robust.  
 
+The methods were also compared with regards to their performance and robustness on the different combinations. However, as can be seen in figure \ref{fig:methods_results} the methods do not seems to have a great impact on the results. Therefore the choice of the combined feature selectors appears to be more important than the methods used to combine them.
 
-\begin{figure}
+\begin{figure}[!t]
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
@@ -191,8 +192,26 @@ The presented ensemble methods were used with all possible combinations of featu
   \caption{Robustness}
   \label{fig:combination_robustness}
 \end{subfigure}
-\caption{Different combination of feature selectors (RLF and LSO corresponds respectively to RELIEFF and Lasso)}
+\caption{Results for the different combination of feature selectors. RLF and LSO corresponds respectively to RELIEFF and Lasso.}
 \label{fig:combination_results}
+\end{figure}
+
+\begin{figure}[!t]
+\centering
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=1.07\textwidth]{images/Accuracy_of_the_different_methods.pdf}
+  \caption{Accuracy}
+  \label{fig:methods_accuracy}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=1.07\textwidth]{images/Robustness_of_the_different_methods.pdf}
+  \caption{Robustness}
+  \label{fig:methods_robustness}
+\end{subfigure}
+\caption{Results for the different methods on average on the different combinations. "Average +" is the average method with the normalized sum. When "\& Perf." is indicated the performance was also used to aggregate the weights.}
+\label{fig:methods_results}
 \end{figure}
 
 \newpage
