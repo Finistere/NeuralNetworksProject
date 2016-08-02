@@ -1,12 +1,10 @@
-from benchmarks import Benchmark
 from feature_selector import DataSetFeatureSelector
 import numpy as np
-import scipy.stats
 from abc import ABCMeta, abstractmethod
 from data_sets import DataSets, PreComputedData
 from sklearn.cross_validation import KFold
 import multiprocessing
-from sklearn.metrics import f1_score
+from accuracy_measure import ber
 
 
 class EnsembleMethod(DataSetFeatureSelector, metaclass=ABCMeta):
@@ -75,14 +73,35 @@ class EnsembleMethod(DataSetFeatureSelector, metaclass=ABCMeta):
 
 
 class Influence(EnsembleMethod):
-    def __init__(self, fs, k=1):
-        super().__init__(fs)
+    def __init__(self, k=1, bias=1, **kwargs):
+        super().__init__(**kwargs)
         self.k = k
-        self.__name__ += " - {}".format(k)
+        self.bias = bias
+        if self.k != 1:
+            self.__name__ += " k={}".format(self.k)
+        if self.bias != 1:
+            self.__name__ += " bias={}".format(self.bias)
 
     def combine(self, feature_selection, data, labels):
-        feature_selection = np.exp(np.arctanh(self.k * (feature_selection - 1)))
-        return (feature_selection.T / feature_selection.sum(axis=1)).T.mean(axis=0)
+        return self._influence(feature_selection).mean(axis=0)
+
+    def _influence(self, x):
+        h = np.exp(np.arctanh(self.k * (x - self.bias)))
+        return (h.T / h.sum(axis=1)).T
+
+
+class Gibbs(EnsembleMethod):
+    def __init__(self, k=0.1, **kwargs):
+        super().__init__(**kwargs)
+        self.k = k
+        self.__name__ += " k={}".format(self.k)
+
+    def combine(self, feature_selection, data, labels):
+        return self._influence(feature_selection).mean(axis=0)
+
+    def _influence(self, x):
+        h = np.exp(-x/self.k)
+        return (h.T / h.sum(axis=1)).T
 
 
 class InfluenceStd(EnsembleMethod):
@@ -97,9 +116,17 @@ class Mean(EnsembleMethod):
         return features_selection.mean(axis=0)
 
 
+class MeanNormalizedSum(EnsembleMethod):
+    def combine(self, features_selection, data, labels):
+        return self._norm(features_selection).mean(axis=0)
+
+    def _norm(self, x):
+        return (x.T / x.sum(axis=1)).T
+
+
 class MeanStd(EnsembleMethod):
-    def __init__(self, feature_selectors, power=1):
-        super().__init__(feature_selectors)
+    def __init__(self, power=1, **kwargs):
+        super().__init__(**kwargs)
         self.__name__ = "Mean std - {}".format(power)
         self.power = power
 
@@ -108,8 +135,8 @@ class MeanStd(EnsembleMethod):
 
 
 class SMean(EnsembleMethod):
-    def __init__(self, feature_selectors, min_mean_max=[1, 1, 1]):
-        super().__init__(feature_selectors)
+    def __init__(self, min_mean_max=[1, 1, 1], **kwargs):
+        super().__init__(**kwargs)
         self.weights = np.array(min_mean_max)
         self.__name__ = "SMean - {} {} {} ({})".format(*min_mean_max, self.fs_short_names())
 
@@ -120,12 +147,12 @@ class SMean(EnsembleMethod):
         return (np.vstack((f_min, f_mean, f_max)) * self.weights[:, np.newaxis]).mean(axis=0)
 
 
-class MeanWithClassifier(EnsembleMethod):
-    def __init__(self, feature_selectors, classifiers):
-        super().__init__(feature_selectors)
+class EmWithClassifier(EnsembleMethod, metaclass=ABCMeta):
+    def __init__(self, classifiers, **kwargs):
+        super().__init__(**kwargs)
         self.classifiers = classifiers
 
-    def combine(self, features_selection, data, labels):
+    def accuracy_fs(self, features_selection, data, labels):
         cv = KFold(labels.shape[0])
         accuracy = np.zeros(len(self.feature_selectors))
 
@@ -134,12 +161,25 @@ class MeanWithClassifier(EnsembleMethod):
             for train_index, test_index in cv:
                 for c in self.classifiers:
                     c.fit(data[np.ix_(best_features_indices, train_index)].T, labels[train_index])
-                    accuracy[i] += f1_score(
+                    accuracy[i] += ber(
                         labels[test_index],
                         c.predict(data[np.ix_(best_features_indices, test_index)].T)
                     )
 
-        features_selection = (features_selection.T * np.exp(accuracy)).T
+        return (features_selection.T * np.exp(accuracy)).T
 
-        return features_selection.mean(axis=0)
+
+class MeanWithClassifier(EmWithClassifier):
+    def combine(self, features_selection, data, labels):
+        return self.accuracy_fs(features_selection, data, labels).mean(axis=0)
+
+
+class InfluenceWithClassifier(Influence, EmWithClassifier):
+    def combine(self, features_selection, data, labels):
+        return self.accuracy_fs(self._influence(features_selection), data, labels).mean(axis=0)
+
+
+class MeanNormWithClassifier(MeanNormalizedSum, EmWithClassifier):
+    def combine(self, features_selection, data, labels):
+        return self.accuracy_fs(self._norm(features_selection), data, labels).mean(axis=0)
 
