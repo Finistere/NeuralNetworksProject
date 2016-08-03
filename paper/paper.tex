@@ -12,7 +12,7 @@
 \usepackage{amsmath}
 \usepackage{enumitem}
 \usepackage{subcaption}
-
+\usepackage{float}
 % Definitions of handy macros can go here
 
 \newcommand{\dataset}{{\cal D}}
@@ -185,7 +185,7 @@ In figure \ref{fig:feature_weights_hist_arcene_artificial} the histograms of the
       \label{fig:feature_weights_plot_artificial_all}
   \end{subfigure}
 
-  \caption{The features weights for once for only the real features and once for all. In figure \ref{fig:feature_weights_plot_artificial_only_features} in the green area are the real multivariate features and in the cyan area are the real univariate features. In figure \ref{fig:feature_weights_plot_artificial_all} in the green are all real features, in the red area are the fake multivariate features and in the orange area are the fake univariate features. }
+  \caption{The features weights  once for only the real features and once for all. In figure \ref{fig:feature_weights_plot_artificial_only_features} in the green area are the real multivariate features and in the cyan area are the real univariate features. In figure \ref{fig:feature_weights_plot_artificial_all} in the green are all real features, in the red area are the fake multivariate features and in the orange area are the fake univariate features. }
   \label{fig:feature_weights_plot_artificial}
 \end{figure}
 The weights of the features can be seen in figure \ref{fig:feature_weights_plot_artificial}.
@@ -238,6 +238,21 @@ The methods were also compared with regards to their performance and robustness 
 \caption{Results for the different methods on average on the different combinations. "Average +" is the average method with the normalized sum. When "\& Perf." is indicated the performance was also used to aggregate the weights.}
 \label{fig:methods_results}
 \end{figure}
+
+\subsubsection{Ensemble methods in comparisment to single feature selection}
+
+As we can see in figure \ref{fig:boxplot} the ensemble methods achieve good results on each data set. While single feature selection methods achieve better results in terms of accuracy and robustness on some data sets, they fail on others. The ensemble methods hold their performance for each dataset. On the arcene data set they even achive better results than any single feature selector.
+
+\begin{figure}[H]
+  \centering
+    \includegraphics[width=\textwidth]{images/boxplot.pdf}
+  \caption{The different ensemble methods compared with single feature selectors in comparisment of stability and accuracy.
+  The gray area is the accuracy when using no feature selection.}
+  \label{fig:boxplot}
+\end{figure}
+
+\section{Discussion}
+We have shown that ensemble methods can hold on to results of single feauter selectors and are even superior to the tested feature selectors in terms of generality on different data sets. Further knowledge about the weakness and strength of certain feature selectors can exploited to create good ensembles of feature selectors. It it also has to be tested if the ensemble methods we tried in this work, will also work on other data sets.
 
 \vskip 0.2in
 \bibliography{references}
