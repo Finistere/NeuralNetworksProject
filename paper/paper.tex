@@ -74,14 +74,13 @@ Symmetrical Uncertainty (SU) \citep{press1996numerical} is an entropy based meas
 \end{equation}
 More details about mutual information can be found in \cite{paninski2003estimation}. 
 
-The second feature selection is RELIEFF \citep{kononenko1997overcoming}. For each sample $x_i$ the k nearest neighboring samples, using the $L_1$ norm, belonging the same class $\{\textrm{Near-hit}_{i, j}\}_{j=1..k}$ and the ones of the opposite class $\{\textrm{Near-miss}_{i, j}\}_{j=1..k}$ are selected. Then the difference is taken to update the weight vector representing how well each feature distinguishes samples of the two classes, as can be seen in equation \ref{eq:relief}. In all the experiments k is set to 5, which, empirically, gives satisfactory results.
+The second feature selection is RELIEFF \citep{kononenko1997overcoming}. For each sample $x_i$ the k nearest neighboring samples, using the $L_1$ norm as metric, belonging to the same class $\{\textrm{Near-hit}_{i, j}\}_{j=1..k}$ and the ones of the opposite class $\{\textrm{Near-miss}_{i, j}\}_{j=1..k}$ are selected. Then the difference is taken to update the weight vector representing how well each feature distinguishes samples of the two classes, as can be seen in equation \ref{eq:relief}. In all the experiments k is set to 5, which empirically gives satisfactory results.
 \begin{equation}
   \label{eq:relief}
   W_i = W_i - \frac{1}{k}\sum_{j=1}^{k}|x_i - \textrm{Near-hit}_{i,j}| + \frac{1}{k}\sum_{j=1}^{k} |x_i - \textrm{Near-miss}_{i,j}|
 \end{equation}
-
-The third feature selection method used is a recursive feature elimination (RFE) with a C-SVM classifier \citep{guyon2002gene}. 
-The recursive feature elimination fits a classifier and ranks the feature according to their importance in the model. In the case of the C-SVM, it is based on the weight vector of the hyperplane. More precisely after obtaining the solution for the primal problem of the C-SVM in equation \ref{eq:svm_primal}, the ranking coefficients $c_i$ for the features are then calculated by squaring the weights $c_i = w_i^2$.
+The third feature selection method uses recursive feature elimination (RFE) with a linear C-SVM classifier \citep{guyon2002gene} to weight the features. 
+The RFE method fits a classifier and ranks the feature according to their importance in the model. In the case of the C-SVM, it is based on the weight vector of the hyperplane. More precisely after obtaining the solution for the primal problem of the C-SVM in equation \ref{eq:svm_primal}, the ranking coefficients $c_i$ for the features are then calculated by squaring the weights $c_i = w_i^2$.
 \begin{alignat}{-1}
      \min_{w,b}  & \quad \frac12\|w\|^2 + C\sum_{i=1}^m \xi_i & & & \label{eq:svm_primal} \\ 
    \text{s.\,t.} & \quad y^{(i)} (w^Tx^{(i)} + b) & \quad \geq & \quad 1 -\xi_i &&
@@ -89,15 +88,13 @@ The recursive feature elimination fits a classifier and ranks the feature accord
                  & \quad \xi_i                  & \quad \geq & \quad 0 &&
                    \quad \forall \, i = 1, \ldots, m \nonumber 
 \end{alignat}
-
-The worst ranked features are then discarded and the procedure is repeated until only a subset of features is left. In the experiments, $10\%$ of the size of all features are discarded at each step. The procedure is repeated until a subset of the size of $1\%$ of all features is left. Since each step $10\%$ of the features are discarded, the overall process takes $10$ steps. Therefore a C-SVM is $10$ times needed to be evaluated. Another method would be to discard only $10\%$ of the remaining features. A more gradually ascend of feature weights can be achieved this way. However, it is not used due to the substantially increase in needed computation power. For the hpyerparameter $C$ a grid search on the set $\{1, 10, 100, 1000\}$ is done. The parameters are evaluated with stratified 5-fold cross-validation. In this work the RFE method with a C-SVM classifier is called SVM RFE.
+The worst ranked features are then discarded and the procedure is repeated until only a subset of features is left. In the experiments, $10\%$ of the size of all features are discarded at each step. The procedure is repeated until a subset of the size of $1\%$ of all features is left. Since in each step $10\%$ of all features are discarded, the overall process takes $10$ steps. Therefore a C-SVM is needed to be $10$ times evaluated. Another method would be to discard only $10\%$ of the remaining features. A more gradually ascend of feature weights can be achieved this way. However, it is not used due to the substantially increase in needed computation power. For the hpyerparameter $C$ a grid search on the set $\{1, 10, 100, 1000\}$ is done. The parameters are evaluated with stratified 5-fold cross-validation. In this work the RFE method with a C-SVM classifier is abbreviated as SVM RFE.
 
 The last feature selection method used is Lasso logistic regression \citep{wheeler2010lasso}. It is a logistic regression with a $L_1$ norm as penalty for the weight vector. The hyperparameter $C$ is estimated with a grid search with $10$ different parameters in logarithmic scale between $10^{-5}$ and $10^3$. The parameters are evaluated with a stratified 3-fold cross-validation.
-
 \begin{equation}
     \min_{w,c} \quad \|w\|_1 + C\sum_{i=1}^n \log(\exp(y_i(x_i^Tw + c))+1)
   \end{equation}
-  The advantage of this method is to obtain a sparse weight vector as solution. Hence only a small subset of features have a significant high weight. In this work Lasso logistic regression is also called Lasso for simplicity.
+  The advantage of this method is to obtain a sparse weight vector as solution. Hence only a small subset of features have a significant high weight. In this work Lasso logistic regression is also abbreviated as Lasso for simplicity.
   
 \section{Ensemble methods}
  The ensemble method used in this paper combine different feature selection methods. Those give as output a weight vector representing how well each feature distinguishes samples of the two classes. Thus the ensemble method has to aggregate the different weights vectors. Since different methods do not always have the same weight range, they are normalized to the range $[0,1]$. Moreover for the methods which can only rank data, such as methods based on RFE, their ranking are considered as weights, and so subsequently normalized the same way. 
@@ -105,7 +102,7 @@ The last feature selection method used is Lasso logistic regression \citep{wheel
  The normalized weights are combined using different techniques. The ones used in this paper can be grouped in two distinct categories: 
 
 \begin{description}[align=left]
-\item [Linear aggregation :] The average of the weights is taken as the new weight. Two version are used, one where a normalization of the weight sum is applied and the other without it.
+\item [Linear aggregation :] The average of the weights is taken as the new weight. Two version are used, one where a normalization of the weight sum is applied and one without this normalization.
 
 \item [Performance related aggregation :] For each feature selector the best 1\% of the features are selected and used to measure the classification performance for multiple classifiers. The results from the feature selection methods are weighted according to their accuracy.
 \end{description}
@@ -117,7 +114,7 @@ Furthermore, different combinations of feature selectors are used in order to fi
 While the idea of this paper is to find a robust feature selection method, it is also necessary to evaluate the classification performance. Domain experts usually have little interest in badly performing models. Hence those two aspects are always considered in combination.
 
 \subsection{Data Sets}
-Datasets are taken from the NIPS 2003 challenge (\cite{NIPS}). However, due to computation power constraints, not the whole dataset is always used. Additionally the colon dataset (\cite{alon1999broad}) is used. Finally, artificial data is also generated, since here it is possible to control which features are meaningful. 
+Datasets are taken from the NIPS 2003 challenge (\cite{NIPS}). However, due to computation power constraints, not the whole dataset is always used. Additionally the colon dataset (\cite{alon1999broad}) is used. Finally, artificial data is also generated, since here it is possible to control which features are meaningful. All data sets are binary labelled.
 
 \begin{center}
     \begin{tabular}{| r | c | c | c | c | c |}
@@ -158,7 +155,7 @@ J(F_i, F_j) = \frac{| F_i \cap F_j |}{| F_i \cup F_j |}
 The experiments are perpared and executed on Python 3.4.3. For details about the libraries used see appendix \ref{apd:libraries}.
 
 \subsection{Results}
-In this section the results of the different experiments are presented. First the distribution of the weights given by the feature selectors is analyzed. Secondly the results on the artificial dataset is discussed. Then the influence of different combination of feature selectors is analyzed. Finally the a comparison between the ensemble methods and the feature selectors is made.
+In this section the results of the different experiments are presented. Firstly, the distribution of the weights given by the feature selectors is analyzed. Secondly, the results on the artificial dataset is discussed. Afterwards the influence of different combinations of feature selectors is analyzed. Finally, a comparison between the ensemble methods and the feature selectors is made.
 
 \subsubsection{Distribution of feature selectors}
 \begin{figure}[h!]
