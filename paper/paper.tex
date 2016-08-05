@@ -79,7 +79,8 @@ More details about mutual information can be found in \cite{paninski2003estimati
   W_i = W_i - \frac{1}{k}\sum_{j=1}^{k}|x_i - \textrm{Near-hit}_{i,j}| + \frac{1}{k}\sum_{j=1}^{k} |x_i - \textrm{Near-miss}_{i,j}|
 \end{equation}
 
-The third feature selection method used is a recursive feature elimination (RFE) with SVM \citep{guyon2002gene}. Recursive feature elimination fits a classifier and ranks the feature according to their importance in the model. In the case of the SVM, it is based on the weight vector of the hyperplane. More precisely after obtaining the solution for the primal problem of the SVM in equation \ref{eq:svm_primal}, the ranking coefficients $c_i$ for the features are then calculated by squaring the weights $c_i = w_i^2$.
+The third feature selection method used is a recursive feature elimination (RFE) with a C-SVM classifier \citep{guyon2002gene}. 
+The recursive feature elimination fits a classifier and ranks the feature according to their importance in the model. In the case of the C-SVM, it is based on the weight vector of the hyperplane. More precisely after obtaining the solution for the primal problem of the C-SVM in equation \ref{eq:svm_primal}, the ranking coefficients $c_i$ for the features are then calculated by squaring the weights $c_i = w_i^2$.
 \begin{alignat}{-1}
      \min_{w,b}  & \quad \frac12\|w\|^2 + C\sum_{i=1}^m \xi_i & & & \label{eq:svm_primal} \\ 
    \text{s.\,t.} & \quad y^{(i)} (w^Tx^{(i)} + b) & \quad \geq & \quad 1 -\xi_i &&
@@ -88,14 +89,14 @@ The third feature selection method used is a recursive feature elimination (RFE)
                    \quad \forall \, i = 1, \ldots, m \nonumber 
 \end{alignat}
 
-The worst ranked features are then discarded and the procedure is repeated until only a subset of features is left. In the experiments, $10\%$ of the size of all features are discarded at each step. The procedure is repeated until a subset of the size of $1\%$ of all features is left. Since each step $10\%$ of the features are discarded, the overall process takes $10$ steps. Therefore a SVM is $10$ times needed to be evaluated. Another method would be to discard only $10\%$ of the remaining features. A more gradually ascend of feature weights can be achieved this way. However, it is not used due to the substantially increase in needed computation power. For the hpyerparameter $C$ a grid search on the set $\{1, 10, 100, 1000\}$ is done. The parameters are evaluated with stratified 5-fold cross-validation.
+The worst ranked features are then discarded and the procedure is repeated until only a subset of features is left. In the experiments, $10\%$ of the size of all features are discarded at each step. The procedure is repeated until a subset of the size of $1\%$ of all features is left. Since each step $10\%$ of the features are discarded, the overall process takes $10$ steps. Therefore a C-SVM is $10$ times needed to be evaluated. Another method would be to discard only $10\%$ of the remaining features. A more gradually ascend of feature weights can be achieved this way. However, it is not used due to the substantially increase in needed computation power. For the hpyerparameter $C$ a grid search on the set $\{1, 10, 100, 1000\}$ is done. The parameters are evaluated with stratified 5-fold cross-validation. In this work the RFE method with a C-SVM classifier is called SVM RFE.
 
 The last feature selection method used is Lasso logistic regression \citep{wheeler2010lasso}. It is a logistic regression with a $L_1$ norm as penalty for the weight vector. For the hyperparameter $C$ a grid search with $10$ different parameters in logarithmic scale between $10^{-5}$ and $10^3$ is done. The parameters are evaluated with a stratified 3-fold cross-validation.
 
 \begin{equation}
     \min_{w,c} \quad \|w\|_1 + C\sum_{i=1}^n \log(\exp(y_i(x_i^Tw + c))+1)
   \end{equation}
-  The advantage of this method is that we obtain a sparse weight vector as solution. This means only a small subset of features will have a significant high weight.
+  The advantage of this method is that we obtain a sparse weight vector as solution. This means only a small subset of features will have a significant high weight. In this work Lasso logistic regression is also called Lasso.
   \section{Ensemble methods}
   The different feature selection methods give as output a weight vector representing how well each feature distinguishes samples of the two classes. The ensemble method used aggregates the different weights vectors. Since different methods do not always have the same weight range, they are normalized to the range $[0,1]$. Moreover for the methods which can only rank data, such as methods based on RFE, their ranking are considered as weights, and so subsequently normalized the same way. 
   Those normalized weights are combined using different techniques. The methods used in this paper can be grouped in three distinct categories: 
@@ -165,7 +166,7 @@ In this section we present our results for the experiments. %TODO what results
 \subsubsection{Distribution of feature selectors}
 \begin{figure}[h!]
   \centering
-    \includegraphics[width=\textwidth]{feature_weights_hist_arcene_artificial.png}
+    \includegraphics[width=\textwidth]{images/feature_weights_hist_arcene_artificial.png}
   \caption{The histograms of the feature weights for all used feature selectors on the arcene and artificial dataset.}
   \label{fig:feature_weights_hist_arcene_artificial}
 \end{figure}
@@ -177,18 +178,18 @@ It is observable that the distribution of the feature weights have similar shape
 \begin{figure}
   \centering 
   \begin{subfigure}[b]{0.48\textwidth}
-      \includegraphics[width=\textwidth]{feature_weights_plot_artificial_only_features.png}
+      \includegraphics[width=\textwidth]{images/feature_weights_plot_artificial_only_features_bw.png}
       \caption{Features weights for the significant features.}
       \label{fig:feature_weights_plot_artificial_only_features}
   \end{subfigure}
   ~
   \begin{subfigure}[b]{0.48\textwidth}
-    \includegraphics[width=\textwidth]{feature_weights_plot_artificial_all.png}
+    \includegraphics[width=\textwidth]{images/feature_weights_plot_artificial_all_bw.png}
       \caption{Features weights for all features.}
       \label{fig:feature_weights_plot_artificial_all}
   \end{subfigure}
 
-  \caption{The features weights  once for only the significant features and once for all. In figure \ref{fig:feature_weights_plot_artificial_only_features} in the green area are the significant multivariate features and in the cyan area are the significant univariate features. In figure \ref{fig:feature_weights_plot_artificial_all} in the green are all significant features, in the red area are the fake multivariate features and in the orange area are the fake univariate features. }
+  \caption{The features weights once for only the significant features and once for all features. In figure \ref{fig:feature_weights_plot_artificial_only_features} in the white area are the significant multivariate features and in the diagonal hatched area are the significant univariate features. In figure \ref{fig:feature_weights_plot_artificial_all} in the diagonal hatched area are all significant features, in the white area are the fake multivariate features and in the horizontal hatched area are the fake univariate features. }
   \label{fig:feature_weights_plot_artificial}
 \end{figure}
 The weights of the features can be seen in figure \ref{fig:feature_weights_plot_artificial}.
@@ -197,7 +198,7 @@ All feature selectors achieved similar results for the artificial dataset except
 Furthermore, the feature selectors are evaluated with respect to how many significant features they capture in the $100$ the highest weighted features. RELIEFF achieves the highest precision of $0.5$, SVM RFE achieves $0.48$, then Lasso with $0.24$ and SU with $0$.
 
 \subsubsection{Different combinations of feature selectors}
-The presented ensemble methods are used with all possible combinations of feature selectors. For each combination, the average across subsamples  is taken, and the error bar corresponds to the mean of the variance across subsamples of each ensemble method and each dataset. While the accuracy does not change considerably with the different combinations, see figure \ref{fig:combination_accuracy}, the robustness is heavily affected by the presence or absence of the feature selector Lasso as presented in the figure \ref{fig:combination_robustness}. This is due to the low robustness of the feature selector Lasso itself. On the opposite SU and RELIEFF being quite robust, their combination, with or without SVM, are the most robust.  
+The presented ensemble methods are used with all possible combinations of feature selectors. For each combination, the average across subsamples  is taken, and the error bar corresponds to the mean of the variance across subsamples of each ensemble method and each dataset. While the accuracy does not change considerably with the different combinations, see figure \ref{fig:combination_accuracy}, the robustness is heavily affected by the presence or absence of the feature selector Lasso as presented in the figure \ref{fig:combination_robustness}. This is due to the low robustness of the feature selector Lasso itself. On the opposite SU and RELIEFF being quite robust, their combination, with or without SVM RFE, are the most robust.  
 
 \begin{figure}
 \centering
@@ -243,18 +244,23 @@ We have shown that ensemble methods can keep up with results of single feature s
 \section{Python libraries}
 \label{apd:libraries}
 For the feature selection methods SU and RELIEFF we used the scikit-feature library from \cite{Li-etal16}.
-For SVM, RFE, Lasso logistic regression we used the scikit-sklearn library from \cite{scikit-learn}
+For C-SVM, RFE, Lasso logistic regression we used the scikit-sklearn library from \cite{scikit-learn}
 \section{Additional plots}
 \label{apd:plots}
 \begin{figure}[h!]
   \centering
-    \includegraphics[width=\textwidth]{feature_weights_hist.png}
+    \includegraphics[width=\textwidth]{images/feature_weights_hist.png}
   \caption{The histogram of the feature weights for all feature selectors used for all datasets used.}
   \label{fig:feature_weights_hist}
 \end{figure}
 
-% Note: in this sample, the section number is hard-coded in. Following
-% proper LaTeX conventions, it should properly be coded as a reference:
+\begin{figure}[h!]
+  \centering
+    \includegraphics[width=\textwidth]{images/boxplots.pdf}
+  \caption{The different ensemble methods compared with single feature selectors in comparison of stability and accuracy.
+  The gray area is the accuracy when using no feature selection.}
+  \label{fig:boxplots}
+\end{figure}
 
 
 \end{document}
