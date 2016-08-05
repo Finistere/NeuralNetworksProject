@@ -61,7 +61,7 @@
 
 \section{Introduction}
 
-Feature selection is a method used in machine learning to find a small subset of features in order to build a more accurate, simpler and faster model. It is often used with high dimensional data. Moreover it allows domain experts to gain a better understanding of the data, by focusing on the selected subset. However, in domains such as biomedical applications subsequent analysis are costly. Therefore not only the model performance but also the robustness of the feature selection method is important. Domain experts would prefer a more stable algorithm to have more confidence in the selected features. One approach for more robust results are ensemble methods.
+Feature selection is a method used in machine learning to find a small subset of features to build a more accurate, simpler and faster model. It is often used with high dimensional data. Moreover it allows domain experts to gain a better understanding of the data, by focusing on the selected subset. However, in domains such as biomedical applications subsequent analysis are costly. Thus not only the model performance but also the robustness of the feature selection method is important. Domain experts would prefer a more stable algorithm to have more confidence in the selected features. One approach for more robust results are ensemble methods.
 
 Used in machine learning and statistics, ensemble methods combine multiple algorithms in order to obtain better performance. The bagging method for feature selection, which consists of using the same algorithm on multiple subsets, has already been studied in \cite{saeys2008}. The method improved the robustness of the feature selection algorithm considerably while the model performance is not significantly degraded in most cases. The purpose of this paper is to extend on these results and investigate the effect of ensemble methods further by combining different feature selection methods.
 
@@ -72,8 +72,9 @@ Symmetrical Uncertainty (SU) \citep{press1996numerical} is an entropy based meas
   \label{eq:su}
   SU(F,C) = 2 \frac{H(F) - H(F|C)}{H(F) + H(C)} \textrm{, where } H(\cdot) \textrm{ is the entropy.}
 \end{equation}
+More details about mutual information can be found in \cite{paninski2003estimation}. 
 
-More details about mutual information can be found in \cite{paninski2003estimation}. The second feature selection is RELIEFF \citep{kononenko1997overcoming}. For each sample $x_i$ the k nearest neighboring samples, using the $L_1$ norm, belonging the same class $\{\textrm{Near-hit}_{i, j}\}_{j=1..k}$ and the ones of the opposite class $\{\textrm{Near-miss}_{i, j}\}_{j=1..k}$ are selected. Then the difference is taken to update the weight vector representing how well each feature distinguishes samples of the two classes, as can be seen in equation \ref{eq:relief}. In all the experiments k is set to 5, which, empirically, gives satisfactory results.
+The second feature selection is RELIEFF \citep{kononenko1997overcoming}. For each sample $x_i$ the k nearest neighboring samples, using the $L_1$ norm, belonging the same class $\{\textrm{Near-hit}_{i, j}\}_{j=1..k}$ and the ones of the opposite class $\{\textrm{Near-miss}_{i, j}\}_{j=1..k}$ are selected. Then the difference is taken to update the weight vector representing how well each feature distinguishes samples of the two classes, as can be seen in equation \ref{eq:relief}. In all the experiments k is set to 5, which, empirically, gives satisfactory results.
 \begin{equation}
   \label{eq:relief}
   W_i = W_i - \frac{1}{k}\sum_{j=1}^{k}|x_i - \textrm{Near-hit}_{i,j}| + \frac{1}{k}\sum_{j=1}^{k} |x_i - \textrm{Near-miss}_{i,j}|
@@ -91,21 +92,17 @@ The recursive feature elimination fits a classifier and ranks the feature accord
 
 The worst ranked features are then discarded and the procedure is repeated until only a subset of features is left. In the experiments, $10\%$ of the size of all features are discarded at each step. The procedure is repeated until a subset of the size of $1\%$ of all features is left. Since each step $10\%$ of the features are discarded, the overall process takes $10$ steps. Therefore a C-SVM is $10$ times needed to be evaluated. Another method would be to discard only $10\%$ of the remaining features. A more gradually ascend of feature weights can be achieved this way. However, it is not used due to the substantially increase in needed computation power. For the hpyerparameter $C$ a grid search on the set $\{1, 10, 100, 1000\}$ is done. The parameters are evaluated with stratified 5-fold cross-validation. In this work the RFE method with a C-SVM classifier is called SVM RFE.
 
-The last feature selection method used is Lasso logistic regression \citep{wheeler2010lasso}. It is a logistic regression with a $L_1$ norm as penalty for the weight vector. For the hyperparameter $C$ a grid search with $10$ different parameters in logarithmic scale between $10^{-5}$ and $10^3$ is done. The parameters are evaluated with a stratified 3-fold cross-validation.
+The last feature selection method used is Lasso logistic regression \citep{wheeler2010lasso}. It is a logistic regression with a $L_1$ norm as penalty for the weight vector. The hyperparameter $C$ is estimated with a grid search with $10$ different parameters in logarithmic scale between $10^{-5}$ and $10^3$. The parameters are evaluated with a stratified 3-fold cross-validation.
 
 \begin{equation}
     \min_{w,c} \quad \|w\|_1 + C\sum_{i=1}^n \log(\exp(y_i(x_i^Tw + c))+1)
   \end{equation}
-  The advantage of this method is that we obtain a sparse weight vector as solution. This means only a small subset of features will have a significant high weight. In this work Lasso logistic regression is also called Lasso.
-  \section{Ensemble methods}
-  The different feature selection methods give as output a weight vector representing how well each feature distinguishes samples of the two classes. The ensemble method used aggregates the different weights vectors. Since different methods do not always have the same weight range, they are normalized to the range $[0,1]$. Moreover for the methods which can only rank data, such as methods based on RFE, their ranking are considered as weights, and so subsequently normalized the same way. 
-  Those normalized weights are combined using different techniques. The methods used in this paper can be grouped in three distinct categories: 
-
+  The advantage of this method is to obtain a sparse weight vector as solution. Hence only a small subset of features have a significant high weight. In this work Lasso logistic regression is also called Lasso for simplicity.
+  
 \section{Ensemble methods}
-
-The different feature selection methods give as output a weight vector representing how well each feature distinguishes samples of the two classes. Those are then be combined by the ensemble method. Since different methods do not always have the same weight range, they are normalized to the range $[0,1]$. Moreover for the methods which can only rank data, such as methods based on RFE, their ranking are considered as weights, and so subsequently normalized the same way. 
-
-Those normalized weights are combined using different schemes. The methods used in this paper can be grouped in two distinct categories 
+ The ensemble method used in this paper combine different feature selection methods. Those give as output a weight vector representing how well each feature distinguishes samples of the two classes. Thus the ensemble method has to aggregate the different weights vectors. Since different methods do not always have the same weight range, they are normalized to the range $[0,1]$. Moreover for the methods which can only rank data, such as methods based on RFE, their ranking are considered as weights, and so subsequently normalized the same way. 
+ 
+ The normalized weights are combined using different techniques. The ones used in this paper can be grouped in two distinct categories: 
 
 \begin{description}[align=left]
 \item [Linear aggregation :] The average of the weights is taken as the new weight. Two version are used, one where a normalization of the weight sum is applied and the other without it.
@@ -139,9 +136,8 @@ The features of the artificial dataset is generated with different Gaussian dist
 \begin{align}
 f \sim \mathcal{N}(0, 1) + \mathcal{N}(0, \Sigma)  \quad \text{with} \quad \Sigma_{ij} \sim \mathcal{U}(0,1)
 \end{align}
-Therefore the artificial consists of $50$ correlated significant features, $50$ uncorrelated significant features, $4950$ correlated fake features and $4950$ uncorrelated fake features. We will call the uncorrelated features univariate features and the correlated features multivariate features in this work.
-% \text{unsignificant} \quad & f \sim 0.5 * \left[ N(0, 1) + U(-1,1) \right]
-To generate balanced binary labels, the significant features are first summed, then the median of the sums is subtracted, finally the sign is taken. 
+Therefore the artificial consists of $50$ correlated significant features, $50$ uncorrelated significant features, $4950$ correlated fake features and $4950$ uncorrelated fake features. In this work, the uncorrelated features and the correlated features are also respectively called univariate and  multivariate features.
+To generate balanced binary labels the significant features are first summed, then the median of the sum is subtracted, finally the sign is taken. 
 
 
 \subsection{Experiments}
@@ -153,7 +149,7 @@ The model performance is estimated by measuring the balanced error rate of a set
 %TODO describe how hyperparameters are obtained for each classifier
 For each classifier the performance is assessed using a 10-fold cross validation setting and trained on the best 1\% of the features.
 
-To measure the robustness, 10 equally sized subsamples are drawn from the dataset. The feature selector runs on all of them, and the best ones are taken. The subsets are then compared with a similarity measure. Given that the model performance is measured on the best 1\% of the features, the order of the feature should not be of importance but only if one is or is not part of the best subset. The Jaccard Index is used because only how many features are common to both sets is important for this measure. For two subsets of features $F_i$ and $F_j$ it is defined as:
+To measure the robustness, 10 equally sized subsamples are drawn from the dataset. The feature selector runs on all of them, and the best ones are taken. The subsets are then compared with a similarity measure. Given that the model performance is measured on the best 1\% of the features, the order of the feature should not be of importance but only if one is or is not part of the best subset. The Jaccard Index is used because only how many features are common to both sets is important. For two subsets of features $F_i$ and $F_j$ it is defined as:
 
 \begin{equation}
 J(F_i, F_j) = \frac{| F_i \cap F_j |}{| F_i \cup F_j |}
@@ -162,7 +158,8 @@ J(F_i, F_j) = \frac{| F_i \cap F_j |}{| F_i \cup F_j |}
 The experiments are perpared and executed on Python 3.4.3. For details about the libraries used see appendix \ref{apd:libraries}.
 
 \subsection{Results}
-In this section we present our results for the experiments. %TODO what results
+In this section the results of the different experiments are presented. First the distribution of the weights given by the feature selectors is analyzed. Secondly the results on the artificial dataset is discussed. Then the influence of different combination of feature selectors is analyzed. Finally the a comparison between the ensemble methods and the feature selectors is made.
+
 \subsubsection{Distribution of feature selectors}
 \begin{figure}[h!]
   \centering
@@ -193,7 +190,7 @@ It is observable that the distribution of the feature weights have similar shape
   \label{fig:feature_weights_plot_artificial}
 \end{figure}
 The weights of the features can be seen in figure \ref{fig:feature_weights_plot_artificial}.
-All feature selectors achieved similar results for the artificial dataset except for SU. SU ranks all features with a zero weight, making it not better than a random feature selection on this dataset. On the contrary the other feature selectors recognize parts of the inherent structure of the data. The univariate features are in general ranked lower than the multivariate features. There seems to be no difference in weighting between the significant und fake univariate features. However the significant multivariate features are ranked significantly higher than the fake multivariate features. As a consequence only multivariate features are selected. The reason why the feature selectors weight the significant univariate features this low is that the univariate features do not contribute significantly to the classification. If we use only the significant multivariate features with the same classification function with which the labels are created, we achieve an accuracy of $0.98$. On the other hand using the significant univariate features we only achieve an accuracy of $0.52$. Therefore a feature which correlates with other significant features has significantly more impact on the classification of a data point than a uniform feature.
+All feature selectors achieve similar results for the artificial dataset except for SU. SU ranks all features with a zero weight, making it not better than a random feature selection on this dataset. On the contrary the other feature selectors recognize parts of the inherent structure of the data. The univariate features are in general ranked lower than the multivariate features. There seems to be no difference in weighting between the significant und fake univariate features. However the significant multivariate features are ranked significantly higher than the fake multivariate features. As a consequence only multivariate features are selected. The reason why the feature selectors weight the significant univariate features this low is that the univariate features do not contribute significantly to the classification. If only the significant multivariate features are used with classification function used to generate the labels, an accuracy of $0.98$ is obtained. On the other hand using only the significant univariate features the accuracy drops to $0.52$. Therefore a feature which correlates with other significant features has significantly more impact on the classification of a data point than a uniform feature.
 
 Furthermore, the feature selectors are evaluated with respect to how many significant features they capture in the $100$ the highest weighted features. RELIEFF achieves the highest precision of $0.5$, SVM RFE achieves $0.48$, then Lasso with $0.24$ and SU with $0$.
 
@@ -221,7 +218,7 @@ The presented ensemble methods are used with all possible combinations of featur
 \subsubsection{Ensemble methods in comparison to single feature selection}
 
 To compare the different feature selection methods in relation of robustness and accuracy, the single feature selection and the three ensemble methods achieving the best results are plotted with accuracy against stability. For the stability the Jaccard index with $1\%$ of the features is used. For the accuracy the all classifiers described in \ref{sec:experiments}  reused. For each feature selection method the standard deviation for the accuracy and the stability on the different subsets are plotted. The results for the different classifiers are similar. In figure \ref{fig:boxplot_svm} the results for the C-SVM classifier can be observed. The other results can be seen in the appendix. %TODO boxplots for plots
-As we can see in figure \ref{fig:boxplot_svm} the ensemble methods achieve good results on each dataset. While single feature selection methods achieve better results in terms of accuracy and robustness on some datasets, they fail on others. However the ensemble methods keep their performance for each dataset. On the arcene dataset they even achive better results than any single feature selector.
+As can be seen in figure \ref{fig:boxplot_svm} the ensemble methods achieve good results on each dataset. While single feature selection methods achieve better results in terms of accuracy and robustness on some datasets, they fail on others. However the ensemble methods keep their performance for each dataset. On the arcene dataset they even achieve better results than any single feature selector.
 
 \begin{figure}[H]
   \centering
@@ -232,7 +229,7 @@ As we can see in figure \ref{fig:boxplot_svm} the ensemble methods achieve good 
 \end{figure}
 
 \section{Discussion}
-We have shown that ensemble methods can keep up with results of single feature selectors and are even superior to the tested feature selectors in terms of generality over different datasets. Further knowledge about the weakness and strength of certain feature selectors can exploited to create good ensembles of feature selectors. For the future it has to be tested if the ensemble methods in this work show similar performance on other datasets.
+This work shows that ensemble methods can keep up with results of single feature selectors and are even superior to the tested feature selectors in terms of generality over different datasets. Further knowledge about the weakness and strength of certain feature selectors can exploited to create good combinations of feature selectors. For the future it has to be tested if the ensemble methods in this work show similar performance on other datasets.
 
 \vskip 0.2in
 \bibliography{references}
@@ -243,8 +240,8 @@ We have shown that ensemble methods can keep up with results of single feature s
 \label{appendix}
 \section{Python libraries}
 \label{apd:libraries}
-For the feature selection methods SU and RELIEFF we used the scikit-feature library from \cite{Li-etal16}.
-For C-SVM, RFE, Lasso logistic regression we used the scikit-sklearn library from \cite{scikit-learn}
+For the feature selection methods SU and RELIEFF come from the scikit-feature library (\cite{Li-etal16}).
+For C-SVM, RFE, Lasso logistic regression come from the scikit-sklearn library (\cite{scikit-learn}).
 \section{Additional plots}
 \label{apd:plots}
 \begin{figure}[h!]
