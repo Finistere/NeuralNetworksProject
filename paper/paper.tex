@@ -117,7 +117,7 @@ Furthermore, different combinations of feature selectors are used in order to fi
 While the idea of this paper is to find a robust feature selection method, it is also necessary to evaluate the classification performance. Domain experts usually have little interest in badly performing models. Hence those two aspects are always considered in combination.
 
 \subsection{Data Sets}
-Datasets are taken from the NIPS 2003 challenge (\cite{NIPS}). However, due to computation power constraints, not the whole dataset is always used. Additionally the colon dataset (\cite{alon1999broad}) is used. Finally, artificial data is also generated, since here it is possible to control which features are meaningful. 
+Datasets are taken from the NIPS 2003 challenge (\cite{NIPS}). However, due to computation power constraints, not the whole dataset is always used. Additionally the colon dataset (\cite{alon1999broad}) is used. Finally, artificial data is also generated, since here it is possible to control which features are meaningful. The datasets and the number of samples used are indicated in table \ref{table:datasets}.
 
 \begin{center}
     \begin{tabular}{| r | c | c | c | c | c |}
@@ -130,12 +130,15 @@ Datasets are taken from the NIPS 2003 challenge (\cite{NIPS}). However, due to c
     Artificial & 10 000 & 300 & 150 & 150 & \\
     \hline
     \end{tabular}
+  \label{table:datasets}
+  \captionof{table}{Datasets used in the experiments}
 \end{center}
 
 The features of the artificial dataset is generated with different Gaussian distributions, depending on whether they are used in the labeling process or not. It consists of $100$ significant features and $9900$ fake features. The significant features and fake features both consists of correlated and uncorrelated features. The correlation between the correlated features is randomly generated. The ratio of correlated features and uncorrelated features are for the significant and the fake features $0.5$. 
-\begin{align}
-f \sim \mathcal{N}(0, 1) + \mathcal{N}(0, \Sigma)  \quad \text{with} \quad \Sigma_{ij} \sim \mathcal{U}(0,1)
-\end{align}
+\begin{alignat}{-1}
+\text{uncorrelated features} & \sim & \mathcal{N}(0, 1) & \\ 
+\text{correlated features} & \sim & \mathcal{N}(0, \Sigma) & \quad \text{with} \quad \Sigma_{ij} \sim \mathcal{U}(0,1)
+\end{alignat}
 Therefore the artificial consists of $50$ correlated significant features, $50$ uncorrelated significant features, $4950$ correlated fake features and $4950$ uncorrelated fake features. In this work, the uncorrelated features and the correlated features are also respectively called univariate and  multivariate features.
 To generate balanced binary labels the significant features are first summed, then the median of the sum is subtracted, finally the sign is taken. 
 
