@@ -121,7 +121,7 @@ class MeanNormalizedSum(EnsembleMethod):
         return self._norm(features_selection).mean(axis=0)
 
     def _norm(self, x):
-        return (x.T / x.sum(axis=1)).T
+        return np.nan_to_num((x.T / x.sum(axis=1)).T)
 
 
 class MeanStd(EnsembleMethod):

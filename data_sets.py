@@ -119,6 +119,9 @@ class DataSets:
 
     @staticmethod
     def load_features_labels(data_set):
+        if data_set not in DataSets.data_sets:
+            return None
+
         data_info, _ = DataSets.data_sets[data_set]
         feat_labels_filename = data_info.get('feat_labels', None)
 

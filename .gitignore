@@ -3,3 +3,4 @@ _test.py
 /__pycache__/
 /.cache/
 /results.txt
+/combinations_figures.ipynb

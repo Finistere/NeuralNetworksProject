@@ -30,7 +30,10 @@ class TestRobustnessBenchmark:
 
 
 class TestClassifierWrapper:
-    classifier = ClassifierWrapper(DummyClassifier(strategy='constant', constant=1))
+    classifier = ClassifierWrapper(
+        DummyClassifier(strategy='constant', constant=1),
+        accuracy_measure=f1_score
+    )
 
     def test_run(self):
         data = np.random.randn(200, 10)

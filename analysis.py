@@ -65,7 +65,16 @@ def artificial(feature_selectors, jaccard_percentage=0.01, save=True, classifier
 
     precision_exp = DataSetExperiment(
         MeasureBenchmark([
-            goodness_measure.Precision("artificial"),
+            goodness_measure.Precision("artificial", 100),
+            goodness_measure.Precision("artificial", 200),
+            goodness_measure.Precision("artificial", 300),
+            goodness_measure.Precision("artificial", 400),
+            goodness_measure.Precision("artificial", 500),
+            goodness_measure.Precision("artificial", 600),
+            goodness_measure.Precision("artificial", 700),
+            goodness_measure.Precision("artificial", 800),
+            goodness_measure.Precision("artificial", 900),
+            goodness_measure.Precision("artificial", 1000),
             goodness_measure.XPrecision("artificial")
         ]),
         feature_selectors

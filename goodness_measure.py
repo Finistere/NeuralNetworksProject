@@ -58,6 +58,11 @@ class GoodnessMeasure(Measure, metaclass=ABCMeta):
 
 
 class Dummy(GoodnessMeasure):
+    def __init__(self, *args, n_significant_features=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if n_significant_features is not None:
+            self.n_significant_features = n_significant_features
+
     def goodness(self, data: RankData):
         return data.features_rank[0]
 

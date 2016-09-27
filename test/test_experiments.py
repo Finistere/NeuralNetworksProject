@@ -7,8 +7,8 @@ from sklearn.dummy import DummyClassifier
 
 class TestRobustnessExperiment:
     experiment = MeasureExperiment(
-        robustness_measure.Dummy(),
-        [feature_selector.DummyFeatureSelector(), feature_selector.DummyFeatureSelector()]
+        measures=robustness_measure.Dummy(),
+        feature_selectors=[feature_selector.DummyFeatureSelector(), feature_selector.DummyFeatureSelector()]
     )
 
     def test_run(self):
@@ -32,8 +32,8 @@ class TestRobustnessExperiment:
 
 class TestAccuracyExperiment:
     experiment = AccuracyExperiment(
-        DummyClassifier(strategy='constant', constant=1),
-        [feature_selector.DummyFeatureSelector(), feature_selector.DummyFeatureSelector()]
+        classifiers=DummyClassifier(strategy='constant', constant=1),
+        feature_selectors=[feature_selector.DummyFeatureSelector(), feature_selector.DummyFeatureSelector()]
     )
 
     def test_run(self):

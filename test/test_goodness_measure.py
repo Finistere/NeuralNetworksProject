@@ -2,7 +2,8 @@ from goodness_measure import *
 
 
 class TestRankData:
-    rank_data = RankData([8, 0, 1, 2, 3, 4, 5, 6, 7], 4)
+    data = [8, 0, 1, 2, 3, 4, 5, 6, 7]
+    rank_data = RankData(data, 4, 4)
 
     def test_true_positive(self):
         assert 1 == self.rank_data.true_positive
@@ -18,7 +19,7 @@ class TestRankData:
 
 
 class TestGoodnessMeasure:
-    goodness_measure = Dummy(2)
+    goodness_measure = Dummy("", n_significant_features=2)
 
     def test_measures(self):
         features_ranks = np.array([
@@ -27,16 +28,16 @@ class TestGoodnessMeasure:
             [3, 4, 1, 2, 0]
         ]).T
 
-        expected_result = [3, 4, 0]
+        expected_result = [0, 4, 3]
 
-        assert expected_result == self.goodness_measure.measures(features_ranks)
+        assert expected_result == self.goodness_measure.measures(features_ranks).tolist()
 
 
 class TestAccuracy:
     accuracy = Accuracy(4)
 
     def test_goodness(self):
-        rank_data = RankData([8, 0, 1, 2, 3, 4, 5, 6, 7], 4)
+        rank_data = RankData([8, 0, 1, 2, 3, 4, 5, 6, 7], 4, 4)
         expected_result = (1 + 2)/9
 
         assert expected_result == self.accuracy.goodness(rank_data)
